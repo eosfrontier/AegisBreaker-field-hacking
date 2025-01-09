@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from './firebaseConfig';
+import { db } from '../../firebaseConfig';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 
 const ITEMS = ['A', 'B', 'C', 'D'];
