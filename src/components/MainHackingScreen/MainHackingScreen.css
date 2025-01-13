@@ -1,0 +1,47 @@
+.main-hacking-screen {
+    padding: 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+
+  }
+  
+  .init-phase {
+    /* Styles for the init screen */
+  }
+  
+  .initialize-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+  
+  .active-phase .layer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+  .layer-item {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: rgb(68, 68, 68);
+    padding: 1rem;
+  }
+  
+  .layer-header {
+    margin-bottom: 1rem;
+  }
+  
+  .layer-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .success-phase, .failure-phase {
+    /* Center success/failure messages */
+  }
+  
