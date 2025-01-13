@@ -32,14 +32,14 @@ function AdminPanelLayout() {
   const createNewSession = async () => {
     const docRef = await addDoc(collection(db, 'sessions'), {
       name: 'New Session',
-      status: 'ACTIVE',
+      status: 'INIT',
       timeLimit: 300,
       createdAt: new Date().toISOString(),
     });
     const newSession = {
       id: docRef.id,
       name: 'New Session',
-      status: 'ACTIVE',
+      status: 'INIT',
       timeLimit: 300,
       createdAt: new Date().toISOString(),
     };
@@ -54,7 +54,7 @@ function AdminPanelLayout() {
     if (updatedSession.deleted) {
       // session was deleted
       setSessions((prev) => prev.filter(s => s.id !== updatedSession.id));
-      setSelectedSessionId(null); // or force to select another session
+      setSelectedSessionId(null);
       return;
     }
     // normal update logic

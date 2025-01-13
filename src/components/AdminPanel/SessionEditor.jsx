@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     doc, 
-    getDoc, 
     updateDoc, 
     collection, 
+    onSnapshot,
     getDocs, 
     addDoc, 
     deleteDoc 
@@ -51,39 +51,40 @@ import {
     const [dirty, setDirty] = useState(false);
   
     useEffect(() => {
-      const loadSession = async () => {
-        setIsLoading(true);
-        const docRef = doc(db, 'sessions', sessionId);
-        const snapshot = await getDoc(docRef);
-  
+      if (!sessionId) return;
+    
+      // Listen to the session doc
+      const sessionDocRef = doc(db, 'sessions', sessionId);
+      const unsubscribeSession = onSnapshot(sessionDocRef, (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
           setSessionData(data);
           setName(data.name || '');
           setTimeLimit(data.timeLimit || 300);
           setStatus(data.status || 'ACTIVE');
+          setIsLoading(false);
         } else {
           console.error('Session does not exist');
+          setIsLoading(false);
         }
-        setIsLoading(false);
-      };
-  
-      const fetchLayers = async () => {
-        setIsLayersLoading(true);
-        const layersRef = collection(db, 'sessions', sessionId, 'layers');
-        const layersSnap = await getDocs(layersRef);
-        const layerData = layersSnap.docs.map(doc => ({
+      });
+    
+      // Listen to the layers sub-collection
+      const layersRef = collection(db, 'sessions', sessionId, 'layers');
+      const unsubscribeLayers = onSnapshot(layersRef, (layersSnap) => {
+        const layerData = layersSnap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setLayers(layerData);
         setIsLayersLoading(false);
+      });
+    
+      // Cleanup both listeners when unmounting or sessionId changes
+      return () => {
+        unsubscribeSession();
+        unsubscribeLayers();
       };
-  
-      if (sessionId) {
-        loadSession();
-        fetchLayers();
-      }
     }, [sessionId]);
   
     // --- Save Session Changes ---
@@ -261,8 +262,10 @@ import {
               }}
               style={{ width: '100%', padding: '4px' }}
             >
+              <option value="INIT">INIT</option>
               <option value="ACTIVE">ACTIVE</option>
-              <option value="COMPLETE">COMPLETE</option>
+              <option value="SUCCESS">SUCCESS</option>
+              <option value="FAILURE">FAILURE</option>
             </select>
           </div>
 
@@ -385,7 +388,7 @@ import {
                           onClick={() => handleUpdateLayerStatus(layer.id, 'SOLVED')} 
                           style={{ marginRight: '8px' }}
                         >
-                          Mark Solved
+                          Unlock
                         </button>
                       )}
                       {layer.status !== 'LOCKED' && (
