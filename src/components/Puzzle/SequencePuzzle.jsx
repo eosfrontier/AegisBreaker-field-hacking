@@ -1,124 +1,146 @@
-import { useState, useEffect } from 'react';
-import { db } from '../../firebaseConfig';
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { useState, useEffect } from "react";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+import "./SequencePuzzle.css";
 
-const ITEMS = ['A', 'B', 'C', 'D'];
-  // We'll store the item set outside the component to avoid re-creations
+const VALID_CHARS = [
+  ..."abcdefghijklmnopqrstuvwxyz",
+  ..."123456789",
+  '!', '"', '#', '¤', '%', '&', '/', '(', ')', '=', '?', '@',
+];
 
-const puzzleDoc = doc(db, 'puzzles', 'sequencePuzzle'); 
-// ^ This references the Firestore document for your puzzle.
+/**
+ * Generate a random sequence of length `len` from VALID_CHARS
+ */
+const generateRandomSequence = (len) => {
+  const sequence = [];
+  for (let i = 0; i < len; i++) {
+    const randomIndex = Math.floor(Math.random() * VALID_CHARS.length);
+    sequence.push(VALID_CHARS[randomIndex]);
+  }
+  return sequence;
+};
 
-function SequencePuzzle() {
+const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
+  // 1) On mount, generate a brand new 5-symbol sequence
   const [sequence, setSequence] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [status, setStatus] = useState('IN_PROGRESS');
+  // 2) Current index in the sequence
+  const [progressIndex, setProgressIndex] = useState(0);
+  // 3) Current set of shuffled choices (correct symbol + random others)
+  const [currentChoices, setCurrentChoices] = useState([]);
+
+  const difficulty = layerData?.difficulty || 1;
 
 
   useEffect(() => {
-    // Shuffle once on mount
-    const shuffled = [...ITEMS].sort(() => Math.random() - 0.5);
-    setSequence(shuffled);
+    // Generate the random 5-symbol sequence once
+    const newSequence = generateRandomSequence(5 * difficulty);
+    setSequence(newSequence);
+  }, [difficulty]);
 
-    // 1) Listen to Firestore changes for this puzzle
-    const unsubscribe = onSnapshot(puzzleDoc, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        // We can sync the puzzle status with Firestore if we want
-        console.log("Data from Firestore:", data);
-        // For instance, if we want to respect remote updates:
-        if (data.status && data.status !== status) {
-          setStatus(data.status);
+  /**
+   * Whenever the `progressIndex` or the `sequence` changes,
+   * generate a new set of choices if we're not at the end.
+   */
+  useEffect(() => {
+    if (sequence.length === 0) return;         // Not ready yet
+    if (progressIndex >= sequence.length) return; // Already complete
+
+    const correctChar = sequence[progressIndex];
+    setCurrentChoices(generateShuffledChoices(correctChar));
+  }, [progressIndex, sequence]);
+
+  /**
+   * Generate random 7 other chars + the correct one, then shuffle
+   */
+  const generateShuffledChoices = (correctChar) => {
+    let randomChars = [];
+    // pick 7 distinct random chars (not the correct one)
+    while (randomChars.length < 14 * difficulty) {
+      const candidate = VALID_CHARS[Math.floor(Math.random() * VALID_CHARS.length)];
+      if (!randomChars.includes(candidate) && candidate !== correctChar) {
+        randomChars.push(candidate);
+      }
+    }
+
+    // Insert correct char at random position
+    const correctPos = Math.floor(Math.random() * 8);
+    randomChars.splice(correctPos, 0, correctChar);
+    return randomChars;
+  };
+
+  /**
+   * Handle when the user taps a choice
+   */
+  const handleChoiceClick = async (char) => {
+    if (sequence.length === 0) return; // safety check
+
+    const correctChar = sequence[progressIndex];
+    if (char === correctChar) {
+      // Correct choice
+      const nextIndex = progressIndex + 1;
+      setProgressIndex(nextIndex);
+
+      if (nextIndex === sequence.length) {
+        // Puzzle is solved
+        try {
+          const layerRef = doc(db, "sessions", sessionId, "layers", layerId);
+          await updateDoc(layerRef, { status: "SOLVED" });
+        } catch (err) {
+          console.error("Error updating puzzle status:", err);
         }
       }
-    });
-
-    return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // only once on mount
-
-  // 2) A helper function to write status to Firestore
-  async function updatePuzzleStatus(newStatus) {
-    setStatus(newStatus);
-    await setDoc(puzzleDoc, {
-      status: newStatus,
-      lastUpdated: Date.now()
-    }, { merge: true });
-  }
-
-  const handleClick = async (letter) => {
-    // If puzzle is already solved or failed, ignore clicks
-    if (status !== 'IN_PROGRESS') return;
-
-    // Check if the clicked letter matches the current needed letter
-    if (letter === sequence[currentIndex]) {
-      // Correct
-      if (currentIndex === sequence.length - 1) {
-        // That was the last letter
-        await updatePuzzleStatus('SOLVED');
-      } else {
-        setCurrentIndex(currentIndex + 1);
-      }
     } else {
-      // Wrong
-      await updatePuzzleStatus('FAILED');
+      // Wrong choice (optional: show an error animation, reduce time, etc.)
+      console.log("Wrong choice!");
     }
   };
 
+  // If fully solved, just show a success message
+  if (progressIndex === sequence.length && sequence.length > 0) {
+    return <div className="sequence-puzzle-container">Sequence complete! Good job!</div>;
+  }
+
+  // The next symbol to tap (for reference or if you want to display it)
+  const currentTarget = sequence[progressIndex] || "";
+
   return (
-    <div style={{ textAlign: 'center', margin: '2rem' }}>
+    <div className="sequence-puzzle-container">
       <h2>Sequence Puzzle</h2>
 
-      {status === 'IN_PROGRESS' && (
-        <p>
-          Please click the letters in this order: 
-          <strong> {sequence.join(' - ')} </strong>
-        </p>
-      )}
-      {status === 'SOLVED' && (
-        <p style={{ color: 'limegreen', fontWeight: 'bold' }}>
-          Puzzle solved!
-        </p>
-      )}
-      {status === 'FAILED' && (
-        <p style={{ color: 'red', fontWeight: 'bold' }}>
-          Wrong sequence! Try again or reset.
-        </p>
-      )}
 
-      <div style={{ marginTop: '1rem' }}>
-        {ITEMS.map((letter) => (
+      {/* Progress row: e.g. 5 boxes for a 5-symbol sequence */}
+      <div className="progress-row">
+        {sequence.map((symbol, idx) => (
+          <div
+            key={idx}
+            className={idx < progressIndex ? "progress-box filled" : "progress-box"}
+          />
+        ))}
+      </div>
+      <p>
+        {`Completed ${progressIndex} / ${sequence.length}`}
+      </p>
+
+      {/* The current symbol to tap, displayed with the custom font */}
+      <div className="current-target">
+        <span className="digital-symbol">{currentTarget}</span>
+      </div>
+
+      {/* The choice buttons */}
+      <div className="choices-row">
+        {currentChoices.map((char, idx) => (
           <button
-            key={letter}
-            onClick={() => handleClick(letter)}
-            style={{
-              margin: '0.5rem',
-              padding: '1rem 2rem',
-              fontSize: '1rem',
-              cursor: 'pointer'
-            }}
+            key={idx}
+            className="puzzle-button"
+            onClick={() => handleChoiceClick(char)}
           >
-            {letter}
+            <span className="digital-symbol">{char}</span>
           </button>
         ))}
       </div>
-
-      {(status === 'FAILED' || status === 'SOLVED') && (
-        <div style={{ marginTop: '1rem' }}>
-          <button
-            onClick={async () => {
-              // Reset puzzle
-              const shuffled = [...ITEMS].sort(() => Math.random() - 0.5);
-              setSequence(shuffled);
-              setCurrentIndex(0);
-              await updatePuzzleStatus('IN_PROGRESS');
-            }}
-          >
-            Reset Puzzle
-          </button>
-        </div>
-      )}
     </div>
   );
-}
+};
 
 export default SequencePuzzle;

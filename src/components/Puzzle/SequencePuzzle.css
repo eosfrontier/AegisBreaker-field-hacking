@@ -1,0 +1,59 @@
+  
+@font-face {
+    font-family: 'Echolot';
+    src: url('/fonts/Echolot.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+/* Class for using the digital glyph font */
+.digital-symbol {
+    font-family: 'Echolot', sans-serif;
+    color: #04d9ee;
+    font-size: 50px;
+  }
+  
+  /* Container styling */
+  .sequence-puzzle-container {
+    text-align: center;
+  }
+  
+  /* Progress Row: a row of boxes */
+  .progress-row {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+  }
+  
+  /* Each box in the progress row */
+  .progress-box {
+    width: 20px;
+    height: 20px;
+    margin: 4px;
+    background-color: #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Filled box (already solved a symbol) */
+  .progress-box.filled {
+    background-color: #2ecc71; /* green */
+  }
+  
+  .current-target {
+    font-size: 2rem;
+    margin: 16px 0;
+  }
+  
+  .choices-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  
+  .puzzle-button {
+    font-family: 'Echolot', sans-serif;
+    padding: 5px 30px 5px 5px;
+    cursor: pointer;
+  }
