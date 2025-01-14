@@ -1,7 +1,9 @@
   
 @font-face {
     font-family: 'Echolot';
-    src: url('/fonts/Echolot.ttf') format('truetype');
+    src: url('/fonts/Echolot.woff2') format('woff2'),
+    url('/fonts/Echolot.woff') format('woff'),
+    url('/fonts/Echolot.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
   }
