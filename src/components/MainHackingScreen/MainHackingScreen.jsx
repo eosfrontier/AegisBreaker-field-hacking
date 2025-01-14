@@ -23,7 +23,7 @@ function MainHackingScreen() {
   // Track if we've already determined success or failure (to avoid re-running logic)
   const successOrFailRef = useRef(false);
 
-  // 1. Subscribe to session + layers from Firestore
+  // Subscribe to session + layers from Firestore
   useEffect(() => {
     if (!sessionId) return;
 
@@ -80,7 +80,7 @@ function MainHackingScreen() {
     };
   }, [sessionId, hackPhase]);
 
-  // 2. Start the hack (set hackPhase="ACTIVE" and start timer)
+  // Start the hack (set hackPhase="ACTIVE" and start timer)
   const handleInitializeHack = async () => {
     if (!sessionData || !sessionData.timeLimit) return;
   
@@ -97,9 +97,6 @@ function MainHackingScreen() {
   };
     
   // 3. Check if all layers are solved
-  //    If yes, and hackPhase is ACTIVE, set hackPhase="SUCCESS"
-  //    Or if time ran out (timeLeft <= 0), set hackPhase="FAILURE"
-  //    We do it in a separate function so we can call it from multiple places
   const checkAllSolved = useCallback(async () => {
     // If we've already set success/failure, skip
     if (successOrFailRef.current) return;

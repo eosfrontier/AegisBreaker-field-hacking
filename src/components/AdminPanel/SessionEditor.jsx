@@ -444,7 +444,7 @@ import {
                 <p>Are you sure you want to delete this session and all its layers?</p>
                 <button 
                   onClick={handleConfirmDeleteSession} 
-                  style={{ marginRight: '8px', backgroundColor: '#d32f2f', color: '#fff' }}
+                  style={{ marginRight: '8px', backgroundColor: 'rgb(68, 68, 68)', color: '#fff' }}
                 >
                   Yes, Delete
                 </button>
