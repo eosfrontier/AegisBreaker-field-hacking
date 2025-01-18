@@ -383,22 +383,21 @@ import {
 
                     {/* Actions (Update Status, Delete) */}
                     <div style={{ marginTop: '8px' }}>
-                      {layer.status !== 'SOLVED' && (
-                        <button 
-                          onClick={() => handleUpdateLayerStatus(layer.id, 'SOLVED')} 
-                          style={{ marginRight: '8px' }}
-                        >
-                          Unlock
-                        </button>
-                      )}
-                      {layer.status !== 'LOCKED' && (
-                        <button 
-                          onClick={() => handleUpdateLayerStatus(layer.id, 'LOCKED')}
-                          style={{ marginRight: '8px' }}
-                        >
-                          Lock
-                        </button>
-                      )}
+                     {layer.status === 'SOLVED' ? (
+                      <button
+                        onClick={() => handleUpdateLayerStatus(layer.id, 'LOCKED')}
+                        style={{ marginRight: '8px' }}
+                      >
+                        Lock
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleUpdateLayerStatus(layer.id, 'SOLVED')}
+                        style={{ marginRight: '8px' }}
+                      >
+                        Unlock
+                      </button>
+                    )}
                       <button 
                         onClick={() => handleDeleteLayer(layer.id)}
                         style={{ backgroundColor: '#f44336', color: '#fff' }}
