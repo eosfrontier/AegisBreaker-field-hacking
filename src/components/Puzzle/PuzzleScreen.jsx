@@ -80,7 +80,7 @@ const PuzzleScreen = () => {
       style={{ opacity: 0.7, color: "green", width: "350px", height: "450px" }}
     />
     
-    <button onClick={() => navigate(`/session/${sessionId}`)}>
+    <button onClick={() => navigate(`*`)}>
       Sever Connection
     </button>
   </div>;

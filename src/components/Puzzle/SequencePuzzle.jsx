@@ -4,9 +4,22 @@ import { db } from "../../firebaseConfig";
 import "./SequencePuzzle.css";
 
 const VALID_CHARS = [
-  ..."abcdefghijklmnopqrstuvwxyz",
-  ..."123456789",
-  '!', '"', '#', '¤', '%', '&', '/', '(', ')', '=', '?', '@',
+  '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/',
+  '0','1','2','3','4','5','6','7','8','9',
+  ':',';','<','=', '>','?','@',
+  'A','B','C','D','E','F','G','H','I','J','K','L','M',
+  'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+  '[','\\',']','^','_','`',
+  'a','b','c','d','e','f','g','h','i','j','k','l','m',
+  'n','o','p','q','r','s','t','u','v','w','x','y','z',
+  '{','|','}','~',
+  'Ä','Å','Ç','É','Ñ','Ö','Ü',
+  'á','à','â','ä','ã','å','ç','é','è','ê','ë','í','ì','î','ï','ñ',
+  'ó','ò','ô','ö','õ','ú','ù','û','ü',
+  '°','¢','£','§','•','¶','ß','®','©','™','ª','º','æ','¡','’',
+  '÷','ÿ','Ÿ','¤','‹','›','·','‚','„','Â','Ê',
+  'Á','Ë','È','Í','Î','Ï','Ì','Ó','Ô','Ò','Ú','Û','Ù','ˆ',
+  'Þ'
 ];
 
 /**
@@ -56,7 +69,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
   const generateShuffledChoices = (correctChar) => {
     let randomChars = [];
     // pick 7 distinct random chars (not the correct one)
-    while (randomChars.length < 14 * difficulty) {
+    while (randomChars.length < 9 * difficulty) {
       const candidate = VALID_CHARS[Math.floor(Math.random() * VALID_CHARS.length)];
       if (!randomChars.includes(candidate) && candidate !== correctChar) {
         randomChars.push(candidate);
