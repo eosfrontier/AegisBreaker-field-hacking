@@ -9,9 +9,12 @@ import {
     addDoc, 
     deleteDoc 
   } from 'firebase/firestore';
-  import { db } from '../../firebaseConfig';
-  import './SessionEditor.css';
-
+import { db } from '../../firebaseConfig';
+import './SessionEditor.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import { quillModules, quillFormats } from '../../utils/quillConfig';
+import CustomToolbar from '../../utils/quillCustomToolbar';
   
   // Puzzle types & difficulty labels from previous examples
   const PUZZLE_TYPES = [
@@ -35,7 +38,8 @@ import {
     const [timeLimit, setTimeLimit] = useState(300);
     const [status, setStatus] = useState('ACTIVE');
     const [isLoading, setIsLoading] = useState(true);
-  
+    const [completionContent, setCompletionContent] = useState('');  
+
     // --- Layers State ---
     const [layers, setLayers] = useState([]);
     const [isLayersLoading, setIsLayersLoading] = useState(false);
@@ -62,6 +66,7 @@ import {
           setName(data.name || '');
           setTimeLimit(data.timeLimit || 300);
           setStatus(data.status || 'ACTIVE');
+          setCompletionContent(data.completionContent || '');
           setIsLoading(false);
         } else {
           console.error('Session does not exist');
@@ -95,6 +100,7 @@ import {
             name,
             timeLimit,
             status,
+            completionContent
           });
           setDirty(false); 
         onSessionUpdated({
@@ -102,6 +108,7 @@ import {
           name,
           timeLimit,
           status,
+          completionContent
         });
         alert('Session updated!');
       } catch (error) {
@@ -339,7 +346,23 @@ import {
               <button onClick={handleAddLayer}>Add Layer</button>
             </div>
           </div>
+          <div style={{ marginBottom: '8px' }}>
+        <label style={{ display: 'block', fontWeight: 'bold' }}>Completion Content</label>
+        <CustomToolbar />
+        <ReactQuill
+          theme="snow"
+          modules={quillModules}
+          formats={quillFormats}
+          value={completionContent}
+          onChange={(html) => {
+            setCompletionContent(html);
+            setDirty(true);
+          }}
+        />
+      </div>
         </div>
+
+
 
         {/* Right side (on desktop) or below (on mobile) */}
         <div className="layer-cards-container">
