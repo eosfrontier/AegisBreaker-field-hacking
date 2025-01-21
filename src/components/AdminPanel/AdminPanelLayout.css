@@ -30,6 +30,7 @@
     border-right: 1px solid #ccc;
     overflow-y: auto;
     transition: transform 0.3s ease;
+    background-color: #242424;
   }
   
   /* Main content area */

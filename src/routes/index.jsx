@@ -16,7 +16,7 @@ const PuzzleScreen = lazy(() => import("../components/Puzzle/PuzzleScreen"));
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>Establishing connection...</div>}>
             <Routes>
                 {/* Admin Panel */}
                 <Route path="/admin" element={<AdminPanelLayout />} />
