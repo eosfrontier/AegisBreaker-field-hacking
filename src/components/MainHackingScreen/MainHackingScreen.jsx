@@ -211,6 +211,7 @@ function MainHackingScreen() {
         <div className="main-hacking-screen success-phase">
           <h1>Hack Succeeded!</h1>
           <p>All layers were solved in time.</p>
+          <div dangerouslySetInnerHTML={{ __html: sessionData.completionContent }} />
         </div>
       );
 
