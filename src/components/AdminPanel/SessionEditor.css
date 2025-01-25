@@ -1,3 +1,10 @@
+input[type="text"], [type="select"], [type="number"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #3b3b3b;
+    font-size: 16px;
+}
 .session-details-container {
     display: flex;
     flex-wrap: wrap;
@@ -19,6 +26,7 @@
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 8px;
+    background-color: #343a40;
     position: relative;
     display: flex;
     flex-direction: column;

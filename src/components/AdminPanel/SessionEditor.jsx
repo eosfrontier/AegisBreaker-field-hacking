@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-    doc, 
+    doc,
+    query,
+    orderBy,
     updateDoc, 
     collection, 
     onSnapshot,
@@ -30,15 +32,19 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
     4: 'Intricate',
     5: 'Inscrutable'
   };
+
+  const THEMES = ["ICC", "Aliens", "Aquila", "Dugo", "Pentzal", "Sona", "Ekanesh"];
   
-  function SessionEditor({ sessionId, onSessionUpdated }) {
+  function SessionEditor({ sessionId, onSessionUpdated, sessions}) {
     // --- Session State ---
     const [sessionData, setSessionData] = useState(null);
     const [name, setName] = useState('');
     const [timeLimit, setTimeLimit] = useState(300);
+    const [theme, setTheme] = useState('');
+    const [parent, setParent] = useState(null); 
     const [status, setStatus] = useState('ACTIVE');
     const [isLoading, setIsLoading] = useState(true);
-    const [completionContent, setCompletionContent] = useState('');  
+    const [completionContent, setCompletionContent] = useState(''); 
 
     // --- Layers State ---
     const [layers, setLayers] = useState([]);
@@ -65,6 +71,8 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
           setSessionData(data);
           setName(data.name || '');
           setTimeLimit(data.timeLimit || 300);
+          setTheme(data.theme || '');
+          setParent(data.parent || '');
           setStatus(data.status || 'ACTIVE');
           setCompletionContent(data.completionContent || '');
           setIsLoading(false);
@@ -75,9 +83,10 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
       });
     
       // Listen to the layers sub-collection
-      const layersRef = collection(db, 'sessions', sessionId, 'layers');
-      const unsubscribeLayers = onSnapshot(layersRef, (layersSnap) => {
-        const layerData = layersSnap.docs.map((doc) => ({
+      const layersCollectionRef = collection(db, 'sessions', sessionId, 'layers');
+      const layersQuery = query(layersCollectionRef, orderBy('createdAt'));
+      const unsubscribeLayers = onSnapshot(layersQuery, (snap) => {
+        const layerData = snap.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
@@ -100,7 +109,9 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
             name,
             timeLimit,
             status,
-            completionContent
+            completionContent,
+            theme,
+            parent
           });
           setDirty(false); 
         onSessionUpdated({
@@ -108,13 +119,27 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
           name,
           timeLimit,
           status,
-          completionContent
+          completionContent,
+          theme,
+          parent
         });
         alert('Session updated!');
       } catch (error) {
         console.error('Error updating session:', error);
       }
     };
+
+    const generateShortId = () => {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const numbers = '0123456789';
+  
+      const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  
+      const letter = getRandomElement(letters);
+      const number = getRandomElement(numbers);
+  
+      return `${letter}${number}`;
+  };
   
     // --- Layer Operations ---
     const handleAddLayer = async () => {
@@ -123,21 +148,21 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
         await addDoc(layersRef, {
           puzzleType: newLayerPuzzleType,
           difficulty: newLayerDifficulty,
+          shortId: generateShortId(),
           status: 'LOCKED',
+          createdAt: new Date(),
         });
         await reloadLayers();
   
-        // Reset the form if desired
-        setNewLayerPuzzleType('sequence');
-        setNewLayerDifficulty(1);
       } catch (error) {
         console.error('Error adding layer:', error);
       }
     };
   
     const reloadLayers = async () => {
-      const layersRef = collection(db, 'sessions', sessionId, 'layers');
-      const layersSnap = await getDocs(layersRef);
+      const layersCollectionRef = collection(db, 'sessions', sessionId, 'layers');
+      const layersQuery = query(layersCollectionRef, orderBy('createdAt'));
+      const layersSnap = await getDocs(layersQuery);
       const layerData = layersSnap.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -219,6 +244,8 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
       }
     };
 
+
+
   return (
     
     <div style={{ padding: '16px' }}>
@@ -258,6 +285,44 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
               style={{ width: '100%', padding: '4px' }}
             />
           </div>
+
+          <div style={{ marginBottom: '8px' }}>
+          <label style={{ display: 'block', fontWeight: 'bold' }}>Theme</label>
+          <select
+            value={theme}
+            onChange={(e) => {
+              setTheme(e.target.value);
+              setDirty(true);
+            }}
+            style={{ width: '100%', padding: '4px' }}
+          >
+            <option value="">(No Theme)</option>
+            {THEMES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ marginBottom: '8px' }}>
+        <label style={{ display: 'block', fontWeight: 'bold' }}>Parent Session</label>
+        <select
+          value={parent || ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            setParent(val === "" ? null : val); // empty string => no parent
+            setDirty(true);
+          }}
+          style={{ width: '100%', padding: '4px' }}
+        >
+          <option value="">No Parent</option>
+          {sessions
+            .filter(s => s.id !== sessionId) // don't let it be its own parent
+            .map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))
+          }
+        </select>
+      </div>
 
           <div style={{ marginBottom: '8px' }}>
             <label style={{ display: 'block', fontWeight: 'bold' }}>Status</label>
@@ -455,7 +520,7 @@ import CustomToolbar from '../../utils/quillCustomToolbar';
             >
               <div 
                 style={{
-                  backgroundColor: '#fff',
+                  backgroundColor: '#343a40',
                   padding: '16px',
                   borderRadius: '8px',
                   maxWidth: '400px',
