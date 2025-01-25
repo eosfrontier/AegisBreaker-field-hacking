@@ -22,7 +22,18 @@
     animation: scrollText 3s linear infinite;
     /* The animation duration here should match your fake delay for a consistent feel */
   }
+
+  .layer-solved {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
   
+  .filter-green{
+    filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+}
   /* Define the keyframes for the scrolling effect */
   @keyframes scrollText {
     0% {

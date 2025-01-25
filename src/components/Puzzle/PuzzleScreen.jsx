@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import './PuzzleScreen.css';
-import Typewriter from './Typewriter';
+import Typewriter from '../../utils/Typewriter';
+
 import SequencePuzzle from "./SequencePuzzle";
-import { useNavigate } from "react-router-dom";
+import FrequencyPuzzle from "./FrequencyPuzzle";
+
 import UnlockedLockSVG from "../../assets/lock-unlock-icon-22.svg";
 
 
@@ -71,11 +74,11 @@ const PuzzleScreen = () => {
     }
   }, [loading]);
 
-  if (loading || !fakeDelayComplete) {
+  if (layerData?.status !== "SOLVED" && (loading || !fakeDelayComplete)) {
     const hackText = `Establishing secure connection...
-Bypassing firewall...
-Decoding encryption...
-Accessing mainframe...`;
+      Identifying attack vector...
+      Decoding encryption...
+      Accessing ICE layer...`;
 
     return (
       <div style={{ background: '#262e3e', color: '#fff', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'monospace' }}>
@@ -95,7 +98,7 @@ Accessing mainframe...`;
 
   // If layer is solved, show a message
   if (layerData?.status === "SOLVED") {
-    return     <div className="sequence-puzzle-container">
+    return     <div className="layer-solved">
             <h3>Layer solved</h3>
 
     {/* Insert your green/transparent unlocked lock SVG here */}
@@ -103,7 +106,10 @@ Accessing mainframe...`;
     <img 
       src={UnlockedLockSVG}
       alt="Unlocked lock" 
-      style={{ opacity: 0.7, color: "green", width: "350px", height: "450px" }}
+      className="filter-green"
+      style={{ opacity: 0.4,
+        width: "230px",
+        height: "280px" }}
     />
     
     <button onClick={() => navigate(`*`)}>
@@ -130,7 +136,7 @@ Accessing mainframe...`;
   }
   if (layerData?.puzzleType === "frequencyTuning") {
     return (
-      <SequencePuzzle
+      <FrequencyPuzzle
         sessionId={sessionId}
         layerId={layerId}
         layerData={layerData}
