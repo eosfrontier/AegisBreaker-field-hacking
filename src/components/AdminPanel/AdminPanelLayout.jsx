@@ -5,6 +5,7 @@ import SessionList from './SessionList';
 import SessionEditor from './SessionEditor';
 import './AdminPanelLayout.css';
 
+
 function AdminPanelLayout() {
   const [sessions, setSessions] = useState([]);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
@@ -63,9 +64,16 @@ function AdminPanelLayout() {
     );
   };
 
-  
+        {/* <!--<svg viewBox="0 0 100 169.5">
+	<polygon points="50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75"></polygon>
+	<polygon points="0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25"></polygon>
+	<polygon points="100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25"></polygon>
+	<polygon points="0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5"></polygon>
+	<polygon points="100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5"></polygon>
+</svg>--> */}
 
   return (
+    
     <div className="admin-layout">
       {/* Hamburger button (only visible on mobile via CSS) */}
       <button
@@ -89,6 +97,7 @@ function AdminPanelLayout() {
       <div className="admin-main">
         {selectedSessionId ? (
           <SessionEditor
+            sessions={sessions}
             sessionId={selectedSessionId}
             onSessionUpdated={handleSessionUpdated}
           />
