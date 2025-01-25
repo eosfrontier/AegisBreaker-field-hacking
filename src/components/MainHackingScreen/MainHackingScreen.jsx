@@ -35,7 +35,7 @@ function MainHackingScreen() {
       if (docSnapshot.exists()) {
         const data = docSnapshot.data();
         setSessionData(data);
-      
+        console.log(data)
         // Derive hackPhase from the Firestore status
         if (data.status === "ACTIVE") {
           setHackPhase("ACTIVE");
@@ -158,10 +158,12 @@ function MainHackingScreen() {
     }
   }, [layers, hackPhase, checkAllSolved]);
 
+  const themeClass = sessionData?.theme ? `theme-${sessionData.theme}` : "theme-default";
+
   // 6. Render different UIs based on hackPhase
   if (!sessionData) {
     return (
-      <div className="main-hacking-screen">
+      <div className={`main-hacking-screen ${themeClass}`}>
         <p>Loading session data...</p>
       </div>
     );
@@ -170,18 +172,21 @@ function MainHackingScreen() {
   switch (hackPhase) {
     case "INIT":
       return (
-        <div className="main-hacking-screen init-phase">
+        <div className={`main-hacking-screen ${themeClass} init-phase`} >
           <h1>Hacking Session: {sessionData.name}</h1>
           <p>Time Limit: {sessionData.timeLimit || 60} seconds</p>
-          <button className="initialize-btn" onClick={handleInitializeHack}>
-            Initialize Hack
-          </button>
+          <div>
+            <button className="initialize-btn" onClick={handleInitializeHack}>
+              Initialize Hack
+            </button>
+          </div>
+
         </div>
       );
 
     case "ACTIVE":
       return (
-        <div className="main-hacking-screen active-phase">
+        <div className={`main-hacking-screen ${themeClass} active-phase`}>
           <h1>Hacking Session: {sessionData.name}</h1>
           <h2>Time Left: {timeLeft}s</h2>
           <div className="layer-grid">

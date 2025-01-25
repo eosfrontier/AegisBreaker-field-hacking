@@ -4,9 +4,22 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
 
   }
+
+  /* Theme "tech-dark" example */
+.theme-ICC {
+  background-color: #1c1c1c;
+  color: #06f706;
+  font-family: "Roboto Mono", monospace;
+}
+
+/* Theme "alien-green" example */
+.theme-Aliens {
+  background-color: #001900;
+  color: #ff2020;
+  font-family: "Orbitron", sans-serif;
+}
   
   .init-phase {
     /* Styles for the init screen */
@@ -21,8 +34,9 @@
   
   .active-phase .layer-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit,minmax(240px,300px));
     gap: 1rem;
+    margin-top: 2rem;    gap: 1rem;
     margin-top: 2rem;
   }
   
