@@ -2,26 +2,26 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, collection, query, where, onSnapshot, updateDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
-import QRCode from 'react-qr-code';
 import './MainHackingScreen.css';
+import HexGrid from './HexGrid';
 
 function MainHackingScreen() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
 
-  // Session data, including theme, timeLimit, etc.
+  // Session data, including theme, status, parentSessionId, etc.
   const [sessionData, setSessionData] = useState(null);
-  // The parent's session data (if any)
+  // Parent session data (if any)
   const [parentSessionData, setParentSessionData] = useState(null);
-  // Child sessions (if current sessionId is their parent)
+  // Child sessions (if this session is a parent for them)
   const [childSessions, setChildSessions] = useState([]);
-  // Whether this session is locked due to parent not being SUCCESS
+  // Lock state if parent is incomplete
   const [isLocked, setIsLocked] = useState(false);
 
   // Layers for this session
   const [layers, setLayers] = useState([]);
 
-  // Local time left (in seconds)
+  // Local time left in seconds
   const [timeLeft, setTimeLeft] = useState(0);
 
   // Hack phase: "INIT" | "ACTIVE" | "SUCCESS" | "FAILURE"
@@ -30,26 +30,32 @@ function MainHackingScreen() {
   // Prevent multiple success/failure updates
   const successOrFailRef = useRef(false);
 
+  // We’ll store the "currently displayed group" in state for scroll logic
+  // This will be the "first incomplete group" or null if all solved
+  const [currentGroup, setCurrentGroup] = useState(null);
+  const previousGroupRef = useRef(null); // track old group to detect changes
+
   /**
-   *  1) Subscribe to the current session doc
-   *  2) Check if there's a parentSessionId
-   *  3) Fetch child sessions
-   *  4) Fetch layers (sorted by group, then createdAt)
+   * Subscribe to:
+   * 1) Current session doc
+   * 2) Parent session (if parentSessionId)
+   * 3) Child sessions (where parentSessionId == sessionId)
+   * 4) Layers sub-collection
    */
   useEffect(() => {
     if (!sessionId) return;
 
-    // --- Subscribe to Current Session Doc ---
+    // --- Current Session Doc ---
     const sessionRef = doc(db, 'sessions', sessionId);
     const unsubSession = onSnapshot(sessionRef, async (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setSessionData({ id: docSnap.id, ...data });
 
-        // Determine hackPhase from doc's status
+        // Determine local hackPhase from doc's status
         if (data.status === 'ACTIVE') {
           setHackPhase('ACTIVE');
-          // Calculate local timeLeft if endTime exists
+          // Compute local timeLeft if endTime is present
           if (data.endTime) {
             const endMillis = data.endTime.toMillis();
             const nowMillis = Date.now();
@@ -61,30 +67,27 @@ function MainHackingScreen() {
         } else if (data.status === 'FAILURE') {
           setHackPhase('FAILURE');
         } else {
-          // default "INIT"
           setHackPhase('INIT');
         }
 
-        // --- If there's a parent session, fetch it ---
+        // --- Parent Session ---
         if (data.parentSessionId) {
           const parentRef = doc(db, 'sessions', data.parentSessionId);
           const parentSnap = await getDoc(parentRef);
           if (parentSnap.exists()) {
             const parentData = parentSnap.data();
             setParentSessionData({ id: parentSnap.id, ...parentData });
-            // If parent's status != SUCCESS, lock this session
+            // Lock if parent not success
             if (parentData.status !== 'SUCCESS') {
               setIsLocked(true);
             } else {
               setIsLocked(false);
             }
           } else {
-            // No parent doc found; consider it unlocked
             setParentSessionData(null);
             setIsLocked(false);
           }
         } else {
-          // No parent
           setParentSessionData(null);
           setIsLocked(false);
         }
@@ -94,8 +97,7 @@ function MainHackingScreen() {
       }
     });
 
-    // --- Query Child Sessions ---
-    // If other sessions have parentSessionId = sessionId, they are children.
+    // --- Child Sessions ---
     const childrenRef = collection(db, 'sessions');
     const q = query(childrenRef, where('parentSessionId', '==', sessionId));
     const unsubChildren = onSnapshot(q, (querySnap) => {
@@ -109,12 +111,8 @@ function MainHackingScreen() {
       setChildSessions(foundChildren);
     });
 
-    // --- Subscribe to Layers ---
-    // We sort by group ascending, then by createdAt ascending
-    // Note: Firestore requires a composite index if we do multiple orderBys
+    // --- Layers Subscription ---
     const layersRef = collection(db, 'sessions', sessionId, 'layers');
-    // We can either create a query with multiple orderBy, or just fetch all and sort in JS
-    // We'll do it in JS for simplicity, but if you prefer Firestore side sorting, create the appropriate index.
     const unsubLayers = onSnapshot(layersRef, (snapshot) => {
       let layerArray = [];
       snapshot.forEach((layerDoc) => {
@@ -125,15 +123,12 @@ function MainHackingScreen() {
       });
       // Sort by group ascending, then by createdAt ascending
       layerArray.sort((a, b) => {
-        // If group differs, sort by group
         if (a.group !== b.group) {
           return a.group - b.group;
         }
-        // Otherwise sort by createdAt
         if (a.createdAt && b.createdAt) {
           return a.createdAt.toMillis() - b.createdAt.toMillis();
         }
-        // fallback if missing createdAt
         return 0;
       });
       setLayers(layerArray);
@@ -147,11 +142,10 @@ function MainHackingScreen() {
   }, [sessionId]);
 
   /**
-   * Initialize Hack: sets status=ACTIVE and endTime in Firestore.
+   * Initialize Hack: set status=ACTIVE and endTime in Firestore
    */
   const handleInitializeHack = async () => {
     if (!sessionData || !sessionData.timeLimit) return;
-
     const futureTime = Date.now() + sessionData.timeLimit * 1000;
     const newEndTime = Timestamp.fromMillis(futureTime);
 
@@ -166,8 +160,8 @@ function MainHackingScreen() {
   };
 
   /**
-   * Check if all layers are solved. If yes and session is ACTIVE -> mark SUCCESS
-   * If timeLeft <= 0 and session is ACTIVE -> mark FAILURE
+   * Check if all layers are solved. If yes & session active -> success
+   * If timeLeft <= 0 & session active -> failure
    */
   const checkAllSolved = useCallback(async () => {
     if (!sessionData) return;
@@ -200,7 +194,7 @@ function MainHackingScreen() {
   }, [layers, timeLeft, sessionData, sessionId]);
 
   /**
-   * Local countdown timer if hackPhase=ACTIVE
+   * Local countdown if hackPhase=ACTIVE
    */
   useEffect(() => {
     if (hackPhase !== 'ACTIVE') return;
@@ -213,7 +207,7 @@ function MainHackingScreen() {
 
       setTimeLeft(remaining > 0 ? remaining : 0);
 
-      // If time is up and STILL active, set failure
+      // If time is up and still active -> failure
       if (remaining <= 0 && sessionData.status === 'ACTIVE') {
         updateDoc(doc(db, 'sessions', sessionId), {
           status: 'FAILURE',
@@ -233,62 +227,78 @@ function MainHackingScreen() {
     }
   }, [layers, hackPhase, checkAllSolved]);
 
-  // ======================
-  //  PARENT / CHILD SIDEBARS
-  // ======================
-
+  // ============== Parent/Child Navigation ==============
   const handleGoToParent = () => {
     if (!parentSessionData) return;
     navigate(`/session/${parentSessionData.id}`);
   };
-
   const handleGoToChild = (childId) => {
     navigate(`/session/${childId}`);
   };
 
-  // ======================
-  //  GROUPING LOGIC
-  // ======================
-  // We'll find the first group that is not fully solved
-  // Groups <= that group are "unlocked"; groups > that group are "locked"
+  // ============== GROUPING LOGIC ==============
+  // 1) Group layers by group number
   const groupedLayers = {};
   layers.forEach((layer) => {
-    const g = layer.group || 0;
+    const g = layer.groupNumber || 0;
     if (!groupedLayers[g]) groupedLayers[g] = [];
     groupedLayers[g].push(layer);
   });
-  // Sort group keys (numbers)
+  // 2) Sort the group keys
   const sortedGroupKeys = Object.keys(groupedLayers)
-    .map((k) => parseInt(k))
+    .map(Number)
     .sort((a, b) => a - b);
 
+  // 3) Find the first incomplete group
+  //    "Incomplete" means not all layers are solved
+  //    If all groups are solved, firstIncompleteGroup = null
   let firstIncompleteGroup = null;
   for (let g of sortedGroupKeys) {
-    const allSolved = groupedLayers[g].every((l) => l.status === 'SOLVED');
-    if (!allSolved) {
+    const groupIsAllSolved = groupedLayers[g].every((l) => l.status === 'SOLVED');
+    if (!groupIsAllSolved) {
       firstIncompleteGroup = g;
       break;
     }
   }
-  if (firstIncompleteGroup === null && sortedGroupKeys.length > 0) {
-    // Means all groups are solved -> last group was incomplete, but now solved
-    // You might not need special handling here, just means everything is solved
-    // Optionally set firstIncompleteGroup to the highest group or something
+
+  let nextGroup = null;
+  if (firstIncompleteGroup != null) {
+    // Find the index of firstIncompleteGroup in sortedGroupKeys
+    const idx = sortedGroupKeys.indexOf(firstIncompleteGroup);
+    // Next group is the next index in sortedGroupKeys
+    if (idx >= 0 && idx < sortedGroupKeys.length - 1) {
+      nextGroup = sortedGroupKeys[idx + 1];
+    }
   }
 
-  // Helper function to see if a group is unlocked
-  const isGroupUnlocked = (groupNumber) => {
+  // Our "currentGroup" is firstIncompleteGroup if it exists
+  // If all are solved, currentGroup = null
+  // We'll store that in local state to handle scroll & transitions
+  useEffect(() => {
+    // If everything is solved, there's no incomplete group
     if (firstIncompleteGroup == null) {
-      // everything solved => groups are all "unlocked" if we want
-      return true;
+      setCurrentGroup(null);
+      return;
     }
-    return groupNumber <= firstIncompleteGroup;
-  };
+    setCurrentGroup(firstIncompleteGroup);
+  }, [firstIncompleteGroup]);
 
-  // Determine dynamic theme class from sessionData.theme
+  // 4) Automatically scroll to newly unlocked group
+  useEffect(() => {
+    if (currentGroup && previousGroupRef.current !== currentGroup) {
+      // group changed, scroll
+      const el = document.getElementById(`group-${currentGroup}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    previousGroupRef.current = currentGroup;
+  }, [currentGroup]);
+
+  // ============== THEME CLASS ==============
   const themeClass = sessionData?.theme ? `theme-${sessionData.theme}` : 'theme-default';
 
-  // If session is locked (due to parent not success), show locked screen
+  // If session locked by parent
   if (isLocked) {
     return (
       <div className={`main-hacking-screen ${themeClass}`}>
@@ -301,7 +311,7 @@ function MainHackingScreen() {
     );
   }
 
-  // If we have no session data at all (doc doesn't exist or not loaded), fallback
+  // If no session data loaded
   if (!sessionData) {
     return (
       <div className="main-hacking-screen">
@@ -310,11 +320,11 @@ function MainHackingScreen() {
     );
   }
 
-  // ============== RENDER LAYOUT ==============
+  // ============== RENDER ==============
   return (
     <div className={`main-hacking-screen ${themeClass}`}>
       <div className="main-container">
-        {/* LEFT COLUMN: Parent Sessions */}
+        {/* LEFT: Parent Session */}
         <div className="parent-sessions-column">
           {parentSessionData && (
             <button className="parent-session-button" onClick={handleGoToParent}>
@@ -323,25 +333,27 @@ function MainHackingScreen() {
           )}
         </div>
 
-        {/* CENTER COLUMN: Session Info & Layers */}
+        {/* CENTER: Layers or final states */}
         <div className="layers-column">
-          {/* Various states: INIT, ACTIVE, SUCCESS, FAILURE */}
+          {/* INIT PHASE */}
           {hackPhase === 'INIT' && (
             <div className="init-phase">
-              <div>
+              <div className="header-box">
                 <div>
                   <img className="theme-logo" src={`/themes/${sessionData.theme || 'default'}/logo.png`} />
                 </div>
                 <h1>Hacking Session: {sessionData.name}</h1>
               </div>
               <p>Time Limit: {sessionData.timeLimit || 60} seconds</p>
-              <button onClick={handleInitializeHack}>Initialize Hack</button>
+              <button className="initialize-btn" onClick={handleInitializeHack}>
+                Initialize Hack
+              </button>
             </div>
           )}
-
+          {/* ACTIVE PHASE */}
           {hackPhase === 'ACTIVE' && (
             <div className="active-phase">
-              <div>
+              <div className="header-box">
                 <div>
                   <img className="theme-logo" src={`/themes/${sessionData.theme || 'default'}/logo.png`} />
                 </div>
@@ -349,76 +361,65 @@ function MainHackingScreen() {
               </div>
               <h2>Time Left: {timeLeft}s</h2>
 
-              {/* Groups in ascending order */}
-              {sortedGroupKeys.map((g) => {
-                const groupLayers = groupedLayers[g];
-                const unlocked = isGroupUnlocked(g);
+              {/* CURRENT GROUP (active) */}
+              {currentGroup != null && (
+                <div id={`group-${currentGroup}`} className="group-section unlocked">
+                  <h3>Group {currentGroup}</h3>
+                  <HexGrid
+                    layers={groupedLayers[currentGroup]}
+                    sessionId={sessionId}
+                    variant="active" // pass a prop to HexGrid so it knows it's the active group
+                  />
+                </div>
+              )}
 
-                return (
-                  <div key={g} id={`group-${g}`} className={`group-section ${unlocked ? 'unlocked' : 'locked'}`}>
-                    <h3>Group {g}</h3>
-                    <div className="layer-grid">
-                      {groupLayers.map((layer) => {
-                        // fade out if solved
-                        const solvedClass = layer.status === 'SOLVED' ? 'solved' : '';
-                        return (
-                          <div key={layer.id} className={`layer-item ${solvedClass}`}>
-                            <div className="layer-header">
-                              <h4>
-                                {layer.puzzleType.toUpperCase()} - Difficulty {layer.difficulty}
-                              </h4>
-                              <p>Status: {layer.status}</p>
-                            </div>
+              {/* NEXT GROUP (preview) */}
+              {nextGroup != null && (
+                <div id={`group-${nextGroup}`} className="group-section upcoming">
+                  <h3>Upcoming Group {nextGroup}</h3>
+                  <HexGrid
+                    layers={groupedLayers[nextGroup]}
+                    sessionId={sessionId}
+                    variant="preview" // pass a prop to handle locked/hidden puzzle info
+                  />
+                </div>
+              )}
 
-                            {/* If locked group or solved layer? hide QR? up to you */}
-                            {unlocked && layer.status !== 'SOLVED' ? (
-                              <div className="layer-qr">
-                                <QRCode
-                                  value={`${window.location.origin}/puzzle/${sessionId}/${layer.id}`}
-                                  size={128}
-                                />
-                              </div>
-                            ) : (
-                              <div className="qr-placeholder">Locked or Solved</div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+              {/* If currentGroup === null -> all solved? or waiting on success? */}
+              {currentGroup == null && <h2>All groups solved or none found.</h2>}
             </div>
           )}
 
+          {/* If all groups are solved => no currentGroup => success check might happen soon */}
+          {hackPhase === 'ACTIVE' && currentGroup == null && (
+            <div className="active-phase">
+              <h2>All groups solved? Waiting for status update...</h2>
+            </div>
+          )}
+
+          {/* SUCCESS / FAILURE */}
           {hackPhase === 'SUCCESS' && (
-            <div className={`main-hacking-screen ${themeClass} success-phase`}>
-              <div>
-                <div>
-                  <img className="theme-logo" src={`/themes/${sessionData.theme || 'default'}/logo.png`} />
-                </div>
-                <h1>Hacking Session: {sessionData.name}</h1>
+            <div className="success-phase">
+              <div className="theme-logo">
+                <img src={`/themes/${sessionData.theme}/logo.png`} alt="Theme Logo" />
               </div>
-              <div dangerouslySetInnerHTML={{ __html: sessionData.completionContent }} />
+              <h1>Hack Succeeded!</h1>
+              <p>All layers were solved in time.</p>
             </div>
           )}
-
           {hackPhase === 'FAILURE' && (
-            <div className={`main-hacking-screen ${themeClass} failure-phase`}>
-              <div>
-                <div className="theme-logo">
-                  <img className="theme-logo" src={`/themes/${sessionData.theme || 'default'}/logo.png`} />
-                </div>
-                <h1>Hacking Session: {sessionData.name}</h1>
+            <div className="failure-phase">
+              <div className="theme-logo">
+                <img src={`/themes/${sessionData.theme}/logo.png`} alt="Theme Logo" />
               </div>
+              <h1>Hack Failed!</h1>
               <p>Some layers remained unsolved when time ran out.</p>
             </div>
           )}
         </div>
 
-        {/* RIGHT COLUMN: Child Sessions (only if success) */}
+        {/* RIGHT: Child Sessions if success */}
         <div className="child-sessions-column">
-          {/* If we're in success or have success status, show child sessions */}
           {sessionData.status === 'SUCCESS' && childSessions.length > 0 && (
             <div className="child-session-list">
               <h3>Child Sessions</h3>

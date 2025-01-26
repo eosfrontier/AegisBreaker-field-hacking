@@ -1,3 +1,8 @@
+/* =========================
+   Font Definitions
+   ========================= */
+
+/* Aquila Ethnocentric Font */
 @font-face {
   font-family: 'AquilaEthnocentric';
   src: url('/themes/Aquila/AquilaEthnocentric.ttf') format('truetype');
@@ -5,97 +10,39 @@
   font-style: normal;
 }
 
+/* Aquila Ethnocentric Font */
+@font-face {
+  font-family: 'DugoMadeInChina';
+  src: url('/themes/Dugo/DugoFont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Add additional @font-face declarations for other themes if needed */
+/* Example:
+@font-face {
+  font-family: 'SonaFont';
+  src: url('/themes/Sona/SonaFont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+*/
+
+/* =========================
+   Base Styles
+   ========================= */
+
 .main-hacking-screen {
   padding: 1.5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   height: 100vh;
-}
-
-/* Theme "tech-dark" example */
-.theme-ICC {
-  background-color: #1c1c1c;
-}
-
-.theme-Aquila {
-  background-color: #1c1c1c;
-  background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-  color: #c7d2e4;
-  font-family: 'AquilaEthnocentric', monospace;
-}
-
-/* Theme "alien-green" example */
-.theme-Dugo {
-  background-color: #001900;
-  color: #ff2020;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.theme-Aliens {
-  background-color: #001900;
-  color: #ff2020;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.init-phase {
-  align-items: center;
-}
-
-.initialize-btn {
-  padding: 0.75rem 1.5rem;
-  font-size: 1.25rem;
-  cursor: pointer;
-  max-width: 140px;
-}
-
-.active-phase .layer-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
-  gap: 1rem;
-  margin-top: 2rem;
-  gap: 1rem;
-  margin-top: 2rem;
-  width: 80vw;
-  margin: auto;
-}
-
-.layer-item {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: rgb(68, 68, 68);
-  padding: 1rem;
-}
-
-.layer-header {
-  margin-bottom: 1rem;
-}
-
-.layer-qr {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-.theme-logo {
-  width: 150px;
-}
-/* .success-phase, .failure-phase {
-  } */
-
-/* Base styling for the main container */
-.main-hacking-screen {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
 }
 
-/* We'll use a grid or flex to separate columns */
+/* Main Container Layout */
 .main-container {
   display: grid;
   grid-template-columns: 1fr 3fr 1fr; /* left = 1fr, center = 3fr, right = 1fr */
@@ -104,7 +51,7 @@
   padding: 1rem;
 }
 
-/* Left column: parent sessions */
+/* Left Column: Parent Sessions */
 .parent-sessions-column {
   display: flex;
   flex-direction: column;
@@ -114,16 +61,57 @@
 .parent-session-button {
   margin-bottom: 1rem;
   padding: 0.5rem 1rem;
+  /* Button Styles - Customize per theme if needed */
+  background-color: #555;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-/* Center column: layers */
+.parent-session-button:hover {
+  background-color: #777;
+}
+
+/* Center Column: Layers */
 .layers-column {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Right column: child sessions */
+/* Initialize Phase */
+.init-phase {
+  align-items: center;
+}
+
+.initialize-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  max-width: 140px;
+  /* Button Styles - Customize per theme */
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.initialize-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Active Phase: Layer Grid */
+.active-phase .layer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
+  gap: 1rem;
+  margin-top: 2rem;
+  width: 80vw;
+  margin: auto;
+}
+
+/* Right Column: Child Sessions */
 .child-sessions-column {
   display: flex;
   flex-direction: column;
@@ -138,9 +126,19 @@
 .child-session-button {
   margin-bottom: 0.5rem;
   padding: 0.5rem;
+  /* Button Styles - Customize per theme */
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-/* Group sections */
+.child-session-button:hover {
+  background-color: #218838;
+}
+
+/* Group Sections */
 .group-section {
   margin-bottom: 2rem;
   width: 100%;
@@ -151,7 +149,7 @@
   pointer-events: none; /* Prevent clicks */
 }
 
-/* Grid of layers in each group */
+/* Grid of Layers in Each Group */
 .layer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -159,28 +157,46 @@
   margin-top: 1rem;
 }
 
-/* Layer item default styling */
+/* Layer Item Default Styling */
 .layer-item {
   background-color: #222;
   color: #fff;
   padding: 1rem;
   border-radius: 4px;
-  transition: opacity 1s ease; /* allow fade-out for solved */
+  transition: opacity 1s ease; /* Allow fade-out for solved */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-/* Fade out solved layers */
+/* Fade Out Solved Layers */
 .layer-item.solved {
   opacity: 0.3;
 }
 
-/* Example: locked or solved layers may hide or replace the QR code */
+/* Layer Header */
+.layer-header {
+  margin-bottom: 1rem;
+}
+
+/* Layer QR Code */
+.layer-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+/* QR Placeholder */
 .qr-placeholder {
   padding: 1rem;
   text-align: center;
   background-color: #444;
+  border-radius: 4px;
+  color: #ccc;
 }
 
-/* Phase specific styling */
+/* Phase Specific Styling */
 .init-phase,
 .active-phase,
 .success-phase,
@@ -189,19 +205,410 @@
   text-align: center;
 }
 
+/* Logo and header text */
+.header-box {
+  display: flex;
+}
+
+/* Locked Session Message */
 .locked-session-message {
   text-align: center;
   margin-top: 4rem;
 }
 
-/* Example for your "theme-default" or custom themes */
+/* Theme Logo */
+.theme-logo {
+  width: 150px;
+  margin-bottom: 1rem;
+  margin-right: 10rem;
+}
+
+/* =========================
+   Theme Classes
+   ========================= */
+
+/* ICC Theme */
+.theme-ICC {
+  /* Background Styles */
+  background-color: #1c1c1c;
+  background-image: url('/themes/ICC/background.jpg'); /* Placeholder */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ffffff; /* Font color */
+  font-family: 'ICCFont', sans-serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #ff5733; /* ICC-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #c70039;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #ff5733;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #c70039;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #333333;
+  }
+}
+
+/* Aliens Theme */
+.theme-Aliens {
+  /* Background Styles */
+  background-color: #001900;
+  background-image: url('/themes/Aliens/background.jpg'); /* Placeholder */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ff2020;
+  font-family: 'Orbitron', sans-serif;
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #00ff99; /* Aliens-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #00cc77;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #00ff99;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #00cc77;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #005522;
+  }
+}
+
+/* Aquila Theme */
+.theme-Aquila {
+  /* Background Styles */
+  background-color: #1c1c1c;
+  background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg'); /* Placeholder */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #c7d2e4;
+  font-family: 'AquilaEthnocentric', monospace;
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #3498db; /* Aquila-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #2980b9;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #3498db;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #2980b9;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #2c3e50;
+  }
+}
+
+/* Dugo Theme */
+.theme-Dugo {
+  /* Background Styles */
+  background-color: #242424;
+  /* background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/DugoWallpaper.jpg');  */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ff2020;
+  font-family: 'DugoMadeInChina', sans-serif;
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #e74c3c; /* Dugo-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #c0392b;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #e74c3c;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #c0392b;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #4b1414;
+    border-radius: 50px;
+    font-size: 22px;
+  }
+}
+
+/* Pentzal Theme */
+.theme-Pentzal {
+  /* Background Styles */
+  background-color: #f0f8ff; /* Placeholder */
+  background-image: url('/themes/Pentzal/background.jpg'); /* Placeholder */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #333333; /* Placeholder font color */
+  font-family: 'PentzalFont', serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #8e44ad; /* Pentzal-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #732d91;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #8e44ad;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #732d91;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #9b59b6;
+  }
+}
+
+/* Sona Theme */
+.theme-Sona {
+  /* Background Styles */
+  background-color: #f5f5dc; /* Placeholder */
+  background-image: url('/themes/Sona/background.jpg'); /* Placeholder */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #2c3e50; /* Placeholder font color */
+  font-family: 'SonaFont', sans-serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #16a085; /* Sona-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #138d75;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #16a085;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #138d75;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #1abc9c;
+  }
+}
+
+/* Ekanesh Theme */
+.theme-Ekanesh {
+  /* Background Styles */
+  background-color: #2f4f4f; /* Placeholder */
+  background-image: url('/themes/Ekanesh/background.jpg'); /* Placeholder */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ecf0f1; /* Placeholder font color */
+  font-family: 'EkaneshFont', sans-serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #e67e22; /* Ekanesh-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #d35400;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #e67e22;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #d35400;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #d35400;
+  }
+}
+
+/* Theme Default */
 .theme-default {
   background-color: #000;
   color: #fff;
 }
 
 .theme-default .main-container {
-  background-color: transparent; /* let main-hacking-screen show */
+  background-color: transparent; /* Let main-hacking-screen show */
 }
 
-/* Add more theme classes if you use dynamic theming, e.g. .theme-tech-dark */
+/* =========================
+   Additional Styles
+   ========================= */
+
+/* Success and Failure Phases */
+.success-phase,
+.failure-phase {
+  /* Customize per theme if needed */
+  /* Example for theme-ICC:
+  .theme-ICC .success-phase {
+    background-color: #28a745;
+    color: #fff;
+  }
+  */
+}
+
+/* Locked Session Message */
+.locked-session-message {
+  text-align: center;
+  margin-top: 4rem;
+}
+
+/* Blinking animation for IN_PROGRESS */
+@keyframes blinkOpacity {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.layer-item.in-progress {
+  animation: blinkOpacity 1.5s infinite;
+}
+
+/**
+ * If a layer is SOLVED, we keep it in the grid (occupies space),
+ * but remove its visible contents.
+ * 
+ * Option A: Use visibility: hidden;
+ * Option B: Hide the child elements while keeping dimension.
+ */
+
+/* Approach A: Entire card invisible but occupies space */
+.layer-item.solved {
+  visibility: hidden; /* Remains in layout, but invisible */
+  pointer-events: none;
+  /* If you want a small fade effect, use transition:
+     transition: visibility 0.3s, opacity 0.3s;
+     but note that visibility doesn't animate nicely by default. */
+}
+
+/* 
+  If you prefer "Approach B" (keeping the border, but removing inside content),
+  you could do something like: */
+
+/* .layer-item.solved > * {
+  display: none;
+} */
+/*
+.layer-item.solved {
+  background-color: transparent;
+  border: none;
+  cursor: default;
+  pointer-events: none;
+}
+*/
+
+/* 
+  For your scenario, "visibility: hidden" is often simplest 
+  to keep an empty placeholder in the grid.
+*/
+
+/* 
+  The rest of your existing CSS from previous examples 
+  (themes, layout, etc.) remains intact.
+*/
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .main-container {
+    grid-template-columns: 1fr; /* Single column on small screens */
+  }
+
+  .child-sessions-column,
+  .parent-sessions-column {
+    display: none; /* Hide sidebars on small screens */
+  }
+
+  .layers-column {
+    width: 100%;
+  }
+
+  .active-phase .layer-grid,
+  .layer-grid {
+    width: 100%;
+  }
+}
