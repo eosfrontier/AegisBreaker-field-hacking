@@ -1,163 +1,97 @@
 /* =========================
    HEXAGON HONEYCOMB LAYOUT 
-   Simplified and tailored for QR codes
+   Unified and tailored for QR codes with circuit board overlay
 ========================= */
 
+/* Root container for the hex grid */
 #hexGrid {
   display: flex;
   flex-wrap: wrap;
   width: 90%;
   margin: 0 auto;
   overflow: hidden;
-  list-style-type: none;
-  /* You can remove or override font settings if you have them in theme classes */
   font-family: 'Raleway', sans-serif;
   font-size: 15px;
+  list-style-type: none;
+  padding-bottom: 6rem;
 }
 
+/* Each hexagon container */
 .hex {
   position: relative;
-  visibility: hidden;
-  outline: 1px solid transparent; /* fix for jagged edges in FF on hover transition */
+  visibility: hidden; /* fix for jagged edges in FF */
+  outline: 1px solid transparent;
 }
 .hex::after {
   content: '';
   display: block;
-  padding-bottom: 86.602%; /* = 100 / tan(60) * 1.5 for hex shape */
+  padding-bottom: 86.602%; /* Perfect hex ratio */
 }
+
+/* Inner hex shape using transform */
 .hexIn {
   position: absolute;
   width: 96%;
   padding-bottom: 110.851%; /* = width / sin(60) */
   margin: 0 2%;
   overflow: hidden;
-  visibility: hidden;
-  outline: 1px solid transparent; /* fix for jagged edges in FF on hover transition */
+  visibility: hidden; /* hidden until children are placed */
+  outline: 1px solid transparent;
   transform: rotate3d(0, 0, 1, -60deg) skewY(30deg);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
+
+/* Make hex and hexIn visible after transforms are set */
+.hex,
+.hexIn {
+  visibility: visible;
+}
+
+/* Force child elements to be visible within .hexIn */
 .hexIn * {
   position: absolute;
   visibility: visible;
-  outline: 1px solid transparent; /* fix for jagged edges in FF on hover transition */
+  outline: 1px solid transparent;
 }
+
+/* The main link that re-skews the contents to normal orientation */
 .hexLink {
-  display: block;
+  display: flex;          
+  align-items: center;    
+  justify-content: center;
   width: 100%;
   height: 100%;
   text-align: center;
-  color: #fff; /* override or adjust per theme */
+  color: #fff;
   overflow: hidden;
   transform: skewY(-30deg) rotate3d(0, 0, 1, 60deg);
 }
 
-/* Sizing & spacing for the hex contents (like h1, p, images) */
-.hex img {
+/* CIRCUIT BOARD BACKGROUND IMAGE */
+.circuit-board {
   left: -100%;
   right: -100%;
   width: auto;
   height: 100%;
   margin: 0 auto;
-  transform: rotate3d(0, 0, 0, 0deg);
+  transform: rotate(0deg); /* Overridden inline by random rotation */
 }
 
-.hex h1,
-.hex p {
-  width: 100%;
-  padding: 5%;
-  box-sizing: border-box;
-  background-color: rgba(0, 128, 128, 0.8); /* teal-ish overlay background */
-  font-weight: 300;
-  transition: transform 0.2s ease-out, opacity 0.3s ease-out;
-}
-.hex h1 {
-  bottom: 50%;
-  padding-top: 50%;
-  font-size: 1.5em;
-  z-index: 1;
-  transform: translate3d(0, -100%, 0);
-}
-.hex h1::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 45%;
-  width: 10%;
-  border-bottom: 1px solid #fff;
-}
-.hex p {
+/* QR CODE Container in the center of the hex */
+.qr-code {
   top: 50%;
-  padding-bottom: 50%;
-  transform: translate3d(0, 100%, 0);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Hover effect from the snippet */
-.hexLink:hover h1,
-.hexLink:focus h1,
-.hexLink:hover p,
-.hexLink:focus p {
-  transform: translate3d(0, 0, 0);
-}
+/* =========================
+   Status-Based Styles
+========================= */
 
-/* Even row indentation logic (responsive) */
-@media (min-width: 1201px) {
-  #hexGrid {
-    padding-bottom: 4.4%;
-  }
-  .hex {
-    width: 20%; /* 5 per row */
-  }
-  .hex:nth-child(9n + 6) {
-    margin-left: 10%;
-  }
-}
-
-@media (max-width: 1200px) and (min-width: 901px) {
-  #hexGrid {
-    padding-bottom: 5.5%;
-  }
-  .hex {
-    width: 25%; /* 4 per row */
-  }
-  .hex:nth-child(7n + 5) {
-    margin-left: 12.5%;
-  }
-}
-
-@media (max-width: 900px) and (min-width: 601px) {
-  #hexGrid {
-    padding-bottom: 7.4%;
-  }
-  .hex {
-    width: 33.333%;
-  }
-  .hex:nth-child(5n + 4) {
-    margin-left: 16.666%;
-  }
-}
-
-@media (max-width: 600px) {
-  #hexGrid {
-    padding-bottom: 11.2%;
-  }
-  .hex {
-    width: 50%;
-  }
-  .hex:nth-child(3n + 3) {
-    margin-left: 25%;
-  }
-}
-
-@media (max-width: 400px) {
-  #hexGrid {
-    font-size: 13px;
-  }
-}
-
-/* -----------------------------------
-     OUR STATUS-BASED STYLES
-  ----------------------------------- */
-
-/* 1. Blink for .in-progress */
+/* 1) Blinking for IN_PROGRESS */
 @keyframes blinkOpacity {
   0%,
   100% {
@@ -171,211 +105,94 @@
   animation: blinkOpacity 1.5s infinite;
 }
 
-/* 2. If solved, hide the hex contents but keep shape in layout */
+/* 2) Fade-Out for SOLVED 
+   We keep the hex shape in the grid, but hide the content. */
 .hex.solved .hexLink {
   visibility: hidden;
   pointer-events: none;
-  /* Alternatively, you could do .hex.solved { display: none } if you want it removed entirely,
-       but you said you'd prefer to keep position in the grid. */
-}
-
-.fade-in {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 1s ease-out, transform 1s ease-out;
-}
-
-/* Fade-out for old group */
-.fade-out {
   opacity: 0;
-  transform: translateY(-20px); /* Slight slide-up */
-  transition: opacity 1s ease-out, transform 1s ease-out;
+  transition: opacity 1s ease-out, visibility 1s ease-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Fade-in and Slide-up for upcoming group */
-.fade-in-up {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 1s ease-out, transform 1s ease-out;
-}
+/* If you prefer the entire .hex to vanish (losing shape), 
+   you could do .hex.solved { opacity: 0; } instead. 
+   But here, we keep .hexIn's space. */
 
-/* Optionally, initial state for upcoming group */
-.upcoming .hex-preview {
+/* 3) Preview State (semi-transparent, no interaction) */
+.hex-preview {
   opacity: 0.3;
   pointer-events: none;
-}
-
-/* Global reset for this component */
-#hexGrid {
-  display: flex;
-  flex-wrap: wrap;
-  width: 90%;
-  margin: 1rem auto;
-  overflow: hidden;
-  list-style-type: none;
-  font-size: 15px; /* Adjust as needed */
-}
-
-/* Each LI is a hex container */
-.hex {
-  position: relative;
-  visibility: hidden; /* Essential for hex shape */
-  outline: 1px solid transparent; /* Fix for jagged edges in Firefox */
-}
-
-.hex::after {
-  content: '';
-  display: block;
-  padding-bottom: 86.602%; /* = 100 / tan(60) * 1.5 for perfect hex shape */
-}
-
-/* Inner container that forms the hexagon */
-.hexIn {
-  position: absolute;
-  width: 96%;
-  padding-bottom: 110.851%; /* = width / sin(60) */
-  margin: 0 2%;
-  overflow: hidden;
-  visibility: hidden; /* Hidden until content is placed */
-  outline: 1px solid transparent; /* Fix for jagged edges in FF */
-  transform: rotate3d(0, 0, 1, -60deg) skewY(30deg);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
-
-/* Content container */
-.hexLink {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  color: #fff;
-  background-color: #0a0a0a; /* Fallback color */
-  transform: skewY(-30deg) rotate3d(0, 0, 1, 60deg);
-  transition: background-color 0.3s ease;
-}
-
-/* Make the hex and inner visible */
-.hex,
-.hexIn {
-  visibility: visible;
-}
-
-/* Solved Overlay */
-.solved-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-/* Blinking Animation for IN_PROGRESS */
-@keyframes blinkOpacity {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-.in-progress .hexLink {
-  animation: blinkOpacity 1.5s infinite;
-}
-
-/* Fade-Out Animation for SOLVED */
-.solved {
-  opacity: 0;
-  transition: opacity 1s ease-out;
-}
-
-/* Fade-In Animation for Active Group */
-.fade-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.fade-out {
-  opacity: 0;
-  transform: translateY(-20px); /* Slight slide-up */
-}
-
-/* Fade-In and Slide-Up for Upcoming Group */
-.fade-in-up {
-  opacity: 1;
-  transform: translateY(-20px);
-  transition: opacity 1s ease-out, transform 1s ease-out;
-}
-
-.fade-in-up {
-  /* If needed, define keyframes or rely on transition */
-}
-
-/* Preview Group Styling */
-.hex-preview {
-  opacity: 0.3; /* Partially transparent */
-  pointer-events: none; /* No interaction */
   transition: opacity 0.5s ease;
 }
 
-/* The placeholder we show for a preview hex */
+/* Example placeholder if you prefer a label in preview: */
 .preview-placeholder {
-  display: block;
-  padding: 1rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: bold;
+  padding: 10px;
 }
 
-/* Media Queries for Responsive Hexagons */
-@media (min-width: 1201px) {
-  /* ~5 hexagons per row */
+/* =========================
+   Optional Fade/Slide for Group Transitions
+========================= */
+.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+.fade-out {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+.fade-in-up {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+/* =========================
+   Responsive Hex Sizing
+========================= */
+@media (min-width: 2201px) {
   .hex {
     width: 20%;
   }
   .hex:nth-child(9n + 6) {
-    margin-left: 10%; /* Indent even rows */
+    margin-left: 10%;
   }
 }
-
-@media (max-width: 1200px) and (min-width: 901px) {
-  /* ~4 hexagons per row */
+@media (max-width: 2200px) and (min-width: 901px) {
   .hex {
     width: 25%;
   }
   .hex:nth-child(7n + 5) {
-    margin-left: 12.5%; /* Indent even rows */
+    margin-left: 12.5%;
   }
 }
-
 @media (max-width: 900px) and (min-width: 601px) {
-  /* ~3 hexagons per row */
   .hex {
     width: 33.333%;
   }
   .hex:nth-child(5n + 4) {
-    margin-left: 16.666%; /* Indent even rows */
+    margin-left: 16.666%;
   }
 }
-
 @media (max-width: 600px) {
-  /* ~2 hexagons per row */
   .hex {
     width: 50%;
   }
   .hex:nth-child(3n + 3) {
-    margin-left: 25%; /* Indent even rows */
+    margin-left: 25%;
   }
 }
-
 @media (max-width: 400px) {
   #hexGrid {
     font-size: 13px;

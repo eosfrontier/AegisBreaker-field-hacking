@@ -45,7 +45,7 @@
 /* Main Container Layout */
 .main-container {
   display: grid;
-  grid-template-columns: 1fr 3fr 1fr; /* left = 1fr, center = 3fr, right = 1fr */
+  grid-template-columns: 1fr 10fr 1fr; /* left = 1fr, center = 3fr, right = 1fr */
   gap: 1rem;
   flex: 1;
   padding: 1rem;
@@ -159,14 +159,7 @@
 
 /* Layer Item Default Styling */
 .layer-item {
-  background-color: #222;
-  color: #fff;
-  padding: 1rem;
-  border-radius: 4px;
   transition: opacity 1s ease; /* Allow fade-out for solved */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
 /* Fade Out Solved Layers */
@@ -380,8 +373,6 @@
   /* Layer Card Backgrounds */
   .layer-item {
     background-color: #4b1414;
-    border-radius: 50px;
-    font-size: 22px;
   }
 }
 
