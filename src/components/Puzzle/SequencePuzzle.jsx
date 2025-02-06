@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import "./SequencePuzzle.css";
@@ -34,8 +34,8 @@ const generateRandomSequence = (len) => {
   return sequence;
 };
 
-const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
-  // 1) On mount, generate a brand new 5-symbol sequence
+const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) => {
+  // 1) On mount, generate a new sequence based on difficulty
   const [sequence, setSequence] = useState([]);
   // 2) Current index in the sequence
   const [progressIndex, setProgressIndex] = useState(0);
@@ -44,10 +44,31 @@ const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
 
   const difficulty = layerData?.difficulty || 1;
 
+  /**
+   * Generate random shuffled choices based on difficulty
+   */
+  const generateShuffledChoices = useCallback(
+    (correctChar) => {
+      let randomChars = [];
+      // Adjust the number of shuffled choices based on difficulty
+      const totalChoices = 9 * difficulty; // Example: difficulty scales the number of choices
+      while (randomChars.length < totalChoices - 1) { // Subtract 1 for the correctChar
+        const candidate = VALID_CHARS[Math.floor(Math.random() * VALID_CHARS.length)];
+        if (!randomChars.includes(candidate) && candidate !== correctChar) {
+          randomChars.push(candidate);
+        }
+      }
+      // Insert the correct character at a random position
+      const correctPos = Math.floor(Math.random() * totalChoices);
+      randomChars.splice(correctPos, 0, correctChar);
+      return randomChars;
+    },
+    [difficulty]
+  );
 
   useEffect(() => {
-    // Generate the random 5-symbol sequence once
-    const newSequence = generateRandomSequence(5 * difficulty);
+    // Generate the random sequence once based on difficulty
+    const newSequence = generateRandomSequence(5 * difficulty); // Example scaling
     setSequence(newSequence);
   }, [difficulty]);
 
@@ -56,31 +77,12 @@ const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
    * generate a new set of choices if we're not at the end.
    */
   useEffect(() => {
-    if (sequence.length === 0) return;         // Not ready yet
+    if (sequence.length === 0) return; // Not ready yet
     if (progressIndex >= sequence.length) return; // Already complete
 
     const correctChar = sequence[progressIndex];
     setCurrentChoices(generateShuffledChoices(correctChar));
-  }, [progressIndex, sequence]);
-
-  /**
-   * Generate random 7 other chars + the correct one, then shuffle
-   */
-  const generateShuffledChoices = (correctChar) => {
-    let randomChars = [];
-    // pick 7 distinct random chars (not the correct one)
-    while (randomChars.length < 9 * difficulty) {
-      const candidate = VALID_CHARS[Math.floor(Math.random() * VALID_CHARS.length)];
-      if (!randomChars.includes(candidate) && candidate !== correctChar) {
-        randomChars.push(candidate);
-      }
-    }
-
-    // Insert correct char at random position
-    const correctPos = Math.floor(Math.random() * 8);
-    randomChars.splice(correctPos, 0, correctChar);
-    return randomChars;
-  };
+  }, [progressIndex, sequence, generateShuffledChoices]);
 
   /**
    * Handle when the user taps a choice
@@ -96,11 +98,19 @@ const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
 
       if (nextIndex === sequence.length) {
         // Puzzle is solved
-        try {
-          const layerRef = doc(db, "sessions", sessionId, "layers", layerId);
-          await updateDoc(layerRef, { status: "SOLVED" });
-        } catch (err) {
-          console.error("Error updating puzzle status:", err);
+        if (sessionId && layerId) {
+          // Firestore-based puzzle
+          try {
+            const layerRef = doc(db, "sessions", sessionId, "layers", layerId);
+            await updateDoc(layerRef, { status: "SOLVED" });
+          } catch (err) {
+            console.error("Error updating puzzle status:", err);
+          }
+        } else {
+          // One-off puzzle: call the completion callback
+          if (typeof onLocalPuzzleComplete === "function") {
+            onLocalPuzzleComplete();
+          }
         }
       }
     } else {
@@ -109,8 +119,10 @@ const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
     }
   };
 
-  // If fully solved, just show a success message
+  // If fully solved, show appropriate UI
   if (progressIndex === sequence.length && sequence.length > 0) {
+    // For Firestore-based puzzles, the PuzzleScreen handles the solved UI
+    // For one-off puzzles, this part might not be reached as PuzzleScreen handles it via callback
     return <div className="sequence-puzzle-container">Sequence complete! Good job!</div>;
   }
 
@@ -120,7 +132,6 @@ const SequencePuzzle = ({ sessionId, layerId, layerData }) => {
   return (
     <div className="sequence-puzzle-container">
       <h2>Sequence Puzzle</h2>
-
 
       {/* Progress row: e.g. 5 boxes for a 5-symbol sequence */}
       <div className="progress-row">
