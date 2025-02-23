@@ -13,6 +13,7 @@ const PUZZLE_TYPES = [
   { value: 'sequence', label: 'Sequence' },
   { value: 'frequencyTuning', label: 'Frequency Tuning' },
   { value: 'logic', label: 'Logic Puzzle' },
+  { value: 'masterLock', label: 'Circle Lock' },
 ];
 
 const DIFFICULTY_LABELS = {
@@ -244,6 +245,8 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
         return '📶';
       case 'logic':
         return '🧠';
+      case 'masterLock':
+        return '🔒';
       default:
         return '❓';
     }
