@@ -1,25 +1,175 @@
-import { useState, useEffect, useCallback } from "react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
-import "./SequencePuzzle.css";
+import { useState, useEffect, useCallback } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebaseConfig';
+import './SequencePuzzle.css';
 
 const VALID_CHARS = [
-  '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/',
-  '0','1','2','3','4','5','6','7','8','9',
-  ':',';','<','=', '>','?','@',
-  'A','B','C','D','E','F','G','H','I','J','K','L','M',
-  'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-  '[','\\',']','^','_','`',
-  'a','b','c','d','e','f','g','h','i','j','k','l','m',
-  'n','o','p','q','r','s','t','u','v','w','x','y','z',
-  '{','|','}','~',
-  'Ä','Å','Ç','É','Ñ','Ö','Ü',
-  'á','à','â','ä','ã','å','ç','é','è','ê','ë','í','ì','î','ï','ñ',
-  'ó','ò','ô','ö','õ','ú','ù','û','ü',
-  '°','¢','£','§','•','¶','ß','®','©','™','ª','º','æ','¡','’',
-  '÷','ÿ','Ÿ','¤','‹','›','·','‚','„','Â',
-  'Á','Ë','È','Í','Î','Ï','Ì','Ó','Ô','Ò','Ú','Û','Ù','ˆ',
-  'Þ'
+  '!',
+  '"',
+  '#',
+  '$',
+  '%',
+  '&',
+  "'",
+  '(',
+  ')',
+  '*',
+  '+',
+  ',',
+  '-',
+  '.',
+  '/',
+  '0',
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  ':',
+  ';',
+  '<',
+  '=',
+  '>',
+  '?',
+  '@',
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  'S',
+  'T',
+  'U',
+  'V',
+  'W',
+  'X',
+  'Y',
+  'Z',
+  '[',
+  '\\',
+  ']',
+  '^',
+  '_',
+  '`',
+  'a',
+  'b',
+  'c',
+  'd',
+  'e',
+  'f',
+  'g',
+  'h',
+  'i',
+  'j',
+  'k',
+  'l',
+  'm',
+  'n',
+  'o',
+  'p',
+  'q',
+  'r',
+  's',
+  't',
+  'u',
+  'v',
+  'w',
+  'x',
+  'y',
+  'z',
+  '{',
+  '|',
+  '}',
+  '~',
+  'Ä',
+  'Å',
+  'Ç',
+  'É',
+  'Ñ',
+  'Ö',
+  'Ü',
+  'á',
+  'à',
+  'â',
+  'ä',
+  'ã',
+  'å',
+  'ç',
+  'é',
+  'è',
+  'ê',
+  'ë',
+  'í',
+  'ì',
+  'î',
+  'ï',
+  'ñ',
+  'ó',
+  'ò',
+  'ô',
+  'ö',
+  'õ',
+  'ú',
+  'ù',
+  'û',
+  'ü',
+  '°',
+  '¢',
+  '£',
+  '§',
+  '•',
+  '¶',
+  'ß',
+  '®',
+  '©',
+  '™',
+  'ª',
+  'º',
+  'æ',
+  '¡',
+  '’',
+  '÷',
+  'ÿ',
+  'Ÿ',
+  '¤',
+  '‹',
+  '›',
+  '·',
+  '‚',
+  '„',
+  'Â',
+  'Á',
+  'Ë',
+  'È',
+  'Í',
+  'Î',
+  'Ï',
+  'Ì',
+  'Ó',
+  'Ô',
+  'Ò',
+  'Ú',
+  'Û',
+  'Ù',
+  'ˆ',
+  'Þ',
 ];
 
 /**
@@ -42,7 +192,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
   // 3) Current set of shuffled choices (correct symbol + random others)
   const [currentChoices, setCurrentChoices] = useState([]);
 
-  const difficulty = layerData?.difficulty || 1;
+  const difficulty = Number(layerData?.difficulty || 1);
 
   /**
    * Generate random shuffled choices based on difficulty
@@ -52,7 +202,8 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
       let randomChars = [];
       // Adjust the number of shuffled choices based on difficulty
       const totalChoices = 9 * difficulty; // Example: difficulty scales the number of choices
-      while (randomChars.length < totalChoices - 1) { // Subtract 1 for the correctChar
+      while (randomChars.length < totalChoices - 1) {
+        // Subtract 1 for the correctChar
         const candidate = VALID_CHARS[Math.floor(Math.random() * VALID_CHARS.length)];
         if (!randomChars.includes(candidate) && candidate !== correctChar) {
           randomChars.push(candidate);
@@ -63,7 +214,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
       randomChars.splice(correctPos, 0, correctChar);
       return randomChars;
     },
-    [difficulty]
+    [difficulty],
   );
 
   useEffect(() => {
@@ -101,21 +252,21 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
         if (sessionId && layerId) {
           // Firestore-based puzzle
           try {
-            const layerRef = doc(db, "sessions", sessionId, "layers", layerId);
-            await updateDoc(layerRef, { status: "SOLVED" });
+            const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
+            await updateDoc(layerRef, { status: 'SOLVED' });
           } catch (err) {
-            console.error("Error updating puzzle status:", err);
+            console.error('Error updating puzzle status:', err);
           }
         } else {
           // One-off puzzle: call the completion callback
-          if (typeof onLocalPuzzleComplete === "function") {
+          if (typeof onLocalPuzzleComplete === 'function') {
             onLocalPuzzleComplete();
           }
         }
       }
     } else {
       // Wrong choice (optional: show an error animation, reduce time, etc.)
-      console.log("Wrong choice!");
+      console.log('Wrong choice!');
     }
   };
 
@@ -127,7 +278,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
   }
 
   // The next symbol to tap (for reference or if you want to display it)
-  const currentTarget = sequence[progressIndex] || "";
+  const currentTarget = sequence[progressIndex] || '';
 
   return (
     <div className="sequence-puzzle-container">
@@ -136,15 +287,10 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
       {/* Progress row: e.g. 5 boxes for a 5-symbol sequence */}
       <div className="progress-row">
         {sequence.map((symbol, idx) => (
-          <div
-            key={idx}
-            className={idx < progressIndex ? "progress-box filled" : "progress-box"}
-          />
+          <div key={idx} className={idx < progressIndex ? 'progress-box filled' : 'progress-box'} />
         ))}
       </div>
-      <p>
-        {`Completed ${progressIndex} / ${sequence.length}`}
-      </p>
+      <p>{`Completed ${progressIndex} / ${sequence.length}`}</p>
 
       {/* The current symbol to tap, displayed with the custom font */}
       <div className="current-target">
@@ -154,11 +300,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
       {/* The choice buttons */}
       <div className="choices-row">
         {currentChoices.map((char, idx) => (
-          <button
-            key={idx}
-            className="puzzle-button"
-            onClick={() => handleChoiceClick(char)}
-          >
+          <button key={idx} className="puzzle-button" onClick={() => handleChoiceClick(char)}>
             <span className="digital-symbol">{char}</span>
           </button>
         ))}
