@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
@@ -8,24 +8,20 @@ import Typewriter from '../../utils/Typewriter';
 
 import SequencePuzzle from './SequencePuzzle';
 import FrequencyPuzzle from './FrequencyPuzzle';
+import LogicPuzzle from './LogicPuzzle';
+import MasterLockPuzzle from './MasterLockPuzzle';
 
 import UnlockedLockSVG from '../../assets/lock-unlock-icon-22.svg';
 
 const PuzzleScreen = () => {
   const { sessionId, layerId } = useParams();
-  const [searchParams] = useSearchParams();
   const [layerData, setLayerData] = useState(null);
   const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [fakeDelayComplete, setFakeDelayComplete] = useState(false);
-  const [localPuzzleSolved, setLocalPuzzleSolved] = useState(false);
 
   const navigate = useNavigate();
-
-  // Read puzzle type & difficulty from query params (for one-off puzzle)
-  const puzzleTypeParam = searchParams.get('type');
-  const difficultyParam = parseInt(searchParams.get('difficulty') || '1', 10);
 
   useEffect(() => {
     // If we DO have sessionId+layerId, use Firestore. Otherwise, skip it
@@ -103,41 +99,6 @@ const PuzzleScreen = () => {
     );
   };
 
-  // If we are NOT using Firestore, then we rely on localPuzzleSolved
-  if (!sessionId || !layerId) {
-    // Once the puzzle is "solved" locally, show solved
-    if (localPuzzleSolved) {
-      return renderSolvedScreen();
-    }
-
-    // The puzzle might come from query params
-    const puzzleType = puzzleTypeParam || 'sequence';
-    const puzzleDifficulty = difficultyParam || 1;
-
-    // Just skip the entire layered logic and show the puzzle directly
-    return (
-      <div>
-        {puzzleType === 'sequence' && (
-          <SequencePuzzle
-            // pass "null" so it doesn't do Firestore stuff
-            sessionId={null}
-            layerId={null}
-            layerData={{ difficulty: puzzleDifficulty }}
-            onLocalPuzzleComplete={() => setLocalPuzzleSolved(true)}
-          />
-        )}
-        {puzzleType === 'frequencyTuning' && (
-          <FrequencyPuzzle
-            sessionId={null}
-            layerId={null}
-            layerData={{ difficulty: puzzleDifficulty }}
-            onLocalPuzzleComplete={() => setLocalPuzzleSolved(true)}
-          />
-        )}
-      </div>
-    );
-  }
-
   if (layerData?.status !== 'SOLVED' && (loading || !fakeDelayComplete)) {
     const hackText = `Establishing secure connection...
       Identifying attack vector...
@@ -193,8 +154,11 @@ const PuzzleScreen = () => {
     );
   }
   if (layerData?.puzzleType === 'logic') {
+    return <LogicPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />;
+  }
+  if (layerData?.puzzleType === 'masterLock') {
     return (
-      <SequencePuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
+      <MasterLockPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
     );
   }
 
