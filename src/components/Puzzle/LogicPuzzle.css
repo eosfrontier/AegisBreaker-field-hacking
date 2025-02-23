@@ -1,0 +1,164 @@
+/* Existing styles ... */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+.logic-puzzle {
+  padding: 20px;
+  background: #0a0e15;
+  color: #ffffff;
+  min-height: 100vh;
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* Spinner container for resetting state */
+.resetting-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+/* Simple spinner styling */
+.spinner {
+  border: 4px solid #2a4e6c;
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Other styles remain unchanged */
+
+.process-card {
+  border: 1px solid #2a4e6c;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 8px;
+  background: #0a0a0a;
+  box-shadow: 0 0 8px #00ff9d;
+}
+
+.process-title {
+  font-size: 1.4em;
+  margin-bottom: 10px;
+  color: #0aff0a;
+}
+
+.statement {
+  font-style: italic;
+  margin-bottom: 10px;
+  font-family: monospace;
+  color: #ffffff;
+}
+
+.button-choice-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+/* Common base styles for choice buttons */
+.choice-button {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 1.2em;
+  border: 2px solid #2a4e6c;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* Harmless/Trusted version (green-ish) */
+.choice-button.harmless-button {
+  background-color: #122738; /* or a dark shade if you'd like */
+  color: #ffffff;
+  border-color: #2a4e6c;
+}
+
+.choice-button.harmless-button:hover {
+  background-color: #0aff0a11;
+}
+
+.choice-button.harmless-button.selected {
+  border-color: #0aff0a;
+  background-color: #0aff0a33;
+}
+
+.choice-button.rogue-button {
+  background-color: #122738;
+  color: #ffffff;
+  border-color: #2a4e6c;
+}
+
+.choice-button.rogue-button:hover {
+  background-color: #ff465522;
+}
+
+.choice-button.rogue-button.selected {
+  border-color: #ff4655;
+  background-color: #ff465533;
+}
+
+.validate-button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  font-size: 1.2em;
+  margin: 20px 0;
+  background-color: #1a4d6b;
+  border: 2px solid #0aff0a;
+  color: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.validate-button:hover {
+  background-color: #2a6e9a;
+}
+
+.feedback {
+  color: #ff4655;
+  margin-top: 10px;
+  font-size: 1.1em;
+  text-align: center;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-8px);
+  }
+  80% {
+    transform: translateX(8px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.error-shake {
+  animation: shake 0.5s ease;
+}
