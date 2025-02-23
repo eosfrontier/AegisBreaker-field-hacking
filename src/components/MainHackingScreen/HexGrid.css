@@ -56,8 +56,8 @@
 
 /* The main link that re-skews the contents to normal orientation */
 .hexLink {
-  display: flex;          
-  align-items: center;    
+  display: flex;
+  align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
@@ -85,6 +85,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Pip row container: now displayed as a horizontal row */
+.pip-row {
+  position: absolute;
+  bottom: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem; /* Spacing between pips */
+  z-index: 2;
+}
+
+/* Each pip: small circle */
+.pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 /* =========================

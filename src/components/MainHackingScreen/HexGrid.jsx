@@ -56,10 +56,15 @@ function HexGrid({ layers, sessionId, variant }) {
   // Helper to determine rotation based on layer ID
   const getRotationFromId = (layerId) => {
     const rotations = [0, 90, 180, 270];
-    const sum = layerId
-      .split('')
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const sum = layerId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return rotations[sum % rotations.length];
+  };
+
+  const puzzleTypeColorMap = {
+    sequence: '#04d9ee',
+    frequencyTuning: '#ff0000',
+    logic: '#0aff0a',
+    masterLock: '#BF00ff',
   };
 
   return (
@@ -98,11 +103,11 @@ function HexGrid({ layers, sessionId, variant }) {
         const rotationDegrees = getRotationFromId(layer.id);
         const qrValue = `${window.location.origin}/puzzle/${sessionId}/${layer.id}`;
 
+        const difficulty = Number(layer.difficulty) || 1;
+        const pipColor = puzzleTypeColorMap[layer.puzzleType] || '#ffffff';
+
         return (
-          <li
-            className={`hex ${statusClass} ${variantClass}`}
-            key={layer.id}
-          >
+          <li className={`hex ${statusClass} ${variantClass}`} key={layer.id}>
             <div className="hexIn">
               <div className="hexLink layer-item">
                 {/* If preview, show LOCKED */}
@@ -119,20 +124,18 @@ function HexGrid({ layers, sessionId, variant }) {
                     />
                     {/* QR Code in the center */}
                     <div className="qr-code">
-                      <QRCodeCanvas
-                        value={qrValue}
-                        size={128}
-                        bgColor="#000"
-                        fgColor="#fff"
-                        level="L"
-                        marginSize={1}
-                      />
+                      <QRCodeCanvas value={qrValue} size={128} bgColor="#000" fgColor="#fff" level="L" marginSize={1} />
+                    </div>
+                    <div className="pip-row">
+                      {Array.from({ length: difficulty }, (_, i) => (
+                        <span key={i} className="pip" style={{ backgroundColor: pipColor }} />
+                      ))}
                     </div>
                   </>
                 ) : (
                   // If it's fully solved OR if it's "just solved" and we want that overlay
                   <span className="solved-overlay">
-                                        <img
+                    <img
                       className="circuit-board"
                       src="/circuitBoard.png"
                       alt="Circuit Board"

@@ -401,7 +401,15 @@ function MainHackingScreen() {
           {hackPhase === 'SUCCESS' && (
             <div className="success-phase">
               <div className="theme-logo">
-                <img src={`/themes/${sessionData.theme}/logo.png`} alt="Theme Logo" />
+                <img
+                  style={{
+                    width: '100px',
+                    height: '100px',
+                    margin: '20px',
+                  }}
+                  src={`/themes/${sessionData.theme}/logo.png`}
+                  alt="Theme Logo"
+                />
               </div>
               <h1>Hack Succeeded!</h1>
               <p>All layers were solved in time.</p>
