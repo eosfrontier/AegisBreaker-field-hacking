@@ -24,12 +24,14 @@ const DIFFICULTY_LABELS = {
   5: 'Inscrutable',
 };
 
-const THEMES = ['ICC', 'Aliens', 'Aquila', 'Dugo', 'Pentzal', 'Sona', 'Ekanesh'];
+const THEMES = ['ICC', 'Aliens', 'Aquila', 'Dugo', 'Pendzal', 'Sona', 'Ekanesh'];
 
 function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
   // --- Session State ---
   const [sessionData, setSessionData] = useState(null);
   const [name, setName] = useState('');
+  const [gmName, setGmName] = useState('');
+  const [playerName, setPlayerName] = useState('');
   const [timeLimit, setTimeLimit] = useState(300);
   const [theme, setTheme] = useState('');
   const [parentSessionId, setParentSessionId] = useState(null);
@@ -49,8 +51,13 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
   // --- Delete Confirmation Modal State ---
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // --- modal state:
+  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
+  const [tempCompletionContent, setTempCompletionContent] = useState('');
+
   const navigate = useNavigate();
   const [dirty, setDirty] = useState(false);
+  const canStart = layers.length > 0;
 
   useEffect(() => {
     if (!sessionId) return;
@@ -62,6 +69,8 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
         const data = snapshot.data();
         setSessionData(data);
         setName(data.name || '');
+        setGmName(data.gmName || data.name || '');
+        setPlayerName(data.playerName || '');
         setTimeLimit(data.timeLimit || 300);
         setTheme(data.theme || '');
         setParentSessionId(data.parentSessionId || '');
@@ -99,6 +108,8 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
       const sessionDocRef = doc(db, 'sessions', sessionId);
       await updateDoc(sessionDocRef, {
         name,
+        gmName,
+        playerName,
         timeLimit,
         status,
         completionContent,
@@ -108,6 +119,8 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
       setDirty(false);
       onSessionUpdated({
         id: sessionId,
+        gmName,
+        playerName,
         name,
         timeLimit,
         status,
@@ -252,10 +265,24 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
     }
   };
 
+  const handleSaveCompletion = async () => {
+    try {
+      // Update Firestore right now
+      const sessionDocRef = doc(db, 'sessions', sessionId);
+      await updateDoc(sessionDocRef, {
+        completionContent: tempCompletionContent,
+      });
+      // Then store in local state
+      setCompletionContent(tempCompletionContent);
+      alert('Completion content saved!');
+    } catch (err) {
+      console.error('Error saving completion content:', err);
+    }
+    setIsCompletionModalOpen(false);
+  };
+
   return (
     <div style={{ padding: '16px' }}>
-      <h2>Editing Session: {sessionId}</h2>
-
       {isLoading ? (
         <p>Loading session...</p>
       ) : sessionData ? (
@@ -263,17 +290,35 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
           <div className="session-details-container">
             {/* Left side (on desktop) or top (on mobile) */}
             <div className="session-form">
-              {/* Session Fields */}
+              <h2>Editing Session: {sessionId}</h2>
               <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', fontWeight: 'bold' }}>Session Name</label>
+                <label>
+                  <b>Session Identifier</b>
+                </label>
                 <input
                   type="text"
-                  value={name}
+                  value={gmName}
                   onChange={(e) => {
-                    setName(e.target.value);
+                    setGmName(e.target.value);
                     setDirty(true);
                   }}
-                  style={{ width: '100%', padding: '4px' }}
+                  placeholder="For SL identification"
+                />
+              </div>
+
+              {/* Player-visible name (hacking screen) */}
+              <div style={{ marginBottom: '8px' }}>
+                <label>
+                  <b>Session Title</b>
+                </label>
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={(e) => {
+                    setPlayerName(e.target.value);
+                    setDirty(true);
+                  }}
+                  placeholder="This will appear on the hacking screen"
                 />
               </div>
 
@@ -286,19 +331,18 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
                     setTimeLimit(Number(e.target.value));
                     setDirty(true);
                   }}
-                  style={{ width: '100%', padding: '4px' }}
                 />
               </div>
 
               <div style={{ marginBottom: '8px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold' }}>Theme</label>
                 <select
+                  type="select"
                   value={theme}
                   onChange={(e) => {
                     setTheme(e.target.value);
                     setDirty(true);
                   }}
-                  style={{ width: '100%', padding: '4px' }}
                 >
                   <option value="">(No Theme)</option>
                   {THEMES.map((t) => (
@@ -312,20 +356,20 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
               <div style={{ marginBottom: '8px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold' }}>Parent Session</label>
                 <select
+                  type="select"
                   value={parentSessionId || ''}
                   onChange={(e) => {
                     const val = e.target.value;
                     setParentSessionId(val === '' ? null : val); // empty string => no parent
                     setDirty(true);
                   }}
-                  style={{ width: '100%', padding: '4px' }}
                 >
                   <option value="">No Parent</option>
                   {sessions
                     .filter((s) => s.id !== sessionId) // don't let it be its own parent
                     .map((s) => (
                       <option key={s.id} value={s.id}>
-                        {s.name}
+                        {s.gmName}
                       </option>
                     ))}
                 </select>
@@ -334,12 +378,12 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
               <div style={{ marginBottom: '8px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold' }}>Status</label>
                 <select
+                  type="select"
                   value={status}
                   onChange={(e) => {
                     setStatus(e.target.value);
                     setDirty(true);
                   }}
-                  style={{ width: '100%', padding: '4px' }}
                 >
                   <option value="INIT">INIT</option>
                   <option value="ACTIVE">ACTIVE</option>
@@ -355,10 +399,17 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
                 ) : (
                   // If not dirty, show the Start button
                   <button
-                    style={{ backgroundColor: 'green', color: '#fff' }}
-                    onClick={() => navigate(`/session/${sessionId}`)}
+                    style={{
+                      backgroundColor: canStart ? 'green' : '#888',
+                      color: '#fff',
+                      cursor: canStart ? 'pointer' : 'not-allowed',
+                    }}
+                    disabled={!canStart}
+                    onClick={() => {
+                      if (canStart) navigate(`/session/${sessionId}`);
+                    }}
                   >
-                    Start
+                    {canStart ? 'Start' : 'Add at least one layer'}
                   </button>
                 )}
                 <button
@@ -385,7 +436,11 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
               >
                 <div>
                   <label style={{ display: 'block', fontWeight: 'bold' }}>Puzzle Type</label>
-                  <select value={newLayerPuzzleType} onChange={(e) => setNewLayerPuzzleType(e.target.value)}>
+                  <select
+                    type="select"
+                    value={newLayerPuzzleType}
+                    onChange={(e) => setNewLayerPuzzleType(e.target.value)}
+                  >
                     {PUZZLE_TYPES.map((pt) => (
                       <option key={pt.value} value={pt.value}>
                         {pt.label}
@@ -396,7 +451,11 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
 
                 <div>
                   <label style={{ display: 'block', fontWeight: 'bold' }}>Difficulty</label>
-                  <select value={newLayerDifficulty} onChange={(e) => setNewLayerDifficulty(Number(e.target.value))}>
+                  <select
+                    type="select"
+                    value={newLayerDifficulty}
+                    onChange={(e) => setNewLayerDifficulty(Number(e.target.value))}
+                  >
                     {/* For instance, 1..5 mapped to your DIFFICULTY_LABELS */}
                     {Object.entries(DIFFICULTY_LABELS).map(([numValue, label]) => (
                       <option key={numValue} value={numValue}>
@@ -422,17 +481,23 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
               </div>
               <div style={{ marginBottom: '8px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold' }}>Completion Content</label>
-                <CustomToolbar />
-                <ReactQuill
-                  theme="snow"
-                  modules={quillModules}
-                  formats={quillFormats}
-                  value={completionContent}
-                  onChange={(html) => {
-                    setCompletionContent(html);
-                    setDirty(true);
+                <button
+                  onClick={() => {
+                    setTempCompletionContent(completionContent);
+                    setIsCompletionModalOpen(true);
                   }}
-                />
+                >
+                  Edit Completion Content
+                </button>
+
+                {/* Optionally preview some snippet of content or nothing */}
+                {completionContent ? (
+                  <p style={{ marginTop: '4px' }}>
+                    <em>Content saved. Click &quot;Edit&quot; to modify.</em>
+                  </p>
+                ) : (
+                  <p style={{ fontStyle: 'italic' }}>No content yet.</p>
+                )}
               </div>
             </div>
 
@@ -520,6 +585,31 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
               )}
             </div>
           </div>
+
+          {isCompletionModalOpen && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h2 className="modal-header">Edit Completion Content</h2>
+                <CustomToolbar />
+                <ReactQuill
+                  theme="snow"
+                  modules={quillModules}
+                  formats={quillFormats}
+                  value={tempCompletionContent}
+                  onChange={(html) => setTempCompletionContent(html)}
+                  style={{ height: '70vh', marginBottom: '16px' }}
+                />
+                <div className="modal-actions">
+                  <button className="modal-button cancel" onClick={() => setIsCompletionModalOpen(false)}>
+                    Cancel
+                  </button>
+                  <button className="modal-button save" onClick={handleSaveCompletion}>
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Confirmation Modal (Delete Session) */}
           {showDeleteModal && (
