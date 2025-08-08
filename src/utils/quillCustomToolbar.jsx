@@ -15,7 +15,9 @@ const CustomToolbar = () => (
       <option value="comic-sans">Comic Sans</option>
       <option value="courier-new">Courier New</option>
       <option value="times-new-roman">Times New Roman</option>
-      <option value="sans-serif" defaultChecked>Sans Serif</option>
+      <option value="sans-serif" defaultChecked>
+        Sans Serif
+      </option>
       <option value="serif">Serif</option>
       <option value="monospace">Monospace</option>
     </select>
@@ -47,6 +49,14 @@ const CustomToolbar = () => (
     <button className="ql-list" value="bullet" />
     <button className="ql-indent" value="-1" />
     <button className="ql-indent" value="+1" />
+
+    {/* Alignment dropdown */}
+    <select className="ql-align">
+      <option defaultValue="" />
+      <option value="center" />
+      <option value="right" />
+      <option value="justify" />
+    </select>
 
     {/* Blockquote & Code Block */}
     <button className="ql-blockquote" />
