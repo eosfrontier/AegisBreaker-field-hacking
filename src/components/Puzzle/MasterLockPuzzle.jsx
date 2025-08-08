@@ -1,289 +1,275 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import PressHoldButton from '../../utils/PressHoldButton';
 
 import './MasterLockPuzzle.css';
 
-function getRandomBaseDash() {
-  // We'll produce 4 paint values and 4 gap values
+/**
+ * MasterLockPuzzle with:
+ *  - Obfuscated ring order (a random permutation)
+ *  - Random rotation ratios (including negative)
+ *
+ * The user sees "Ring 1" as the physically outer ring,
+ * but internally, that might be puzzle index #2 in the BFS logic.
+ */
+
+// 1) A random dash generator, ensuring big arcs/gaps
+function getRandomBaseDashTwoBigChunks() {
   const paintValues = [];
   const gapValues = [];
-
-  // 1) Randomly pick which paint index is big
-  const bigPaintIndex = Math.floor(Math.random() * 4); // 0..3
-  // 2) Randomly pick which gap index is big
-  let bigGapIndex = Math.floor(Math.random() * 4);
-  // If you'd like to guarantee they are different indices, do:
-  // while (bigGapIndex === bigPaintIndex) {
-  //   bigGapIndex = Math.floor(Math.random() * 4);
-  // }
+  const bigPaintIndex = Math.floor(Math.random() * 4);
+  const bigGapIndex = Math.floor(Math.random() * 4);
 
   for (let i = 0; i < 4; i++) {
-    // Paint chunk
+    // Big or smaller paint
     if (i === bigPaintIndex) {
-      // e.g. big paint in [20..30]
-      paintValues.push(Math.floor(Math.random() * 11) + 30);
+      paintValues.push(20 + Math.floor(Math.random() * 11)); // 20..30
     } else {
-      // smaller paint in [5..15]
-      paintValues.push(Math.floor(Math.random() * 11) + 5);
+      paintValues.push(5 + Math.floor(Math.random() * 11)); // 5..15
     }
-
-    // Gap chunk
+    // Big or smaller gap
     if (i === bigGapIndex) {
-      // e.g. big gap in [20..30]
-      gapValues.push(Math.floor(Math.random() * 11) + 30);
+      gapValues.push(20 + Math.floor(Math.random() * 11)); // 20..30
     } else {
-      // smaller gap in [5..12]
-      gapValues.push(Math.floor(Math.random() * 8) + 5);
+      gapValues.push(5 + Math.floor(Math.random() * 8)); // 5..12
     }
   }
 
-  // Interleave them: [paint0, gap0, paint1, gap1, paint2, gap2, paint3, gap3]
   const dashArray = [];
   for (let i = 0; i < 4; i++) {
     dashArray.push(paintValues[i], gapValues[i]);
   }
-
   return dashArray;
 }
 
+// Generate a random permutation of [0..(n-1)]
+function generatePermutation(ringCount) {
+  const arr = [...Array(ringCount).keys()];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const r = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[r]] = [arr[r], arr[i]];
+  }
+  return arr;
+}
+
+// Generate random DAG links with rotation ratio
+function generateRandomLinks(ringCount, difficulty) {
+  if (ringCount <= 1) {
+    return Array.from({ length: ringCount }, () => []);
+  }
+
+  let numLinks;
+  if (difficulty < 3) {
+    numLinks = 0;
+  } else if (difficulty === 3) {
+    numLinks = 2;
+  } else if (difficulty === 4) {
+    numLinks = 3;
+  } else {
+    // difficulty >= 5
+    numLinks = 4 + Math.floor(Math.random() * 2); // 3 or 4
+  }
+
+  const links = Array.from({ length: ringCount }, () => []);
+  const possibleEdges = [];
+  for (let i = 0; i < ringCount - 1; i++) {
+    for (let j = i + 1; j < ringCount; j++) {
+      possibleEdges.push([i, j]);
+    }
+  }
+
+  // Shuffle
+  for (let k = possibleEdges.length - 1; k > 0; k--) {
+    const r = Math.floor(Math.random() * (k + 1));
+    [possibleEdges[k], possibleEdges[r]] = [possibleEdges[r], possibleEdges[k]];
+  }
+
+  let count = 0;
+  let idx = 0;
+  while (count < numLinks && idx < possibleEdges.length) {
+    const [i, j] = possibleEdges[idx++];
+    // random ratio from e.g. -1, -0.5, 0.5, 1
+    const ratioOptions = [-1, -0.5, 0.5, 1];
+    const ratio = ratioOptions[Math.floor(Math.random() * ratioOptions.length)];
+    links[i].push({ ring: j, ratio });
+    count++;
+  }
+
+  return links;
+}
+
+// BFS to apply rotation with ratio
+function applyRotationWithLinks(start, delta, rawAngles, links) {
+  const newAngles = [...rawAngles];
+  const queue = [start];
+  const visited = new Set([start]);
+
+  // ring 'start' also rotates
+  newAngles[start] += delta;
+
+  while (queue.length > 0) {
+    const curr = queue.shift();
+    const children = links[curr] || [];
+    for (const { ring: child, ratio } of children) {
+      if (!visited.has(child)) {
+        visited.add(child);
+        newAngles[child] += ratio * delta;
+        queue.push(child);
+      }
+    }
+  }
+
+  return newAngles;
+}
+
+// ======= 2) The Puzzle Component ======= //
+
 const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) => {
-  // 1) Decide ringCount from difficulty
   const difficulty = Number(layerData?.difficulty || 1);
   const ringCount = Math.min(Math.max(difficulty + 2, 3), 6);
-  // For example, difficulty=1 => 3 rings, difficulty=4 => 6 rings
 
-  // 2) Base circle details
+  // Circle geometry
   const R_BASE = 40; // outer ring radius
-  const [baseDash, setBaseDash] = useState(null);
-  const ringSpacing = 6; // each inner ring shrinks by 6 radius from the previous
+  const C_BASE = 2 * Math.PI * R_BASE;
+  const ringSpacing = 6;
 
-  // 3) We'll store raw angles (unbounded) and display angles (shortest path)
+  // Puzzle states
+  const [perm, setPerm] = useState([]); // physical ring i -> puzzle index
+  const [links, setLinks] = useState([]); // adjacency list with ratio
+  const [baseDash, setBaseDash] = useState(null);
+
   const [rawAngles, setRawAngles] = useState([]);
   const [displayAngles, setDisplayAngles] = useState([]);
 
-  useEffect(() => {
-    setBaseDash(getRandomBaseDash());
-  }, []);
+  // A new state to track "solved" so we can freeze rings
+  const [isSolved, setIsSolved] = useState(false);
+  // Another state to handle "showing locked overlay" vs "final puzzle solved screen"
+  const [showLockedOverlay, setShowLockedOverlay] = useState(false);
+  const [showFinalScreen, setShowFinalScreen] = useState(false);
 
-  // On mount, randomize each ring in multiples of 5° (0..355)
+  // On mount, randomize puzzle
   useEffect(() => {
+    // 1) random permutation
+    const p = generatePermutation(ringCount);
+    setPerm(p);
+
+    // 2) random angles
     const angles = Array.from({ length: ringCount }, () => {
-      const k = Math.floor(Math.random() * 72); // 0..71
-      return k * 5; // multiple of 5
+      const k = Math.floor(Math.random() * 72); // 0..71 => multiples of 5
+      return k * 5;
     });
     setRawAngles(angles);
-    // Initialize display angles
     setDisplayAngles(angles.map((a) => ((a % 360) + 360) % 360));
-  }, [ringCount]);
 
-  // "Shortest path" effect: whenever rawAngles changes
+    // 3) dash pattern
+    setBaseDash(getRandomBaseDashTwoBigChunks());
+
+    // 4) links
+    setLinks(generateRandomLinks(ringCount, difficulty));
+  }, [ringCount, difficulty]);
+
+  // Update displayAngles on rawAngles change (shortest path)
   useEffect(() => {
     if (rawAngles.length === 0) return;
     setDisplayAngles((prevDisp) => {
       return rawAngles.map((rawAngle, i) => {
         const oldDisp = prevDisp[i] ?? 0;
-        let modded = rawAngle % 360;
-        if (modded < 0) modded += 360;
+        let newDisp = rawAngle % 360;
+        if (newDisp < 0) newDisp += 360;
 
-        let diff = modded - oldDisp;
+        let diff = newDisp - oldDisp;
         if (diff > 180) diff -= 360;
         else if (diff < -180) diff += 360;
-
         return oldDisp + diff;
       });
     });
   }, [rawAngles]);
 
-  // 4) Solve check: If all angles near 0°, puzzle solved
+  // Solve check
   useEffect(() => {
     if (rawAngles.length === 0) return;
+    if (isSolved) return; // already locked
 
     const tolerance = 3;
     const baseAngle = rawAngles[0];
-
     const allAligned = rawAngles.every((angle) => {
       let diff = (angle - baseAngle) % 360;
-      if (diff < 0) diff += 360; // keep it in [0..360)
-      // Now check if diff is within ~3° of 0 or 360
+      if (diff < 0) diff += 360;
       return diff < tolerance || Math.abs(diff - 360) < tolerance;
     });
 
     if (allAligned) {
-      (async () => {
-        console.log('MasterLockPuzzle solved!');
-        if (sessionId && layerId) {
-          try {
-            const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
-            await updateDoc(layerRef, { status: 'SOLVED' });
-          } catch (err) {
-            console.error('Error marking solved:', err);
+      setIsSolved(true);
+      setShowLockedOverlay(true);
+
+      setTimeout(() => {
+        setShowLockedOverlay(false);
+        setShowFinalScreen(true);
+
+        // Firestore / local callback
+        (async () => {
+          if (sessionId && layerId) {
+            try {
+              const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
+              await updateDoc(layerRef, { status: 'SOLVED' });
+            } catch (err) {
+              console.error('Error marking solved:', err);
+            }
+          } else if (onLocalPuzzleComplete) {
+            onLocalPuzzleComplete();
           }
-        } else if (onLocalPuzzleComplete) {
-          onLocalPuzzleComplete();
-        }
-      })();
+        })();
+      }, 2000); // 2s "locked" overlay
     }
-  }, [rawAngles, sessionId, layerId, onLocalPuzzleComplete]);
+  }, [rawAngles, isSolved, sessionId, layerId, onLocalPuzzleComplete]);
 
-  // 5) "stageRef" to find puzzle center
-  const stageRef = useRef(null);
-
-  // 6) Drag state
-  const [dragState, setDragState] = useState({
-    draggingRing: null,
-    startAngle: 0,
-    startRingAngle: 0,
-  });
-
-  // 7) Convert (mouseX, mouseY) => angle in [0..360)
-  const getAngleFromCenter = (mx, my, cx, cy) => {
-    const dx = mx - cx;
-    const dy = my - cy;
-    let deg = (Math.atan2(dy, dx) * 180) / Math.PI; // -180..180
-    if (deg < 0) deg += 360;
-    return deg; // 0..360
-  };
-
-  // 8) Handler for mouseDown on a ring
-  const handleMouseDown = (e, ringIndex) => {
-    console.log('mouseDown on ringIndex=', ringIndex);
-
-    e.preventDefault();
-    const rect = stageRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-
-    const mx = e.clientX;
-    const my = e.clientY;
-    // Distance from center
-    const dx = mx - cx;
-    const dy = my - cy;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    // ringIndex => ring radius
-    const ringRadius = R_BASE - ringIndex * ringSpacing;
-    const ringThickness = 10; // how wide the band is
-
-    // bounding circle check: must be within [ringRadius - thickness, ringRadius + thickness]
-    if (dist < ringRadius - ringThickness || dist > ringRadius + ringThickness) {
-      // user didn't actually click ringIndex's band
-      return;
-    }
-
-    // If we pass, start dragging ringIndex
-    const startAng = getAngleFromCenter(mx, my, cx, cy);
-
-    setDragState({
-      draggingRing: ringIndex,
-      startAngle: startAng,
-      startRingAngle: rawAngles[ringIndex],
-    });
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  };
-
-  // 9) onMouseMove => rotate ring
-  const onMouseMove = (e) => {
-    if (dragState.draggingRing == null) return;
-
-    const ringIndex = dragState.draggingRing;
-    const rect = stageRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const mx = e.clientX;
-    const my = e.clientY;
-
-    const currentAng = getAngleFromCenter(mx, my, cx, cy);
-    let deltaAng = currentAng - dragState.startAngle;
-
-    // unify big jumps
-    if (deltaAng > 180) deltaAng -= 360;
-    if (deltaAng < -180) deltaAng += 360;
-
-    const newAngle = dragState.startRingAngle + deltaAng;
-
-    // Snap to nearest 5°
-    const snapped = Math.round(newAngle / 5) * 5;
-
-    setRawAngles((prev) => {
-      const next = [...prev];
-      next[ringIndex] = snapped;
-      return next;
-    });
-  };
-
-  const onMouseUp = () => {
-    setDragState({ draggingRing: null, startAngle: 0, startRingAngle: 0 });
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-  };
-
-  // 10) If also allowing +/-5° button presses:
+  // rotate a physical ring => puzzle index => BFS
   const rotateRing = (i, delta) => {
-    setRawAngles((prev) => {
-      const next = [...prev];
-      next[i] += delta; // no snap needed here because it's already multiples of 5
-      return next;
-    });
+    // If puzzle is solved, ignore rotation
+    if (isSolved) return;
+
+    const puzzleIndex = perm[i];
+    setRawAngles((prev) => applyRotationWithLinks(puzzleIndex, delta, prev, links));
   };
 
-  // 11) Helper to scale dash array for a given radius
-  function getScaledDashArray(radius) {
-    // if baseDash hasn't loaded yet, just return something default
+  // scale dash array
+  const getScaledDashArray = (radius) => {
     if (!baseDash) return '20 10 5 10';
-
     const c = 2 * Math.PI * radius;
-    // The circumference for R_BASE:
-    const C_BASE = 2 * Math.PI * R_BASE;
-
     const scale = c / C_BASE;
     const scaled = baseDash.map((val) => val * scale);
     return scaled.join(' ');
+  };
+
+  // If the puzzle is fully done, show the final screen
+  if (showFinalScreen) {
+    return (
+      <div className="masterlock-solved-screen">
+        <h2>LOCK SOLVED</h2>
+      </div>
+    );
   }
 
   return (
     <div className="masterlock-container">
-      <h2>Master Lock Puzzle</h2>
-      <p>Rotate each ring by dragging or clicking +/-5°!</p>
-
-      <div className="masterlock-stage" ref={stageRef}>
-        {/* We map from 0..ringCount-1 
-            ring 0 = outer ring, ring ringCount-1 = inner ring
-            We'll place ring 0 LAST in the DOM so it has the highest z-index,
-            OR explicitly set the zIndex. */}
+      <h2>[Datalink Splicing]</h2>
+      <div className="masterlock-stage">
         {Array.from({ length: ringCount }).map((_, i) => {
-          // ring i: bigger => smaller
-          // i=0 => outer ring
-          const dispAngle = displayAngles[i] ?? 0;
-          const r = R_BASE - i * ringSpacing;
-          if (r <= 0) return null; // safety
-
-          const dashPattern = getScaledDashArray(r);
-
-          // We want ring 0 to appear on top if they overlap, so let's set a higher z-index for lower i
-          const z = ringCount - i; // outer ring => bigger zIndex
+          // i => physical ring index (0 = largest, 1 = next, etc.)
+          const puzzleIndex = perm[i] ?? 0;
+          const dispAngle = displayAngles[puzzleIndex] ?? 0;
+          const radius = R_BASE - i * ringSpacing;
+          if (radius <= 0) return null;
+          const dashPattern = getScaledDashArray(radius);
 
           return (
-            <div
-              key={i}
-              className="ring-wrapper"
-              style={{
-                transform: `rotate(${dispAngle}deg)`,
-                zIndex: z, // ensures outer ring is on top of inner ring
-              }}
-              onMouseDown={(e) => handleMouseDown(e, i)}
-            >
-              <svg width="100%" height="100%" viewBox="0 0 100 100">
+            <div key={i} className="ring-wrapper" style={{ transform: `rotate(${dispAngle}deg)` }}>
+              <svg viewBox="0 0 100 100">
                 <circle
                   cx="50"
                   cy="50"
-                  r={r}
+                  r={radius}
                   fill="none"
                   stroke="#BF00FF"
                   strokeWidth="6"
@@ -293,20 +279,30 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
             </div>
           );
         })}
+        {/* Overlay if puzzle is locked */}
+        {showLockedOverlay && (
+          <div className="locked-overlay">
+            <div className="locked-message">
+              <h2>Lock Bypassed...</h2>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="controls">
-        {rawAngles.map((val, i) => (
-          <div key={i} className="control-row">
-            <span>Ring {i + 1}</span>
-            <PressHoldButton label="-5°" delta={-5} onPress={(delta) => rotateRing(i, delta)} />
-            <PressHoldButton label="+5°" delta={+5} onPress={(delta) => rotateRing(i, delta)} />
-            <span>
-              raw: {val}°, disp: {Math.round(displayAngles[i] || 0)}°
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* If puzzle not solved, show ring controls */}
+      {!isSolved && (
+        <div className="controls">
+          {Array.from({ length: ringCount }).map((_, i) => {
+            return (
+              <div key={i} className="control-row">
+                <PressHoldButton label="-" delta={-5} onPress={(delta) => rotateRing(i, delta)} />
+                <span>{i + 1}</span>
+                <PressHoldButton label="+" delta={+5} onPress={(delta) => rotateRing(i, delta)} />
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

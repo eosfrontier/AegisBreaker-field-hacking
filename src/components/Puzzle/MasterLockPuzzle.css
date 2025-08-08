@@ -1,57 +1,172 @@
 .masterlock-container {
   text-align: center;
   color: #fff;
-  background: #1a1a1a;
+  background: #0a0e15;
   padding: 1rem;
   border: 1px solid #444;
   border-radius: 8px;
   max-width: 500px;
   margin: 0 auto;
   overflow: hidden;
+  font-family: 'Orbitron', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.masterlock-container h2 {
+  color: #ff00ff; /* electric purple as primary accent color */
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.masterlock-container p {
+  font-size: 1rem;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
 .masterlock-stage {
   position: relative;
   width: 100%;
-  /* For a square puzzle: keep aspect ratio. e.g. 100% width, same height. */
-  padding-top: 100%;
-  border: 2px dashed #444;
+  padding-top: 100%; /* keep it square */
+  background: #0a0a0a; /* subtle variation */
+  border: 2px solid #ff00ff; /* neon accent */
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ff00ff;
+  overflow: hidden;
   margin-bottom: 1rem;
 }
 
-/* Each ring is absolutely positioned over the stage. 
-     We set a zIndex style in the inline style. */
 .ring-wrapper {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  transform-origin: center center;
   transition: transform 0.3s ease;
 }
 
 /* Controls for +/-5° buttons */
 .controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
-  position: relative;
-  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 columns */
+  gap: 1rem;
+  max-width: 500px; /* optional, so it doesn't stretch too wide */
+  margin: 0 auto;
+  margin-top: 1rem;
 }
 
 .control-row {
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  background: #122738; /* or any accent if you wish */
+  border: 2px solid #ff00ff;
+  gap: 1rem;
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 0 4px #ff00ff33;
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 button {
+  flex: 0 0 auto;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  font-family: 'Orbitron', sans-serif;
+  border: 2px solid #ff00ff;
+  background: #122738;
+  color: #ffffff;
+  border-radius: 8px;
   cursor: pointer;
-  padding: 0.3rem 0.6rem;
-  background: #333;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  box-shadow: 0 0 4px #ff00ff33;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  background-color: #ff00ff22;
+  box-shadow: 0 0 10px #ff00ffa0;
+}
+
+/* The locked overlay that appears on puzzle complete */
+.locked-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 14, 21, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.locked-message {
+  color: #ff00ff;
+  text-align: center;
+  background: #0a0a0aee;
+  padding: 1rem 2rem;
+  border: 2px solid #ff00ff;
+  box-shadow: 0 0 10px #ff00ffcc;
+  border-radius: 8px;
+}
+
+/* The final solved screen */
+.masterlock-solved-screen {
+  background: #0a0e15;
+  color: #ff00ff; /* accent color for the success state */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.masterlock-solved-screen h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.masterlock-solved-screen p {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+/* Optional: spinner or other styling from your original snippet 
+   if you want a spinner for loading or reset states. Below is an example: 
+*/
+
+.spinner {
+  border: 4px solid #2a4e6c;
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
