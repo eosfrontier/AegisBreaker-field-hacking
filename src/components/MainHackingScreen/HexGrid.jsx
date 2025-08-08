@@ -126,10 +126,12 @@ function HexGrid({ layers, sessionId, variant }) {
                     <div className="qr-code">
                       <QRCodeCanvas value={qrValue} size={128} bgColor="#000" fgColor="#fff" level="L" marginSize={1} />
                     </div>
-                    <div className="pip-row">
-                      {Array.from({ length: difficulty }, (_, i) => (
-                        <span key={i} className="pip" style={{ backgroundColor: pipColor }} />
-                      ))}
+                    <div className="pip-row-wrapper">
+                      <div className="pip-row">
+                        {Array.from({ length: difficulty }).map((_, i) => (
+                          <span key={i} className="pip led" style={{ '--pip-color': pipColor }} />
+                        ))}
+                      </div>
                     </div>
                   </>
                 ) : (

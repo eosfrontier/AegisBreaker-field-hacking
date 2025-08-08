@@ -305,7 +305,9 @@ function MainHackingScreen() {
         <div className="locked-session-message">
           <h1>Session Locked</h1>
           <p>You must complete the parent session before accessing this hack.</p>
-          {parentSessionData && <button onClick={handleGoToParent}>Go to Parent: {parentSessionData.name}</button>}
+          {parentSessionData && (
+            <button onClick={handleGoToParent}>Go to Parent: {parentSessionData.playerName}</button>
+          )}
         </div>
       </div>
     );
@@ -326,9 +328,10 @@ function MainHackingScreen() {
       <div className="main-container">
         {/* LEFT: Parent Session */}
         <div className="parent-sessions-column">
+          <img className="theme-logo" src={`/themes/${sessionData.theme || 'default'}/logo.png`} />
           {parentSessionData && (
             <button className="parent-session-button" onClick={handleGoToParent}>
-              {parentSessionData.name}
+              {parentSessionData.playerName}
             </button>
           )}
         </div>
@@ -339,10 +342,7 @@ function MainHackingScreen() {
           {hackPhase === 'INIT' && (
             <div className="init-phase">
               <div className="header-box">
-                <div>
-                  <img className="theme-logo" src={`/themes/${sessionData.theme || 'default'}/logo.png`} />
-                </div>
-                <h1>Hacking Session: {sessionData.name}</h1>
+                <h1>Hacking Session: {sessionData.playerName}</h1>
               </div>
               <p>Time Limit: {sessionData.timeLimit || 60} seconds</p>
               <button className="initialize-btn" onClick={handleInitializeHack}>
@@ -354,10 +354,7 @@ function MainHackingScreen() {
           {hackPhase === 'ACTIVE' && (
             <div className="active-phase">
               <div className="header-box">
-                <div>
-                  <img className="theme-logo" src={`/themes/${sessionData.theme || 'default'}/logo.png`} />
-                </div>
-                <h1>Hacking Session: {sessionData.name}</h1>
+                <h1>Hacking Session: {sessionData.playerName}</h1>
               </div>
               <h2>Time Left: {timeLeft}s</h2>
 
@@ -400,26 +397,16 @@ function MainHackingScreen() {
           {/* SUCCESS / FAILURE */}
           {hackPhase === 'SUCCESS' && (
             <div className="success-phase">
-              <div className="theme-logo">
-                <img
-                  style={{
-                    width: '100px',
-                    height: '100px',
-                    margin: '20px',
-                  }}
-                  src={`/themes/${sessionData.theme}/logo.png`}
-                  alt="Theme Logo"
+              {sessionData?.completionContent && (
+                <div
+                  className="completion-content"
+                  dangerouslySetInnerHTML={{ __html: sessionData.completionContent }}
                 />
-              </div>
-              <h1>Hack Succeeded!</h1>
-              <p>All layers were solved in time.</p>
+              )}
             </div>
           )}
           {hackPhase === 'FAILURE' && (
             <div className="failure-phase">
-              <div className="theme-logo">
-                <img src={`/themes/${sessionData.theme}/logo.png`} alt="Theme Logo" />
-              </div>
               <h1>Hack Failed!</h1>
               <p>Some layers remained unsolved when time ran out.</p>
             </div>
@@ -433,7 +420,7 @@ function MainHackingScreen() {
               <h3>Child Sessions</h3>
               {childSessions.map((child) => (
                 <button key={child.id} onClick={() => handleGoToChild(child.id)} className="child-session-button">
-                  {child.name}
+                  {child.playerName}
                 </button>
               ))}
             </div>

@@ -5,19 +5,20 @@
 /* Aquila Ethnocentric Font */
 @font-face {
   font-family: 'AquilaEthnocentric';
-  src: url('/themes/Aquila/AquilaEthnocentric.ttf') format('truetype');
+  src: url('/themes/Aquila/EthnocentricRg-Regular.woff2') format('woff2'),
+    url('/themes/Aquila/EthnocentricRg-Regular.woff') format('woff');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
-/* Aquila Ethnocentric Font */
 @font-face {
   font-family: 'DugoMadeInChina';
-  src: url('/themes/Dugo/DugoFont.ttf') format('truetype');
+  src: url('/themes/Dugo/MadeinChina.woff2') format('woff2'), url('/themes/Dugo/MadeinChina.woff') format('woff');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
-
 /* Add additional @font-face declarations for other themes if needed */
 /* Example:
 @font-face {
@@ -37,7 +38,6 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  height: 100vh;
   min-height: 100vh;
   transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
 }
@@ -45,7 +45,7 @@
 /* Main Container Layout */
 .main-container {
   display: grid;
-  grid-template-columns: 1fr 10fr 1fr; /* left = 1fr, center = 3fr, right = 1fr */
+  grid-template-columns: 200px 1fr 200px;
   gap: 1rem;
   flex: 1;
   padding: 1rem;
@@ -224,7 +224,7 @@
 .theme-ICC {
   /* Background Styles */
   background-color: #1c1c1c;
-  background-image: url('/themes/ICC/background.jpg'); /* Placeholder */
+  /* background-image: url('/themes/ICC/background.jpg'); */
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -263,7 +263,7 @@
 .theme-Aliens {
   /* Background Styles */
   background-color: #001900;
-  background-image: url('/themes/Aliens/background.jpg'); /* Placeholder */
+  /* background-image: url('/themes/Aliens/background.jpg'); */
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -302,7 +302,7 @@
 .theme-Aquila {
   /* Background Styles */
   background-color: #1c1c1c;
-  background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg'); /* Placeholder */
+  background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg');
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -376,11 +376,11 @@
   }
 }
 
-/* Pentzal Theme */
-.theme-Pentzal {
+/* Pendzal Theme */
+.theme-Pendzal {
   /* Background Styles */
   background-color: #f0f8ff; /* Placeholder */
-  background-image: url('/themes/Pentzal/background.jpg'); /* Placeholder */
+  /* background-image: url('/themes/Pendzal/background.jpg'); */
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -388,11 +388,11 @@
 
   /* Font Styles */
   color: #333333; /* Placeholder font color */
-  font-family: 'PentzalFont', serif; /* Placeholder font */
+  font-family: 'PendzalFont', serif; /* Placeholder font */
 
   /* Button Backgrounds */
   .initialize-btn {
-    background-color: #8e44ad; /* Pentzal-specific button color */
+    background-color: #8e44ad; /* Pendzal-specific button color */
   }
 
   .initialize-btn:hover {
@@ -419,7 +419,7 @@
 .theme-Sona {
   /* Background Styles */
   background-color: #f5f5dc; /* Placeholder */
-  background-image: url('/themes/Sona/background.jpg'); /* Placeholder */
+  /* background-image: url('/themes/Sona/background.jpg'); */
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -458,7 +458,7 @@
 .theme-Ekanesh {
   /* Background Styles */
   background-color: #2f4f4f; /* Placeholder */
-  background-image: url('/themes/Ekanesh/background.jpg'); /* Placeholder */
+  /* background-image: url('/themes/Ekanesh/background.jpg'); */
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;

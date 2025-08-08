@@ -7,7 +7,7 @@
 #hexGrid {
   display: flex;
   flex-wrap: wrap;
-  width: 90%;
+  width: 100%;
   margin: 0 auto;
   overflow: hidden;
   font-family: 'Raleway', sans-serif;
@@ -87,26 +87,60 @@
   justify-content: center;
 }
 
-/* Pip row container: now displayed as a horizontal row */
-.pip-row {
+/* pip-row-wrapper: absolutely positioned near the bottom, like you did with .pip-row before */
+.pip-row-wrapper {
   position: absolute;
-  bottom: 25%;
+  bottom: 22%;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 0.3rem; /* Spacing between pips */
   z-index: 2;
 }
 
-/* Each pip: small circle */
+.pip-row,
+.pip-row * {
+  position: static !important; /* override the absolute positioning */
+}
+
+.pip-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .pip {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  display: inline-block;
+}
+
+.pip.led {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: static !important;
+  background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, var(--pip-color) 0%);
+  border: 1px solid #666;
+  box-shadow: 0 0 6px var(--pip-color), inset 0 0 2px #000;
+  opacity: 0.9;
+  animation: ledFlicker 2s infinite ease-in-out;
+}
+
+@keyframes ledFlicker {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+}
+
+.pip.led.flicker {
+  animation: ledFlicker 2s infinite;
 }
 
 /* =========================
@@ -185,34 +219,34 @@
 ========================= */
 @media (min-width: 2201px) {
   .hex {
+    width: 15%;
+  }
+  .hex:nth-child(11n + 7) {
+    margin-left: 7.5%;
+  }
+}
+@media (max-width: 2201px) and (min-width: 1900px) {
+  .hex {
+    width: 17.5%;
+  }
+  .hex:nth-child(8n + 6) {
+    margin-left: 8.8%;
+  }
+}
+@media (max-width: 1900px) and (min-width: 1601px) {
+  .hex {
     width: 20%;
   }
   .hex:nth-child(9n + 6) {
     margin-left: 10%;
   }
 }
-@media (max-width: 2200px) and (min-width: 901px) {
+@media (max-width: 1600px) {
   .hex {
     width: 25%;
   }
   .hex:nth-child(7n + 5) {
     margin-left: 12.5%;
-  }
-}
-@media (max-width: 900px) and (min-width: 601px) {
-  .hex {
-    width: 33.333%;
-  }
-  .hex:nth-child(5n + 4) {
-    margin-left: 16.666%;
-  }
-}
-@media (max-width: 600px) {
-  .hex {
-    width: 50%;
-  }
-  .hex:nth-child(3n + 3) {
-    margin-left: 25%;
   }
 }
 @media (max-width: 400px) {
