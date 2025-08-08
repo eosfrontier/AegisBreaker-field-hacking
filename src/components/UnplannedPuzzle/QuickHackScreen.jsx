@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import UnlockedLockSVG from '../../assets/lock-unlock-icon-22.svg';
+// import UnlockedLockSVG from '../../assets/lock-unlock-icon-22.svg';
 import './QuickHackScreen.css';
 
 // Import puzzles you want to support
@@ -57,8 +57,8 @@ function QuickHackScreen() {
   if (!puzzleType && !puzzleDifficulty) {
     // Show the "start screen"
     return (
-      <div className="Quickhack-main">
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+      <div className="main">
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           {/* Left Column: Tool Selection */}
           <div style={{ marginRight: '1rem' }}>
             <h2 style={{ minHeight: '72px' }}>Select Tool</h2>
@@ -97,7 +97,7 @@ function QuickHackScreen() {
                     backgroundColor: selectedDifficulty === num ? '#4d5356' : '#222426',
                     cursor: 'pointer',
                     border: '1px solid #999',
-                    width: '120px',
+                    width: '140px',
                   }}
                 >
                   {label}
@@ -152,7 +152,7 @@ function QuickHackScreen() {
       >
         <h2>Hack Succeeded!</h2>
         <img
-          src={UnlockedLockSVG}
+          src="/lock-unlock-icon-22.png"
           alt="Unlocked lock"
           className="Unlocked-lock"
           style={{
