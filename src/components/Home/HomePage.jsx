@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineSetting } from 'react-icons/ai';
@@ -6,6 +6,8 @@ import './HomePage.css';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const modalRef = useRef(null);
+  const lastFocusRef = useRef(null);
 
   // persistent data ―——————————————————————————————————————————————————
   const [info, setInfo] = useState(null); // {role,name,level,skills}
@@ -42,6 +44,59 @@ export default function HomePage() {
     }
   }, []);
 
+  // lock page scroll while modal is open
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [showModal]);
+
+  // move focus into modal on open; restore to trigger on close
+  useEffect(() => {
+    if (showModal) {
+      lastFocusRef.current = document.activeElement;
+      // wait a tick for content to render
+      setTimeout(() => {
+        const firstFocusable = modalRef.current?.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        firstFocusable?.focus();
+      }, 0);
+    } else {
+      lastFocusRef.current?.focus?.();
+    }
+  }, [showModal]);
+
+  // ESC to close  simple focus trap for Tab/ShiftTab
+  useEffect(() => {
+    if (!showModal) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        return;
+      }
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusables = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showModal]);
+
   const availableSkills = useMemo(() => getAvailableSkills(level), [level]);
   const pointsRemaining = level - skills.length;
 
@@ -63,6 +118,8 @@ export default function HomePage() {
 
   const saveOperative = () => {
     const newInfo = { role: 'operative', name, level, skills };
+    console.log(newInfo);
+
     localStorage.setItem('characterInfo', JSON.stringify(newInfo));
     setInfo(newInfo);
     closeModal();
@@ -76,7 +133,7 @@ export default function HomePage() {
   // ──────────────────────────────────────────────────────────────────
   return (
     <div className="main">
-      <button className="qh-profile-btn" onClick={openProfileModal}>
+      <button className="qh-profile-btn" onClick={openProfileModal} aria-label="Edit profile">
         <AiOutlineSetting size={24} />
       </button>
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Field Hacking App</h2>
@@ -106,12 +163,24 @@ export default function HomePage() {
 
       {/* ────── Modal ────── */}
       {showModal && (
-        <div className="qh-modal-overlay">
-          <div className="qh-modal">
+        <div className="qh-modal-overlay" onClick={closeModal} aria-hidden="true">
+          <div
+            className="qh-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+            onClick={(e) => e.stopPropagation()}
+            ref={modalRef}
+          >
+            <button className="qh-modal-close" aria-label="Close dialog" onClick={closeModal}>
+              ×
+            </button>
             {/* STEP 0 – choose role */}
             {step === 0 && (
               <>
-                <h3 style={{ textAlign: 'center' }}>Identify Role</h3>
+                <h3 id="modalTitle" style={{ textAlign: 'center' }}>
+                  Identify Role
+                </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                   <button
                     className="qh-btn"
@@ -140,7 +209,9 @@ export default function HomePage() {
             {/* STEP 1 – operative form */}
             {step === 1 && (
               <>
-                <h3 style={{ textAlign: 'center' }}>Operative Profile</h3>
+                <h3 id="modalTitle" style={{ textAlign: 'center' }}>
+                  Operative Profile
+                </h3>
 
                 {/* Name & level */}
                 <label className="qh-label">
@@ -189,13 +260,13 @@ export default function HomePage() {
 
                 {/* Save / back */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
-                  <button className="qh-btn" onClick={() => setStep(0)}>
-                    Back
+                  <button className="qh-btn" onClick={closeModal}>
+                    Close
                   </button>
                   <button
                     className="qh-btn"
-                    disabled={!name || skills.length !== level}
-                    style={{ backgroundColor: !name || skills.length !== level ? '#666' : '#00aa00' }}
+                    disabled={!name}
+                    style={{ backgroundColor: !name ? '#666' : '#00aa00' }}
                     onClick={saveOperative}
                   >
                     Save&nbsp;Profile
