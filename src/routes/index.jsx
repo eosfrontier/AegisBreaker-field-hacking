@@ -11,6 +11,7 @@ const SessionScreen = lazy(() => import('../components/MainHackingScreen/MainHac
 const PuzzleScreen = lazy(() => import('../components/Puzzle/PuzzleScreen'));
 const QuickHackScreen = lazy(() => import('../components/UnplannedPuzzle/QuickHackScreen'));
 const HomePage = lazy(() => import('../components/Home/HomePage'));
+const QrScannerPage = lazy(() => import('../components/Scanner/QrScannerPage'));
 
 const AppRoutes = () => {
   return (
@@ -33,14 +34,7 @@ const AppRoutes = () => {
           <Route path="/QuickHack" element={<QuickHackScreen />} />
 
           {/* Optional QR Scanner */}
-          {/* <Route
-            path="/qr-scanner"
-            element={
-              <Suspense fallback={<div>Loading QR Scanner...</div>}>
-                <QrScannerPage />
-              </Suspense>
-            }
-          /> */}
+          <Route path="/qr-scanner" element={<QrScannerPage />} />
 
           {/* Fallback or catch-all */}
           <Route path="*" element={<div>Not Found</div>} />

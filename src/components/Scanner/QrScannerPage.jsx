@@ -1,43 +1,58 @@
-// QrScannerPage.jsx
 import { useCallback } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
+import { useNavigate } from 'react-router-dom';
 
 function QrScannerPage() {
-  // Called whenever the scanner detects one or more barcodes
+  const navigate = useNavigate();
+
   const handleScan = useCallback((detectedCodes) => {
-    // detectedCodes is an array of objects: IDetectedBarcode[]
-    // Each object has .rawValue, .format, cornerPoints, etc.
     if (!detectedCodes || detectedCodes.length === 0) return;
 
-    // You might map over detectedCodes for all scanned results:
     const allValues = detectedCodes.map((code) => code.rawValue);
     console.log('Scanned codes:', allValues);
-
-    // TODO: handle the scanned data
+    // TODO: do whatever you want with the scanned data
   }, []);
 
-  // Called if there's an error while mounting or accessing the camera
   const handleError = useCallback((error) => {
     console.error('Scanner error:', error);
   }, []);
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h2>QR Scanner</h2>
-      <p>Point your camera at a code to scan.</p>
+    <div className="Quickhack-main">
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>QR Scanner</h2>
+      <p style={{ textAlign: 'center' }}>Point your camera at a QR or barcode to scan.</p>
 
-      <Scanner
-        onScan={handleScan}
-        onError={handleError}
-        // Example constraints: use the rear camera if available
-        constraints={{ facingMode: 'environment' }}
-        // Delay between scans in ms
-        scanDelay={300}
-        // Additional props you might want:
-        // formats={['qr_code', 'ean_13']}  // Limit detection to certain formats
-        // paused={false}                  // Pause scanning if needed
-        // allowMultiple={false}           // If you want repeated codes quickly
-      />
+      <div style={{ margin: '0 auto', textAlign: 'center' }}>
+        {/* The Scanner itself */}
+        <Scanner
+          onScan={handleScan}
+          onError={handleError}
+          constraints={{ facingMode: 'environment' }}
+          scanDelay={300}
+          style={{
+            // For small screens, let's limit the width
+            maxWidth: '300px',
+            margin: '0 auto',
+            // You can add borders or backgrounds if desired
+          }}
+        />
+      </div>
+
+      {/* Optionally: a back button or a row of buttons */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            padding: '0.6rem 1rem',
+            backgroundColor: '#222426',
+            color: '#fff',
+            border: '1px solid #999',
+            cursor: 'pointer',
+          }}
+        >
+          Home
+        </button>
+      </div>
     </div>
   );
 }
