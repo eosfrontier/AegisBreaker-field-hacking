@@ -1,0 +1,72 @@
+/* Re-usable button & input look, matching QuickHack palette */
+.qh-btn {
+  padding: 0.6rem 1rem;
+  background: #222426;
+  color: #fff;
+  border: 1px solid #999;
+}
+.qh-btn:hover {
+  background: #4d5356;
+}
+
+.qh-input {
+  width: 100%;
+  padding: 0.5rem;
+  background: #222426;
+  border: 1px solid #999;
+  color: #fff;
+  margin-top: 4px;
+}
+.qh-label {
+  display: block;
+  margin-top: 0.75rem;
+}
+
+.qh-skill-btn {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #999;
+  font-size: 0.8rem;
+}
+
+/* ───── Modal ───── */
+.qh-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: qh-fade 0.35s ease-out forwards;
+  z-index: 1000;
+}
+.qh-modal {
+  width: 90%;
+  max-width: 330px;
+  background: #262e3e;
+  border: 1px solid #999;
+  padding: 1.5rem;
+  color: #fff;
+}
+
+.qh-profile-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  z-index: 1001; /* above modal background */
+}
+.qh-profile-btn:hover {
+  color: #00aa00;
+}
+
+@keyframes qh-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
