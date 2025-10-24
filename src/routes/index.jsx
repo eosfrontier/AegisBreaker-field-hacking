@@ -9,17 +9,19 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 const AdminPanelLayout = lazy(() => import('../components/AdminPanel/AdminPanelLayout'));
 const SessionScreen = lazy(() => import('../components/MainHackingScreen/MainHackingScreen'));
 const PuzzleScreen = lazy(() => import('../components/Puzzle/PuzzleScreen'));
-const Testing = lazy(() => import('../components/test'));
-const QuickHackScreen = lazy(() => import('../components/UnplannedPuzzle/QuickHackScreen'))
+const QuickHackScreen = lazy(() => import('../components/UnplannedPuzzle/QuickHackScreen'));
+const HomePage = lazy(() => import('../components/Home/HomePage'));
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Suspense fallback={<div>Establishing connection...</div>}>
         <Routes>
+          {/* Home Page */}
+          <Route path="/" element={<HomePage />} />
+
           {/* Admin Panel */}
           <Route path="/admin" element={<AdminPanelLayout />} />
-          {/* <Route path="/admin/sessions/:sessionId" element={<AdminSessionEditor />} /> */}
 
           {/* Main Hacking Screen */}
           <Route path="/session/:sessionId" element={<SessionScreen />} />
@@ -27,19 +29,20 @@ const AppRoutes = () => {
           {/* Puzzle Screen */}
           <Route path="/puzzle/:sessionId/:layerId" element={<PuzzleScreen />} />
 
-          {/* Puzzle Screen */}
-          <Route path="/test" element={<Testing />} />
-
           {/* Unplanned Puzzle */}
-          <Route
-          path="/QuickHack" element={
-            <Suspense fallback={<div>Loading QuickHack...</div>}>
-              <QuickHackScreen />
-            </Suspense>
-          }
-          />
+          <Route path="/QuickHack" element={<QuickHackScreen />} />
 
-          {/* Fallback or home route */}
+          {/* Optional QR Scanner */}
+          {/* <Route
+            path="/qr-scanner"
+            element={
+              <Suspense fallback={<div>Loading QR Scanner...</div>}>
+                <QrScannerPage />
+              </Suspense>
+            }
+          /> */}
+
+          {/* Fallback or catch-all */}
           <Route path="*" element={<div>Not Found</div>} />
         </Routes>
       </Suspense>
