@@ -137,6 +137,58 @@
   text-align: center;
 }
 
+.statement.ok {
+  color: #0aff0a; /* neon green */
+}
+.statement.contradiction {
+  color: #ff4655; /* alert red */
+  text-shadow: 0 0 6px #ff4655;
+}
+
+.ls-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 12, 0.75);
+  display: grid;
+  place-items: center;
+  z-index: 999;
+}
+
+.ls-modal-card {
+  width: min(640px, 92vw);
+  background: #0a0a0a;
+  border: 1px solid #2a4e6c;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 0 16px #00ff9d55;
+  color: #00ff9d;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.ls-modal-title {
+  margin: 0 0 8px;
+  color: #0aff0a;
+  font-size: 1.3rem;
+  text-shadow: 0 0 6px #0aff0a55;
+}
+
+.ls-modal-body {
+  margin: 0 0 10px;
+}
+
+.ls-modal-list {
+  margin: 0 0 14px 1rem;
+  padding: 0;
+}
+
+.statement.ok {
+  color: #0aff0a;
+}
+.statement.contradiction {
+  color: #ff4655;
+  text-shadow: 0 0 6px #ff4655;
+}
+
 /* Shake animation */
 @keyframes shake {
   0% {
