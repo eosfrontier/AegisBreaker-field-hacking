@@ -73,7 +73,7 @@
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-button {
+.press-hold-button {
   flex: 0 0 auto;
   padding: 0.6rem 1rem;
   font-size: 1rem;
@@ -87,7 +87,7 @@ button {
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-button:hover {
+.press-hold-button:hover {
   background-color: #ff00ff22;
   box-shadow: 0 0 10px #ff00ffa0;
 }
