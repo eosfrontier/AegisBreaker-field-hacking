@@ -42,8 +42,8 @@
 .qh-modal {
   width: 90%;
   max-width: 330px;
-  background: #262e3e;
-  border: 1px solid #999;
+  background: var(--bg);
+  border: 1px solid var(--card-border);
   padding: 1.5rem;
   color: #fff;
 }

@@ -13,6 +13,121 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ===== Base (neutral) – used until a faction is picked ===== */
+:root {
+  --bg: #0e141b;
+  --bg-alt: #121a22;
+  --surface: #1b232e;
+  --surface-2: #222b36;
+
+  --text: #e6eef7;
+  --muted: #9fb1c1;
+
+  --accent: #3b82f6; /* primary */
+  --accent-2: #67e8f9; /* secondary / highlights */
+  --ring: rgba(59, 130, 246, 0.45);
+
+  --btn-bg: var(--accent);
+  --btn-text: #fff;
+  --btn-disabled: #666;
+
+  --card-border: #3b4150;
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(38,46,62)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+}
+
+/* ===== Aquila: regimented navy/steel ===== */
+[data-faction='aquila'] {
+  --bg: #0a1222;
+  --bg-alt: #0c162a;
+  --surface: #101a2b;
+  --surface-2: #152137;
+
+  --accent: #1d4ed8; /* royal/navy */
+  --accent-2: #60a5fa; /* blue highlight */
+  --ring: rgba(68, 73, 87, 0.45);
+  --card-border: #273450;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(68, 73, 87)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+}
+
+/* ===== Dugo: crimson + gold, premium sheen ===== */
+[data-faction='dugo'] {
+  --bg: #160f0f;
+  --bg-alt: #220e0e;
+  --surface: #2a1111;
+  --surface-2: #3a1616;
+
+  --accent: #b91c1c; /* crimson */
+  --accent-2: #f59e0b; /* gold */
+  --ring: rgba(185, 28, 28, 0.45);
+  --card-border: #4a1919;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(82,0,0)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+}
+
+/* ===== Ekanesh: deep teal + sand/gold, ecclesiastic motifs ===== */
+[data-faction='ekanesh'] {
+  --bg: #0f1a19;
+  --bg-alt: #12201f;
+  --surface: #142321;
+  --surface-2: #1a2d2a;
+
+  --accent: #0ea5a4; /* teal */
+  --accent-2: #e0b969; /* sand/gold */
+  --ring: rgba(14, 165, 164, 0.45);
+  --card-border: #1f3a37;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(31, 58, 55)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+}
+
+/* ===== Pendzal: retro CRT (phosphor green) ===== */
+[data-faction='pendzal'] {
+  --bg: #0a0d0a;
+  --bg-alt: #0c110c;
+  --surface: #0f130f;
+  --surface-2: #121812;
+
+  --accent: #2ee66b; /* phosphor */
+  --accent-2: #ffb000; /* amber utility */
+  --ring: rgba(17, 88, 41, 0.35);
+  --card-border: #1a241a;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(17, 88, 41)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+}
+[data-faction='pendzal'] .Quickhack-main::after {
+  /* faint scanlines overlay for CRT feel (zero interaction cost) */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+  opacity: 0.12;
+}
+
+/* ===== Sona: art-deco noir (midnight, purple, champagne) ===== */
+[data-faction='sona'] {
+  --bg: #0c0a18;
+  --bg-alt: #100d20;
+  --surface: #15122b;
+  --surface-2: #1b1638;
+
+  --accent: #d4af37; /* champagne gold */
+  --accent-2: #a855f7; /* royal purple burst */
+  --ring: rgba(212, 175, 55, 0.35);
+  --card-border: #2a2350;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(42,35,80)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+}
+
+/* ---------- Generic components wired to tokens ---------- */
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -60,8 +175,44 @@ button:focus-visible {
   flex-direction: column;
   padding: 16px;
   margin: 0 auto;
-  background: center
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(38,46,62)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+  background: var(--hexbackground);
   height: 100%;
   background-size: 32px;
+}
+
+/* You already have .Quickhack-main – make it themable + mobile friendly */
+.Quickhack-main {
+  position: relative; /* for overlays like scanlines */
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Buttons that previously used #00aa00: */
+.qh-btn {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--card-border);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+.qh-btn:disabled {
+  background: var(--btn-disabled);
+  cursor: not-allowed;
+}
+.qh-btn.secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+}
+
+/* Small “cards” (role tiles, faction tiles) */
+.qh-card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+}
+
+/* Focus ring */
+.qh-focus:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }

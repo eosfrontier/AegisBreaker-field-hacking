@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineSetting } from 'react-icons/ai';
+import BootSplash from './BootSplash';
+
 import './HomePage.css';
+
+const FACTIONS = ['aquila', 'dugo', 'ekanesh', 'pendzal', 'sona'];
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -20,6 +24,15 @@ export default function HomePage() {
   const [name, setName] = useState('');
   const [level, setLevel] = useState(1);
   const [skills, setSkills] = useState([]);
+  const [faction, setFaction] = useState('');
+
+  const [bootShown, setBootShown] = useState(() => {
+    try {
+      return !!localStorage.getItem('ab:once:boot');
+    } catch {
+      return false;
+    }
+  });
 
   const openProfileModal = () => {
     if (info) {
@@ -27,6 +40,7 @@ export default function HomePage() {
       setLevel(info.level ?? 1);
       setSkills(info.skills ?? []);
       setRole(info.role ?? null);
+      setFaction(info.faction ?? '');
       setStep(info.role === 'operative' ? 1 : 0); // jump to details for operative
     } else {
       setStep(0);
@@ -38,7 +52,9 @@ export default function HomePage() {
   useEffect(() => {
     const stored = localStorage.getItem('characterInfo');
     if (stored) {
-      setInfo(JSON.parse(stored));
+      const parsed = JSON.parse(stored);
+      setInfo(parsed);
+      if (parsed.faction) setFaction(parsed.faction);
     } else {
       setShowModal(true);
     }
@@ -68,6 +84,15 @@ export default function HomePage() {
       lastFocusRef.current?.focus?.();
     }
   }, [showModal]);
+
+  // apply theme attribute to <html> (or <body>) whenever faction changes
+  useEffect(() => {
+    const f = info?.faction || faction || 'neutral';
+    document.documentElement.setAttribute('data-faction', f);
+    return () => {
+      /* no-op */
+    };
+  }, [info?.faction, faction]);
 
   // ESC to close  simple focus trap for Tab/ShiftTab
   useEffect(() => {
@@ -116,13 +141,19 @@ export default function HomePage() {
     );
   };
 
+  // save operative profile now requires a faction
   const saveOperative = () => {
-    const newInfo = { role: 'operative', name, level, skills };
-    console.log(newInfo);
-
-    localStorage.setItem('characterInfo', JSON.stringify(newInfo));
-    setInfo(newInfo);
-    closeModal();
+    if (!name || !faction) return;
+    const data = {
+      role: 'operative',
+      name,
+      level,
+      skills,
+      faction,
+    };
+    localStorage.setItem('characterInfo', JSON.stringify(data));
+    setInfo(data);
+    setShowModal(false);
   };
 
   const closeModal = () => {
@@ -130,13 +161,38 @@ export default function HomePage() {
     setStep(0);
   };
 
+  const handleRespec = () => {
+    localStorage.removeItem('characterInfo');
+    setInfo(null);
+    // reset modal state
+    setName('');
+    setLevel(1);
+    setSkills([]);
+    setRole(null);
+    setStep(0);
+    setShowModal(true);
+    setFaction('');
+  };
+
   // ──────────────────────────────────────────────────────────────────
   return (
     <div className="main">
+      <BootSplash
+        show={!bootShown}
+        persistKey="ab:once:boot"
+        onDone={() => setBootShown(true)}
+        steps={[
+          { label: 'AegisBreaker firmware v3.9', ms: 380 },
+          { label: 'Routing via relay KST-7…', ms: 520 },
+          { label: 'ICE signature handshake…', ms: 640 },
+          { label: 'Entropy OK • Session keys derived', ms: 540 },
+          { label: 'Standing by.', ms: 360 },
+        ]}
+      />
       <button className="qh-profile-btn" onClick={openProfileModal} aria-label="Edit profile">
         <AiOutlineSetting size={24} />
       </button>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Field Hacking App</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Aegis Breaker — Field hacking</h2>
 
       {/* Navigation buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
@@ -158,6 +214,14 @@ export default function HomePage() {
         <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
           Logged in as <strong>{info.name}</strong> (Lv {info.level})<br />
           Skills: {info.skills.map(getLabelById).join(', ')}
+        </div>
+      )}
+
+      {info && (
+        <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
+          <button className="qh-btn" onClick={handleRespec}>
+            Respec / Change Role
+          </button>
         </div>
       )}
 
@@ -212,13 +276,11 @@ export default function HomePage() {
                 <h3 id="modalTitle" style={{ textAlign: 'center' }}>
                   Operative Profile
                 </h3>
-
                 {/* Name & level */}
                 <label className="qh-label">
                   Name
                   <input className="qh-input" value={name} onChange={(e) => setName(e.target.value)} required />
                 </label>
-
                 <label className="qh-label">
                   Level (1-10)
                   <input
@@ -235,6 +297,30 @@ export default function HomePage() {
                   />
                 </label>
 
+                <div style={{ marginTop: '1rem' }}>
+                  <h4 style={{ margin: 0, marginBottom: '.5rem' }}>Faction (required)</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
+                    {FACTIONS.map((f) => {
+                      const label = f.charAt(0).toUpperCase() + f.slice(1);
+                      const isActive = faction === f;
+                      return (
+                        <button
+                          key={f}
+                          type="button"
+                          className="qh-card qh-btn secondary qh-focus"
+                          onClick={() => setFaction(f)}
+                          aria-pressed={isActive}
+                          style={{
+                            padding: '.75rem',
+                            borderColor: isActive ? 'var(--accent-2)' : 'var(--card-border)',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 {/* Skills */}
                 <div style={{ marginTop: '1rem' }}>
                   <p style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>
@@ -257,7 +343,6 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
-
                 {/* Save / back */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
                   <button className="qh-btn" onClick={closeModal}>
@@ -265,7 +350,7 @@ export default function HomePage() {
                   </button>
                   <button
                     className="qh-btn"
-                    disabled={!name}
+                    disabled={!name || !faction}
                     style={{ backgroundColor: !name ? '#666' : '#00aa00' }}
                     onClick={saveOperative}
                   >

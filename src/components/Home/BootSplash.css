@@ -1,0 +1,111 @@
+/* Fullscreen overlay */
+.ab-splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: radial-gradient(
+      60% 80% at 50% 20%,
+      color-mix(in oklab, var(--bg-alt) 88%, transparent) 0%,
+      transparent 70%
+    ),
+    var(--bg);
+  display: grid;
+  place-items: center;
+}
+.ab-fade-in {
+  animation: abFadeIn 0.25s ease-out;
+}
+.ab-fade-out {
+  animation: abFadeOut 0.32s ease-in forwards;
+}
+@keyframes abFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes abFadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Panel */
+.ab-splash-frame {
+  width: min(720px, 92vw);
+  display: grid;
+  gap: 12px;
+}
+
+/* Title */
+.ab-splash-title {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ab-title {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+.ab-subtitle {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* “Code” window */
+.ab-splash-code {
+  height: 42vh;
+  overflow: hidden;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  color: color-mix(in srgb, var(--text) 85%, #00ffcc 15%);
+}
+.ab-splash-code pre {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.25rem;
+  white-space: pre-wrap;
+}
+
+/* Status + progress */
+.ab-splash-status {
+  display: grid;
+  gap: 6px;
+}
+.ab-status-text {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.ab-progress {
+  height: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--card-border);
+  overflow: hidden;
+  position: relative;
+}
+.ab-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+/* Skip button */
+.ab-skip {
+  justify-self: center;
+  padding: 0.4rem 0.75rem;
+}
+
+/* Reduced motion: turn off animations */
+@media (prefers-reduced-motion: reduce) {
+  .ab-fade-in,
+  .ab-fade-out {
+    animation: none;
+  }
+}
