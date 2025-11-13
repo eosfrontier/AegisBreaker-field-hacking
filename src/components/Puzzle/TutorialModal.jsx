@@ -1,4 +1,4 @@
-import { setFlag } from './prefs/prefsStore';
+import { setFlag } from '../prefs/prefsStore';
 import './LogicPuzzle.css';
 
 const TutorialModal = ({

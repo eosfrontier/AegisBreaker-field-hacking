@@ -6,7 +6,7 @@ import { generatePuzzleEnsuringUnique } from './logic/generator';
 import { parseStatement } from './logic/parser';
 import { evaluateAST } from './logic/evaluator';
 import { getScriptCharges, consumeScriptCharge } from './scripts/scriptsStore';
-import { getFlag } from './prefs/prefsStore';
+import { getFlag } from '../prefs/prefsStore';
 import TutorialModal from './TutorialModal';
 
 import './LogicPuzzle.css';
