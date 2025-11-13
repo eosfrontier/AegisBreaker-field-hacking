@@ -34,6 +34,7 @@ export default function PressHoldButton({ label, delta, onPress, repeatRateMs = 
 
   return (
     <button
+      className="press-hold-button"
       onMouseDown={handlePressStart}
       onMouseUp={handlePressEnd}
       onMouseLeave={handlePressEnd}
