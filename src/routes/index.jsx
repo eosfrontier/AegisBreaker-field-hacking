@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ScriptProvider } from '../components/common/ScriptProvider';
 // import AdminSessionEditor from "../components/AdminPanel/SessionEditor";
 // import SessionScreen from "../components/MainHackingScreen/SessionScreen";
 // import PuzzleScreen from "../components/Puzzle/PuzzleScreen";
@@ -12,36 +13,42 @@ const PuzzleScreen = lazy(() => import('../components/common/PuzzleScreen'));
 const QuickHackScreen = lazy(() => import('../components/UnplannedPuzzle/QuickHackScreen'));
 const HomePage = lazy(() => import('../components/Home/HomePage'));
 const QrScannerPage = lazy(() => import('../components/Scanner/QrScannerPage'));
+const ScriptStore = lazy(() => import('../components/common/ScriptStore'));
 
 const AppRoutes = () => {
   return (
-    <BrowserRouter>
-      <Suspense fallback={<div>Establishing connection...</div>}>
-        <Routes>
-          {/* Home Page */}
-          <Route path="/" element={<HomePage />} />
+    <ScriptProvider>
+      <BrowserRouter>
+        <Suspense fallback={<div>Establishing connection...</div>}>
+          <Routes>
+            {/* Home Page */}
+            <Route path="/" element={<HomePage />} />
 
-          {/* Admin Panel */}
-          <Route path="/admin" element={<AdminPanelLayout />} />
+            {/* Admin Panel */}
+            <Route path="/admin" element={<AdminPanelLayout />} />
 
-          {/* Main Hacking Screen */}
-          <Route path="/session/:sessionId" element={<SessionScreen />} />
+            {/* Main Hacking Screen */}
+            <Route path="/session/:sessionId" element={<SessionScreen />} />
 
-          {/* Puzzle Screen (supports both session and local query params) */}
-          <Route path="/puzzle" element={<PuzzleScreen />} />
-          <Route path="/puzzle/:sessionId/:layerId" element={<PuzzleScreen />} />
+            {/* Puzzle Screen (supports both session and local query params) */}
+            <Route path="/puzzle" element={<PuzzleScreen />} />
+            <Route path="/puzzle/:sessionId/:layerId" element={<PuzzleScreen />} />
 
-          {/* Unplanned Puzzle */}
+            {/* Unplanned Puzzle */}
           <Route path="/QuickHack" element={<QuickHackScreen />} />
 
           {/* Optional QR Scanner */}
           <Route path="/qr-scanner" element={<QrScannerPage />} />
 
-          {/* Fallback or catch-all */}
-          <Route path="*" element={<div>Not Found</div>} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+          {/* Scripts Store */}
+          <Route path="/scripts-store" element={<ScriptStore />} />
+
+            {/* Fallback or catch-all */}
+            <Route path="*" element={<div>Not Found</div>} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ScriptProvider>
   );
 };
 

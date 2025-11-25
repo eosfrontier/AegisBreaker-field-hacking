@@ -186,6 +186,9 @@ export default function HomePage() {
         <button className="qh-btn" onClick={() => navigate('/qr-scanner')}>
           QR Scanner
         </button>
+        <button className="qh-btn" onClick={() => navigate('/scripts-store')}>
+          Scripts Store
+        </button>
         {info?.role === 'admin' && (
           <button className="qh-btn" onClick={() => navigate('/admin')}>
             Admin Panel
@@ -258,11 +261,17 @@ export default function HomePage() {
                     Operative Profile
                   </h3>
                   <label className="qh-label">
-                    Name
-                    <input className="qh-input" value={name} onChange={(e) => setName(e.target.value)} required />
+                    Name <span style={{ color: '#f87171' }}>*</span>
+                    <input
+                      className="qh-input"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      aria-required="true"
+                    />
                   </label>
                   <label className="qh-label">
-                    Level (1-10)
+                    Level (1-10) <span style={{ color: '#f87171' }}>*</span>
                     <input
                       className="qh-input"
                       type="number"
@@ -272,13 +281,15 @@ export default function HomePage() {
                       onChange={(e) => {
                         const v = Math.max(1, Math.min(10, Number(e.target.value)));
                         setLevel(v);
-                        setSkills([]);
                       }}
+                      aria-required="true"
                     />
                   </label>
 
                   <div style={{ marginTop: '1rem' }}>
-                    <h4 style={{ margin: 0, marginBottom: '.5rem' }}>Faction (required)</h4>
+                    <h4 style={{ margin: 0, marginBottom: '.5rem' }}>
+                      Faction <span style={{ color: '#f87171' }}>*</span>
+                    </h4>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
                       {FACTIONS.map((f) => {
                         const label = f.charAt(0).toUpperCase() + f.slice(1);

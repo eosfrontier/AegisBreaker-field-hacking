@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { listScriptsForContext, getScriptDefinition } from './scripts/registry';
-import { getScriptCharges, listScripts, runScript } from '../Puzzle/scripts/scriptsStore';
+import { getScriptCharges, listScripts, runScript } from './scripts/scriptsStore';
 import { useScriptContext } from './ScriptProvider';
 
 export default function ScriptsDrawer() {
   const { contextId, ctxApi, drawerOpen, closeDrawer } = useScriptContext();
   const [, setVersion] = useState(0);
+  const [notice, setNotice] = useState(null);
 
   const usableScripts = useMemo(() => (contextId ? listScriptsForContext(contextId) : []), [contextId]);
   const inventory = useMemo(() => listScripts(), []);
@@ -21,7 +22,19 @@ export default function ScriptsDrawer() {
   const handleRun = (scriptId) => {
     if (!contextId) return;
     const res = runScript(scriptId, contextId, ctxApi);
-    if (res.ok) setVersion((v) => v + 1);
+    if (res.ok) {
+      setNotice(null);
+      setVersion((v) => v + 1);
+    } else {
+      let msg = 'Unable to run script.';
+      if (res.error === 'no_charges') msg = 'No charges available.';
+      else if (res.error === 'context_unsupported') msg = 'Script not available in this context.';
+      else if (res.error === 'insufficient_labels') msg = 'Not enough labels yet to evaluate any statements.';
+      else if (res.error === 'no_unknown') msg = 'No unknown modules to reveal.';
+      else if (res.error === 'min_difficulty') msg = 'ICE is already at minimum difficulty.';
+      else if (res.error === 'blocked') msg = 'Script could not execute.';
+      setNotice(msg);
+    }
   };
 
   const isOpen = drawerOpen;
@@ -56,6 +69,20 @@ export default function ScriptsDrawer() {
       <p style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: 8 }}>
         {contextId ? `Available in this context: ${contextId}` : 'No context detected'}
       </p>
+      {notice && (
+        <div
+          style={{
+            marginTop: 8,
+            padding: '8px 10px',
+            borderRadius: 6,
+            background: 'rgba(255, 184, 0, 0.1)',
+            color: '#facc15',
+            fontSize: '0.9rem',
+          }}
+        >
+          {notice}
+        </div>
+      )}
 
       <section style={{ marginTop: 12 }}>
         <h4 style={{ marginBottom: 4 }}>Usable now</h4>

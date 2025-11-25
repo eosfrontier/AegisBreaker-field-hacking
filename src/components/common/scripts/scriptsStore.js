@@ -1,4 +1,4 @@
-import { getScriptDefinition } from '../../common/scripts/registry';
+import { getScriptDefinition } from './registry';
 
 const ROOT_KEY = 'app_scripts_v1';
 const GLOBAL_SCOPE = 'global';
@@ -82,6 +82,14 @@ export function runScript(scriptId, contextId, ctxApi = {}) {
   }
 
   const result = behavior.run?.(ctxApi);
-  if (!admin) setScriptCharges(GLOBAL_SCOPE, scriptId, Math.max(0, getScriptCharges(GLOBAL_SCOPE, scriptId) - 1));
+  // If the behavior explicitly returns { ok: false }, treat as non-executed and do not deduct charges.
+  if (result?.ok === false) {
+    return { ok: false, error: result.reason || 'blocked' };
+  }
+
+  if (!admin) {
+    const current = getScriptCharges(GLOBAL_SCOPE, scriptId);
+    setScriptCharges(GLOBAL_SCOPE, scriptId, Math.max(0, current - 1));
+  }
   return { ok: true, result };
 }

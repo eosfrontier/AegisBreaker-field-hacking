@@ -2,7 +2,7 @@
 export const SKILL_TIERS = {
   '1-2': [
     { id: 'initialize', label: 'Initialize Hack' },
-    { id: 'scan', label: 'Scan' },
+    { id: 'scan', label: 'Script - Scan' },
     { id: 'hack_consumer', label: 'Hack Consumer Electronics' },
   ],
   '3-4': [

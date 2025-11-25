@@ -15,7 +15,10 @@ const PREFS_SCOPE = 'logic_sifter';
 const TUTORIAL_KEY = 'tutorial_seen_v1';
 
 const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) => {
-  const difficulty = Number(layerData?.difficulty ?? 3);
+  const [effectiveDifficulty, setEffectiveDifficulty] = useState(Number(layerData?.difficulty ?? 3));
+  useEffect(() => {
+    setEffectiveDifficulty(Number(layerData?.difficulty ?? 3));
+  }, [layerData?.difficulty]);
 
   const [{ processes, rules, solution }, setPuzzle] = useState({ processes: [], rules: null, solution: {} });
   const [guesses, setGuesses] = useState([]);
@@ -30,15 +33,16 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
   const { setScriptContext } = useScriptContext();
 
   useEffect(() => {
-    const p = generatePuzzleEnsuringUnique(difficulty);
+    const p = generatePuzzleEnsuringUnique(effectiveDifficulty);
     setPuzzle(p);
     setGuesses(p.processes.map(() => null));
     setContradictions({});
     setErrorMessage('');
     setPuzzleSolved(false);
+    setScanResultBanner('');
 
     if (!getFlag(PREFS_SCOPE, TUTORIAL_KEY)) setShowTutorial(true);
-  }, [difficulty]);
+  }, [effectiveDifficulty]);
 
   useEffect(() => {
     if (!puzzleSolved) return;
@@ -87,6 +91,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
   }, [processes, guesses]);
 
   const performContradictionScan = useCallback(() => {
+    let anyKnown = false;
     const result = {};
     let flagged = 0,
       tested = 0;
@@ -102,6 +107,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
             needed.every((n) => currentGuessAssignment[n] !== null) && currentGuessAssignment[proc.name] !== null;
 
           if (allKnown) {
+            anyKnown = true;
             const assignment = objectMapTruthy(currentGuessAssignment);
             const truth = evaluateAST(ast, assignment);
             const speakerIsHarmless = assignment[proc.name] === true;
@@ -121,16 +127,46 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
     }
     setContradictions(result);
 
-    if (tested === 0) setScanResultBanner('Not enough labels yet to evaluate any statements.');
-    else if (flagged === 0)
+    if (!anyKnown || tested === 0) return { ok: false, reason: 'insufficient_labels' };
+    if (flagged === 0) {
       setScanResultBanner(`Scan complete: 0 contradictions out of ${tested} evaluable statements.`);
-    else setScanResultBanner(`Scan complete: ${flagged} contradiction(s) out of ${tested} evaluable statements.`);
+      return { ok: true };
+    }
+    setScanResultBanner(`Scan complete: ${flagged} contradiction(s) out of ${tested} evaluable statements.`);
+    return { ok: true };
   }, [processes, currentGuessAssignment]);
 
+  const revealClue = useCallback(() => {
+    const idx = guesses.findIndex((g) => g === null);
+    if (idx === -1) return { ok: false, reason: 'no_unknown' };
+    const next = [...guesses];
+    const proc = processes[idx];
+    const isHarmless = !!solution[proc.name];
+    next[idx] = isHarmless;
+    setGuesses(next);
+    setScanResultBanner(`Clue: Set ${proc.name} to ${isHarmless ? 'Harmless' : 'Security'}.`);
+    return { ok: true };
+  }, [guesses, processes, solution]);
+
+  const weakenIce = useCallback(() => {
+    if (effectiveDifficulty <= 1) return { ok: false, reason: 'min_difficulty' };
+    const nextDifficulty = effectiveDifficulty - 1;
+    setEffectiveDifficulty(nextDifficulty);
+    setScanResultBanner(`ICE weakened. Puzzle reset at difficulty ${nextDifficulty}.`);
+    return { ok: true };
+  }, [effectiveDifficulty]);
+
   useEffect(() => {
-    setScriptContext({ id: 'logic', api: { revealContradictions: performContradictionScan } });
+    setScriptContext({
+      id: 'logic',
+      api: {
+        revealContradictions: () => performContradictionScan(),
+        revealClue: () => revealClue(),
+        weakenIce: () => weakenIce(),
+      },
+    });
     return () => setScriptContext({ id: null, api: {} });
-  }, [setScriptContext, performContradictionScan]);
+  }, [setScriptContext, performContradictionScan, revealClue, weakenIce]);
 
   const allChosen = guesses.every((g) => g !== null);
 
@@ -157,7 +193,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
         />
       )}
 
-      <h2>Logic Sifter (Difficulty {difficulty})</h2>
+      <h2>Logic Sifter (Difficulty {effectiveDifficulty})</h2>
 
       {rules?.exactSecurity != null && (
         <div className="clues">

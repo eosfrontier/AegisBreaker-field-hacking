@@ -4,7 +4,7 @@
 export const SCRIPT_REGISTRY = {
   contradiction_scan: {
     name: 'Scan',
-    description: 'Highlight contradictions based on current labels.',
+    description: 'Revieve a hint in the currect defense system',
     contexts: {
       logic: {
         label: 'Highlight contradictions',
@@ -12,6 +12,53 @@ export const SCRIPT_REGISTRY = {
         run: (ctx) => ctx?.revealContradictions?.(),
       },
     },
+  },
+  mask: {
+    name: 'Mask',
+    description: 'Extend timer or reduce detection; placeholder.',
+    contexts: {},
+  },
+  weaken_ice: {
+    name: 'Weaken ICE',
+    description: 'Soften defenses; resets the current ICE at a lower difficulty.',
+    contexts: {
+      logic: {
+        label: 'Weaken ICE',
+        description: 'Lower the puzzle difficulty (resets current puzzle).',
+        run: (ctx) => ctx?.weakenIce?.(),
+      },
+    },
+  },
+  snoop: {
+    name: 'Snoop',
+    description: 'Reveal a clue; placeholder.',
+    contexts: {
+      logic: {
+        label: 'Reveal a clue',
+        description: 'Auto-label one module correctly.',
+        run: (ctx) => ctx?.revealClue?.(),
+      },
+    },
+  },
+  override: {
+    name: 'Override',
+    description: 'Skip a layer; placeholder.',
+    contexts: {},
+  },
+  worm: {
+    name: 'Worm',
+    description: 'Auto-progress a step; placeholder.',
+    contexts: {},
+  },
+  zeroday: {
+    name: 'Zero Day',
+    description: 'Instant solve; placeholder.',
+    contexts: {},
+  },
+  shield: {
+    name: 'Shield',
+    description: 'Become immune for one puzzle; placeholder.',
+    contexts: {},
   },
   auto_step: {
     name: 'Auto-Step',
