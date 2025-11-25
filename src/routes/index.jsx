@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 // Lazy imports to account for spotty internet connection
 const AdminPanelLayout = lazy(() => import('../components/AdminPanel/AdminPanelLayout'));
 const SessionScreen = lazy(() => import('../components/MainHackingScreen/MainHackingScreen'));
-const PuzzleScreen = lazy(() => import('../components/Puzzle/PuzzleScreen'));
+const PuzzleScreen = lazy(() => import('../components/common/PuzzleScreen'));
 const QuickHackScreen = lazy(() => import('../components/UnplannedPuzzle/QuickHackScreen'));
 const HomePage = lazy(() => import('../components/Home/HomePage'));
 const QrScannerPage = lazy(() => import('../components/Scanner/QrScannerPage'));
@@ -27,7 +27,8 @@ const AppRoutes = () => {
           {/* Main Hacking Screen */}
           <Route path="/session/:sessionId" element={<SessionScreen />} />
 
-          {/* Puzzle Screen */}
+          {/* Puzzle Screen (supports both session and local query params) */}
+          <Route path="/puzzle" element={<PuzzleScreen />} />
           <Route path="/puzzle/:sessionId/:layerId" element={<PuzzleScreen />} />
 
           {/* Unplanned Puzzle */}
