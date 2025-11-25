@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineSetting } from 'react-icons/ai';
-import BootSplash from './BootSplash';
+import BootSplash from '../common/BootSplash';
 
 import './HomePage.css';
 

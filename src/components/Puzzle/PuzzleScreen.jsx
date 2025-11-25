@@ -1,11 +1,11 @@
+// components/Puzzle/PuzzleScreen.jsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import './PuzzleScreen.css';
-import Typewriter from '../../utils/Typewriter';
 
+import BootSplash from '../common/BootSplash'; // <— new splash
 import SequencePuzzle from './SequencePuzzle';
 import FrequencyPuzzle from './FrequencyPuzzle';
 import LogicPuzzle from './LogicPuzzle';
@@ -13,31 +13,44 @@ import MasterLockPuzzle from './MasterLockPuzzle';
 
 import UnlockedLockSVG from '../../assets/lock-unlock-icon-22.svg';
 
-const PuzzleScreen = () => {
+const PUZZLE_BOOT_STEPS = [
+  { label: 'Establishing secure connection…', ms: 420 },
+  { label: 'Identifying attack vector…', ms: 500 },
+  { label: 'Decoding encryption…', ms: 520 },
+  { label: 'Accessing ICE layer…', ms: 480 },
+  { label: 'Channel stable.', ms: 320 },
+];
+
+export default function PuzzleScreen() {
   const { sessionId, layerId } = useParams();
   const [layerData, setLayerData] = useState(null);
   const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [fakeDelayComplete, setFakeDelayComplete] = useState(false);
+  const [showBoot, setShowBoot] = useState(() => {
+    // Skip exactly once if we navigated here behind a pre-splash
+    try {
+      const skip = sessionStorage.getItem('ab:bootSkipOnce') === '1';
+      if (skip) sessionStorage.removeItem('ab:bootSkipOnce');
+      return !skip;
+    } catch {
+      return true;
+    }
+  });
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If we DO have sessionId+layerId, use Firestore. Otherwise, skip it
     if (!sessionId || !layerId) {
-      // No Firestore usage here, so we just finish loading
       setLoading(false);
       return;
     }
 
-    // Listen for session doc
     const sessionRef = doc(db, 'sessions', sessionId);
     const unsubSession = onSnapshot(sessionRef, (snapshot) => {
       setSessionData(snapshot.data());
     });
 
-    // Listen for layer doc
     const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
     const unsubLayer = onSnapshot(layerRef, (snapshot) => {
       setLayerData(snapshot.data());
@@ -50,119 +63,85 @@ const PuzzleScreen = () => {
     };
   }, [sessionId, layerId]);
 
-  /**
-   * If this layer is LOCKED (and not yet set to IN_PROGRESS or SOLVED),
-   * the first person to open it automatically sets it to IN_PROGRESS.
-   */
+  // Auto-move LOCKED -> IN_PROGRESS (first opener)
   useEffect(() => {
     if (!sessionId || !layerId) return;
     if (loading || !layerData) return;
 
     if (layerData.status === 'LOCKED') {
       const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
-      updateDoc(layerRef, { status: 'IN_PROGRESS' })
-        .then(() => {
-          console.log('Puzzle set to IN_PROGRESS');
-        })
-        .catch((err) => {
-          console.error('Error setting puzzle to IN_PROGRESS:', err);
-        });
+      updateDoc(layerRef, { status: 'IN_PROGRESS' }).catch((err) =>
+        console.error('Error setting puzzle to IN_PROGRESS:', err),
+      );
     }
   }, [loading, layerData, sessionId, layerId]);
 
-  useEffect(() => {
-    if (!loading) {
-      const timer = setTimeout(() => {
-        setFakeDelayComplete(true);
-      }, 3000); // 3000ms = 3 seconds delay
-      return () => clearTimeout(timer);
-    }
-  }, [loading]);
+  const renderSolvedScreen = () => (
+    <div className="Quickhack-main layer-solved" style={{ textAlign: 'center' }}>
+      <h3>Layer solved</h3>
+      <img
+        src={UnlockedLockSVG}
+        alt="Unlocked lock"
+        className="filter-green"
+        style={{ opacity: 0.4, width: '230px', height: '280px' }}
+      />
+      <button className="qh-btn" onClick={() => navigate(`*`)}>
+        Sever Connection
+      </button>
+    </div>
+  );
 
-  // A small helper for showing the "layer solved" UI
-  const renderSolvedScreen = () => {
-    return (
-      <div className="layer-solved">
-        <h3>Layer solved</h3>
-        <img
-          src={UnlockedLockSVG}
-          alt="Unlocked lock"
-          className="filter-green"
-          style={{
-            opacity: 0.4,
-            width: '230px',
-            height: '280px',
-          }}
-        />
-        <button onClick={() => navigate(`*`)}>Sever Connection</button>
-      </div>
-    );
-  };
-
-  if (layerData?.status !== 'SOLVED' && (loading || !fakeDelayComplete)) {
-    const hackText = `Establishing secure connection...
-      Identifying attack vector...
-      Decoding encryption...
-      Accessing ICE layer...`;
-
-    return (
-      <div
-        style={{
-          background: '#262e3e',
-          color: '#fff',
-          height: '100vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          fontFamily: 'monospace',
-        }}
-      >
-        <Typewriter text={hackText} typingSpeed={20} />
-      </div>
-    );
-  }
-
-  if (loading) {
-    return <div>Loading puzzle...</div>;
-  }
-
-  // If the session is ended, show a message
+  // Ended session
   if (sessionData?.status === 'FAILURE' || sessionData?.status === 'SUCCESS') {
-    return <div>The session has ended!</div>;
+    return (
+      <div className="Quickhack-main" style={{ padding: '1rem' }}>
+        The session has ended!
+      </div>
+    );
   }
 
-  // If layer is solved, show a message
+  // Layer solved
   if (layerData?.status === 'SOLVED') {
     return renderSolvedScreen();
   }
 
-  // If it's still locked, show a quick "Locked" message (though we're already
-  // attempting to set it IN_PROGRESS in the effect above).
-  if (layerData?.status === 'LOCKED') {
-    return <div>Checking puzzle status...</div>;
-  }
+  // Boot overlay: show on first arrival (unless skipped once), and HOLD until Firestore is ready
+  const bootOverlay = (
+    <BootSplash
+      show={showBoot}
+      holdUntil={loading}
+      onDone={() => setShowBoot(false)}
+      steps={PUZZLE_BOOT_STEPS}
+      allowSkip={true}
+    />
+  );
 
-  // Otherwise, if the puzzle is in progress, display the puzzle
-  if (layerData?.puzzleType === 'sequence') {
+  // While loading and/or splash is up, render an empty themed container so overlay sits on top
+  if (loading || showBoot) {
     return (
-      <SequencePuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
-    );
-  }
-  if (layerData?.puzzleType === 'frequencyTuning') {
-    return (
-      <FrequencyPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
-    );
-  }
-  if (layerData?.puzzleType === 'logic') {
-    return <LogicPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />;
-  }
-  if (layerData?.puzzleType === 'masterLock') {
-    return (
-      <MasterLockPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
+      <div className="Quickhack-main" style={{ minHeight: '60vh' }}>
+        {bootOverlay}
+      </div>
     );
   }
 
-  return <div>Unknown puzzle type!</div>;
-};
-
-export default PuzzleScreen;
+  // Active puzzle
+  return (
+    <div className="Quickhack-main">
+      {bootOverlay /* briefly mounts/fades out; now not visible */}
+      {layerData?.puzzleType === 'sequence' && (
+        <SequencePuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
+      )}
+      {layerData?.puzzleType === 'frequencyTuning' && (
+        <FrequencyPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
+      )}
+      {layerData?.puzzleType === 'logic' && (
+        <LogicPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
+      )}
+      {layerData?.puzzleType === 'masterLock' && (
+        <MasterLockPuzzle sessionId={sessionId} layerId={layerId} layerData={layerData} onLocalPuzzleComplete={null} />
+      )}
+      {!layerData?.puzzleType && <div style={{ padding: '1rem' }}>Unknown puzzle type!</div>}
+    </div>
+  );
+}
