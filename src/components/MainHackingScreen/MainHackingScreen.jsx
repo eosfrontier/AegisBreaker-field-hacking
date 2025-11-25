@@ -4,6 +4,7 @@ import { doc, collection, query, where, onSnapshot, updateDoc, getDoc, Timestamp
 import { db } from '../../firebaseConfig';
 import './MainHackingScreen.css';
 import HexGrid from './HexGrid';
+import { useScriptContext } from '../common/ScriptProvider';
 
 function MainHackingScreen() {
   const { sessionId } = useParams();
@@ -29,6 +30,8 @@ function MainHackingScreen() {
 
   // Prevent multiple success/failure updates
   const successOrFailRef = useRef(false);
+  const [reconRevealed, setReconRevealed] = useState(false);
+  const { setScriptContext } = useScriptContext();
 
   // We’ll store the "currently displayed group" in state for scroll logic
   // This will be the "first incomplete group" or null if all solved
@@ -298,6 +301,20 @@ function MainHackingScreen() {
   // ============== THEME CLASS ==============
   const themeClass = sessionData?.theme ? `theme-${sessionData.theme}` : 'theme-default';
 
+  useEffect(() => {
+    if (hackPhase === 'INIT') {
+      setScriptContext({
+        id: 'main_preinit',
+        api: {
+          revealNextGroup: () => setReconRevealed(true),
+        },
+      });
+    } else {
+      setScriptContext({ id: null, api: {} });
+    }
+    return () => setScriptContext({ id: null, api: {} });
+  }, [hackPhase, setScriptContext]);
+
   // If session locked by parent
   if (isLocked) {
     return (
@@ -345,6 +362,9 @@ function MainHackingScreen() {
                 <h1>Hacking Session: {sessionData.playerName}</h1>
               </div>
               <p>Time Limit: {sessionData.timeLimit || 60} seconds</p>
+              {reconRevealed && nextGroup != null && (
+                <p style={{ color: '#0ff' }}>Recon: upcoming group appears to be {nextGroup}.</p>
+              )}
               <button className="initialize-btn" onClick={handleInitializeHack}>
                 Initialize Hack
               </button>

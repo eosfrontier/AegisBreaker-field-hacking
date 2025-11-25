@@ -1,19 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
 import { generatePuzzleEnsuringUnique } from './logic/generator';
 import { parseStatement } from './logic/parser';
 import { evaluateAST } from './logic/evaluator';
-import { getScriptCharges, consumeScriptCharge } from './scripts/scriptsStore';
 import { getFlag } from '../prefs/prefsStore';
 import TutorialModal from './TutorialModal';
+import { useScriptContext } from '../common/ScriptProvider';
 
 import './LogicPuzzle.css';
 
 const PREFS_SCOPE = 'logic_sifter';
-const SCRIPT_SCOPE = 'logic_sifter';
-const SCRIPT_ID_CONTRADICT = 'contradiction_scan';
 const TUTORIAL_KEY = 'tutorial_seen_v1';
 
 const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) => {
@@ -29,7 +27,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
   const [scanResultBanner, setScanResultBanner] = useState('');
   const [showTutorial, setShowTutorial] = useState(false);
 
-  const scriptCharges = getScriptCharges(SCRIPT_SCOPE, SCRIPT_ID_CONTRADICT);
+  const { setScriptContext } = useScriptContext();
 
   useEffect(() => {
     const p = generatePuzzleEnsuringUnique(difficulty);
@@ -88,15 +86,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
     return map;
   }, [processes, guesses]);
 
-  const handleCheckContradictions = () => {
-    if (scriptCharges <= 0) {
-      setScanResultBanner('You need the Scan script (or more charges) to check contradictions.');
-      setShake(true);
-      setTimeout(() => setShake(false), 450);
-      return;
-    }
-    consumeScriptCharge(SCRIPT_SCOPE, SCRIPT_ID_CONTRADICT);
-
+  const performContradictionScan = useCallback(() => {
     const result = {};
     let flagged = 0,
       tested = 0;
@@ -135,7 +125,12 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
     else if (flagged === 0)
       setScanResultBanner(`Scan complete: 0 contradictions out of ${tested} evaluable statements.`);
     else setScanResultBanner(`Scan complete: ${flagged} contradiction(s) out of ${tested} evaluable statements.`);
-  };
+  }, [processes, currentGuessAssignment]);
+
+  useEffect(() => {
+    setScriptContext({ id: 'logic', api: { revealContradictions: performContradictionScan } });
+    return () => setScriptContext({ id: null, api: {} });
+  }, [setScriptContext, performContradictionScan]);
 
   const allChosen = guesses.every((g) => g !== null);
 
@@ -177,13 +172,6 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
         </div>
       )}
 
-      <div className="clues" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <strong>Scripts:</strong> Scan (Check contradictions)
-        </div>
-        <div>Charges: {getScriptCharges(SCRIPT_SCOPE, SCRIPT_ID_CONTRADICT)}</div>
-      </div>
-
       {scanResultBanner && (
         <p className="feedback" style={{ textAlign: 'left' }}>
           {scanResultBanner}
@@ -221,22 +209,9 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
         </div>
       ))}
 
-      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
+      <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr' }}>
         <button className="validate-button" onClick={handleValidate} disabled={!allChosen}>
           Validate Identities
-        </button>
-        <button
-          className="validate-button"
-          onClick={handleCheckContradictions}
-          disabled={getScriptCharges(SCRIPT_ID_CONTRADICT) <= 0}
-          title={
-            getScriptCharges(SCRIPT_ID_CONTRADICT) <= 0
-              ? 'No Scan charges available'
-              : 'Spend 1 charge to mark contradictions'
-          }
-          style={{ borderColor: '#888', color: '#00ff9d' }}
-        >
-          Check Contradictions
         </button>
       </div>
 
