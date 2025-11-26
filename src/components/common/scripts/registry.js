@@ -2,14 +2,19 @@
 // Each script can declare per-context behavior via contexts[contextId] = { run: (ctxApi) => any, description?: string }.
 
 export const SCRIPT_REGISTRY = {
-  contradiction_scan: {
+  scan: {
     name: 'Scan',
-    description: 'Revieve a hint in the currect defense system',
+    description: 'Reveal key data or reduce interference.',
     contexts: {
       logic: {
         label: 'Highlight contradictions',
         description: 'Marks statements that contradict your current labels.',
         run: (ctx) => ctx?.revealContradictions?.(),
+      },
+      sequence: {
+        label: 'Narrow band',
+        description: 'Reduce distractors for a few steps.',
+        run: (ctx) => ctx?.narrowBand?.(),
       },
     },
   },
@@ -27,6 +32,11 @@ export const SCRIPT_REGISTRY = {
         description: 'Lower the puzzle difficulty (resets current puzzle).',
         run: (ctx) => ctx?.weakenIce?.(),
       },
+      sequence: {
+        label: 'Weaken ICE',
+        description: 'Lower the puzzle difficulty (resets current puzzle).',
+        run: (ctx) => ctx?.weakenIce?.(),
+      },
     },
   },
   snoop: {
@@ -37,6 +47,11 @@ export const SCRIPT_REGISTRY = {
         label: 'Reveal a clue',
         description: 'Auto-label one module correctly.',
         run: (ctx) => ctx?.revealClue?.(),
+      },
+      sequence: {
+        label: 'Echo hint',
+        description: 'Highlight the correct symbol briefly.',
+        run: (ctx) => ctx?.revealHint?.(),
       },
     },
   },

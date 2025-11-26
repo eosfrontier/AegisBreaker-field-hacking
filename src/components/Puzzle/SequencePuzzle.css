@@ -31,6 +31,10 @@
   background-color: #2ecc71; /* green */
 }
 
+.mistake {
+  background-color: #e74c3c !important; /* red */
+}
+
 .current-target {
   font-size: 2rem;
   margin: 16px 0;

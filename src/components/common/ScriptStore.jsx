@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { getScriptCharges, grantScript } from './scripts/scriptsStore';
 import { getScriptDefinition } from './scripts/registry';
 import { useNavigate } from 'react-router-dom';
 
 const SCRIPT_STORE_ITEMS = [
-  { id: 'contradiction_scan', name: 'Scan', price: 50, reqSkill: 'scan', minLevel: 1 },
+  { id: 'scan', name: 'Scan', price: 50, reqSkill: 'scan', minLevel: 1 },
   { id: 'snoop', name: 'Snoop', price: 60, reqSkill: 'script_snoop', minLevel: 3 },
   { id: 'mask', name: 'Mask', price: 60, reqSkill: 'script_mask', minLevel: 3 },
   { id: 'weaken_ice', name: 'Weaken ICE', price: 75, reqSkill: 'script_weaken_ice', minLevel: 3 },

@@ -10,19 +10,19 @@ export const SKILL_TIERS = {
     { id: 'restart_device', label: 'Restart Device' },
 
     // “scripts” (1× / session consumables)
-    { id: 'script_mask', label: 'Script - Mask (+15 s)' },
-    { id: 'script_weaken_ice', label: 'Script - Weaken ICE (diff 5→3)' },
-    { id: 'script_snoop', label: 'Script - Snoop (reveal clue)' },
+    { id: 'script_mask', label: 'Script - Mask' },
+    { id: 'script_weaken_ice', label: 'Script - Weaken ICE' },
+    { id: 'script_snoop', label: 'Script - Snoop' },
   ],
   '5-6': [
     { id: 'hack_security', label: 'Hack Security Devices (cams, turrets)' },
     { id: 'sabotage_basic', label: 'Sabotage (Basic)' },
-    { id: 'script_override', label: 'Script - Override (skip a layer)' },
+    { id: 'script_override', label: 'Script - Override' },
   ],
   '7-8': [
     { id: 'hack_it', label: 'Hack IT Infrastructure (routers, modems)' },
     { id: 'improvise', label: 'Improvise (GM adjudication)' },
-    { id: 'script_worm', label: 'Script - Worm (auto-progress 1 step)' },
+    { id: 'script_worm', label: 'Script - Worm' },
     { id: 'sabotage_adv', label: 'Sabotage (Advanced)' },
   ],
   '9-10': [
