@@ -9,6 +9,14 @@
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+@font-face {
+  font-family: 'Echolot';
+  src: url('/fonts/Echolot.woff2') format('woff2'), url('/fonts/Echolot.woff') format('woff'),
+    url('/fonts/Echolot.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .custom-video-container {
   display: inline-block;
   position: relative;

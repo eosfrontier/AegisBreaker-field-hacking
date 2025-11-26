@@ -73,7 +73,7 @@ export default function PuzzleScreen() {
 
   if (hasSessionParams && (sessionData?.status === 'FAILURE' || sessionData?.status === 'SUCCESS')) {
     return (
-      <div className="Quickhack-main" style={{ padding: '1rem' }}>
+      <div className="main" style={{ padding: '1rem' }}>
         The session has ended!
       </div>
     );
@@ -92,7 +92,7 @@ export default function PuzzleScreen() {
 
   if (!hasSessionParams && !resolvedLayerData?.puzzleType) {
     return (
-      <div className="Quickhack-main" style={{ padding: '1rem' }}>
+      <div className="main" style={{ padding: '1rem' }}>
         Missing puzzle parameters. Start from Quick Hack or a session link.
       </div>
     );

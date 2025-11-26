@@ -58,7 +58,7 @@ export default function PuzzleHost({
 
   if (isSolved) {
     return (
-      <div className="Quickhack-main layer-solved" style={{ textAlign: 'center' }}>
+      <div className="main layer-solved" style={{ textAlign: 'center' }}>
         <h3>Layer solved</h3>
         <img
           src={UnlockedLockSVG}
@@ -77,7 +77,7 @@ export default function PuzzleHost({
 
   if (loading || showBoot) {
     return (
-      <div className="Quickhack-main" style={{ minHeight: '60vh' }}>
+      <div className="main" style={{ minHeight: '60vh' }}>
         {bootOverlay}
       </div>
     );
@@ -130,7 +130,7 @@ export default function PuzzleHost({
   }
 
   return (
-    <div className="Quickhack-main">
+    <div className="main">
       {bootOverlay}
       {content}
     </div>

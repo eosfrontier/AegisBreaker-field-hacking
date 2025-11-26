@@ -18,7 +18,7 @@ function QrScannerPage() {
   }, []);
 
   return (
-    <div className="Quickhack-main">
+    <div className="main">
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>QR Scanner</h2>
       <p style={{ textAlign: 'center' }}>Point your camera at a QR or barcode to scan.</p>
 

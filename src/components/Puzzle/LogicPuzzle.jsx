@@ -144,7 +144,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
     const isHarmless = !!solution[proc.name];
     next[idx] = isHarmless;
     setGuesses(next);
-    setScanResultBanner(`Clue: Set ${proc.name} to ${isHarmless ? 'Harmless' : 'Security'}.`);
+    setScanResultBanner(`${proc.name} is ${isHarmless ? 'Harmless' : 'Security'}.`);
     return { ok: true };
   }, [guesses, processes, solution]);
 
@@ -182,12 +182,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
               Identify which modules are <strong>Harmless</strong> and which are <strong>Security</strong>.
             </>
           }
-          bullets={[
-            'Harmless modules always tell the truth.',
-            'Security modules always lie.',
-            'Use the Subsystem Rules (e.g., “Exactly one Security module”).',
-            'Scan (if you have charges) highlights contradictions with your current labels.',
-          ]}
+          bullets={['Harmless modules always tell the truth.', 'Security modules always lie.']}
           scope={PREFS_SCOPE}
           dontShowAgainKey={TUTORIAL_KEY}
         />

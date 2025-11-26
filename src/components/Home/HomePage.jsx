@@ -24,11 +24,11 @@ export default function HomePage() {
   const [skills, setSkills] = useState([]);
   const [faction, setFaction] = useState('');
 
-  const [bootShown, setBootShown] = useState(() => {
+  const [bootVisible, setBootVisible] = useState(() => {
     try {
-      return !!localStorage.getItem('ab:once:boot');
+      return !localStorage.getItem('ab:once:boot');
     } catch {
-      return false;
+      return true;
     }
   });
 
@@ -162,18 +162,26 @@ export default function HomePage() {
 
   return (
     <div className="main">
-      <BootSplash
-        show={!bootShown}
-        persistKey="ab:once:boot"
-        onDone={() => setBootShown(true)}
-        steps={[
-          { label: 'AegisBreaker firmware v3.9', ms: 380 },
-          { label: 'Routing via relay KST-7.', ms: 520 },
-          { label: 'ICE signature handshake.', ms: 640 },
-          { label: 'Entropy OK. Session keys derived', ms: 540 },
-          { label: 'Standing by.', ms: 360 },
-        ]}
-      />
+      {bootVisible && (
+        <BootSplash
+          show={bootVisible}
+          onDone={() => {
+            try {
+              localStorage.setItem('ab:once:boot', '1');
+            } catch {
+              /* ignore */
+            }
+            setBootVisible(false);
+          }}
+          steps={[
+            { label: 'AegisBreaker firmware v3.9', ms: 380 },
+            { label: 'Routing via relay KST-7.', ms: 520 },
+            { label: 'ICE signature handshake.', ms: 640 },
+            { label: 'Entropy OK. Session keys derived', ms: 540 },
+            { label: 'Standing by.', ms: 360 },
+          ]}
+        />
+      )}
       <button className="qh-profile-btn" onClick={openProfileModal} aria-label="Edit profile">
         <AiOutlineSetting size={24} />
       </button>

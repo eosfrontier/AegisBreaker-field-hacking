@@ -54,8 +54,8 @@
 
 /* ===== Dugo: crimson + gold, premium sheen ===== */
 [data-faction='dugo'] {
-  --bg: #160f0f;
-  --bg-alt: #220e0e;
+  --bg: #311111;
+  --bg-alt: #520000;
   --surface: #2a1111;
   --surface-2: #3a1616;
 
@@ -65,7 +65,7 @@
   --card-border: #4a1919;
 
   --hexbackground: center
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(82,0,0)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(22,15,15)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
 }
 
 /* ===== Ekanesh: deep teal + sand/gold, ecclesiastic motifs ===== */
@@ -99,7 +99,7 @@
   --hexbackground: center
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(17, 88, 41)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
 }
-[data-faction='pendzal'] .Quickhack-main::after {
+[data-faction='pendzal'] .main::after {
   /* faint scanlines overlay for CRT feel (zero interaction cost) */
   content: '';
   position: absolute;
@@ -152,7 +152,7 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--accent-2);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
@@ -180,8 +180,7 @@ button:focus-visible {
   background-size: 32px;
 }
 
-/* You already have .Quickhack-main – make it themable + mobile friendly */
-.Quickhack-main {
+.main {
   position: relative; /* for overlays like scanlines */
   background-color: var(--bg);
   color: var(--text);
