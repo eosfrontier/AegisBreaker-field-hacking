@@ -6,7 +6,9 @@ import FrequencyPuzzle from '../Puzzle/FrequencyPuzzle';
 import LogicPuzzle from '../Puzzle/LogicPuzzle';
 import MasterLockPuzzle from '../Puzzle/MasterLockPuzzle';
 
-import UnlockedLockSVG from '../../assets/lock-unlock-icon-22.svg';
+import UnlockedLockSvgRaw from '../../assets/lock-unlock-icon-22.svg?raw';
+
+const UNLOCKED_LOCK_SRC = `data:image/svg+xml,${encodeURIComponent(UnlockedLockSvgRaw)}`;
 
 const DEFAULT_BOOT_STEPS = [
   { label: 'Establishing secure connection...', ms: 420 },
@@ -61,10 +63,11 @@ export default function PuzzleHost({
       <div className="main layer-solved" style={{ textAlign: 'center' }}>
         <h3>Layer solved</h3>
         <img
-          src={UnlockedLockSVG}
+          src={UNLOCKED_LOCK_SRC}
           alt="Unlocked lock"
           className="filter-green"
           style={{ opacity: 0.4, width: '230px', height: '280px' }}
+          loading="eager"
         />
         {onExit && (
           <button className="qh-btn" onClick={onExit}>
