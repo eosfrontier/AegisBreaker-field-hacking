@@ -41,7 +41,7 @@ export const SCRIPT_REGISTRY = {
   },
   snoop: {
     name: 'Snoop',
-    description: 'Reveal a clue; placeholder.',
+    description: 'Reveal a clue.',
     contexts: {
       logic: {
         label: 'Reveal a clue',
@@ -77,11 +77,11 @@ export const SCRIPT_REGISTRY = {
   },
   auto_step: {
     name: 'Auto-Step',
-    description: 'Perform a safe automatic step.',
+    description: 'Perform a safe automatic step; placeholder.',
     contexts: {
       sequence: {
         label: 'Auto-select next symbol',
-        description: 'Selects the correct next symbol in the sequence.',
+        description: 'Selects the correct next symbol in the sequence; placeholder.',
         run: (ctx) => ctx?.autoStep?.(),
       },
       masterLock: {

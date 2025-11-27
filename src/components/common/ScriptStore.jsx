@@ -85,7 +85,7 @@ export default function ScriptStore() {
           Back
         </button>
       </div>
-      <p style={{ marginTop: 4 }}>Credits: {isAdmin ? '∞' : credits}</p>
+      <p style={{ marginTop: 4 }}>Sonuren: {isAdmin ? '∞' : credits}</p>
       <div style={{ display: 'grid', gap: '12px', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
         {items.map((item) => (
           <div key={item.id} className="qh-card" style={{ padding: '12px', border: '1px solid var(--card-border)' }}>

@@ -202,11 +202,11 @@ export default function BootSplash({
           </div>
         </div>
 
-        {allowSkip && (
+        {/* {allowSkip && (
           <button className="qh-btn secondary ab-skip" onClick={() => setProgress(100)}>
             Skip
           </button>
-        )}
+        )} */}
       </div>
     </div>
   );

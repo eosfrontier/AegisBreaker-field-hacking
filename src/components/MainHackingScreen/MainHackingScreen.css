@@ -89,8 +89,6 @@
   padding: 0.75rem 1.5rem;
   font-size: 1.25rem;
   cursor: pointer;
-  max-width: 140px;
-  /* Button Styles - Customize per theme */
   background-color: #007bff;
   color: #fff;
   border: none;
@@ -302,7 +300,7 @@
 .theme-Aquila {
   /* Background Styles */
   background-color: #1c1c1c;
-  background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg');
+  /* background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg'); */
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
