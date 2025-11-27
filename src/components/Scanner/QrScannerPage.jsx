@@ -9,9 +9,27 @@ function QrScannerPage() {
     if (!detectedCodes || detectedCodes.length === 0) return;
 
     const allValues = detectedCodes.map((code) => code.rawValue);
+    const parsePath = (value) => {
+      if (!value) return null;
+      try {
+        const url = new URL(value);
+        if (url.origin === window.location.origin) return `${url.pathname}${url.search}`;
+      } catch {
+        // value is not an absolute URL
+      }
+      if (value.startsWith('/')) return value;
+      if (value.startsWith('puzzle')) return `/${value}`;
+      return null;
+    };
+
+    const path = allValues.map(parsePath).find(Boolean);
+    if (path) {
+      navigate(path);
+      return;
+    }
+
     console.log('Scanned codes:', allValues);
-    // TODO: do whatever you want with the scanned data
-  }, []);
+  }, [navigate]);
 
   const handleError = useCallback((error) => {
     console.error('Scanner error:', error);

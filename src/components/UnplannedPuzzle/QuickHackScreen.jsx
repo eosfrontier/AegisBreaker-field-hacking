@@ -2,22 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import './QuickHackScreen.css';
-
-// Tools (puzzles) we can offer
-const PUZZLE_TOOLS = [
-  { type: 'sequence', label: 'Sequencer' },
-  { type: 'frequencyTuning', label: 'Frequency Tuner' },
-  { type: 'logic', label: 'Logic Sifter' },
-  { type: 'masterLock', label: 'Lock Picker' },
-];
-
-const DIFFICULTY_LABELS = {
-  1: 'Basic',
-  2: 'Intermediate',
-  3: 'Complex',
-  4: 'Intricate',
-  5: 'Inscrutable',
-};
+import { DIFFICULTY_LABELS, PUZZLE_TOOLS } from './puzzleOptions';
 
 export default function QuickHackScreen() {
   const [selectedTool, setSelectedTool] = useState(null);

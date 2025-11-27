@@ -1,3 +1,32 @@
 .Unlocked-lock {
   filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
 }
+
+/* Modal styling borrowed from profile modal so QR overlay looks consistent */
+.qh-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: qh-fade 0.35s ease-out forwards;
+  z-index: 1000;
+}
+.qh-modal {
+  width: 90%;
+  max-width: 330px;
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  padding: 1.5rem;
+  color: #fff;
+}
+
+@keyframes qh-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

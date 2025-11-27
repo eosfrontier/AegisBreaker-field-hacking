@@ -21,6 +21,7 @@ export default function HomePage() {
 
   const [name, setName] = useState('');
   const [level, setLevel] = useState(1);
+  const [levelInput, setLevelInput] = useState('1');
   const [skills, setSkills] = useState([]);
   const [faction, setFaction] = useState('');
 
@@ -35,7 +36,9 @@ export default function HomePage() {
   const openProfileModal = () => {
     if (info) {
       setName(info.name ?? '');
-      setLevel(info.level ?? 1);
+      const lv = info.level ?? 1;
+      setLevel(lv);
+      setLevelInput(String(lv));
       setSkills(info.skills ?? []);
       setRole(info.role ?? null);
       setFaction(info.faction ?? '');
@@ -153,6 +156,7 @@ export default function HomePage() {
     setInfo(null);
     setName('');
     setLevel(1);
+    setLevelInput('1');
     setSkills([]);
     setRole(null);
     setStep(0);
@@ -198,9 +202,14 @@ export default function HomePage() {
           Scripts Store
         </button>
         {info?.role === 'admin' && (
-          <button className="qh-btn" onClick={() => navigate('/admin')}>
-            Admin Panel
-          </button>
+          <>
+            <button className="qh-btn" onClick={() => navigate('/gm-qr')}>
+              Generate Puzzle QR
+            </button>
+            <button className="qh-btn" onClick={() => navigate('/admin')}>
+              Admin Panel
+            </button>
+          </>
         )}
       </div>
 
@@ -208,14 +217,6 @@ export default function HomePage() {
         <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
           Logged in as <strong>{info.name}</strong> (Lv {info.level})<br />
           Skills: {info.skills.map(getLabelById).join(', ')}
-        </div>
-      )}
-
-      {info && (
-        <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
-          <button className="qh-btn" onClick={handleRespec}>
-            Respec / Change Role
-          </button>
         </div>
       )}
 
@@ -229,15 +230,22 @@ export default function HomePage() {
             onClick={(e) => e.stopPropagation()}
             ref={modalRef}
           >
-            <button className="qh-modal-close" aria-label="Close dialog" onClick={closeModal}>
-              ×
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+              <h3 id="modalTitle" style={{ margin: 0, textAlign: 'center', flex: 1 }}>
+                {step === 0 ? 'Identify Role' : 'Operative Profile'}
+              </h3>
+              <button
+                className="qh-btn"
+                style={{ background: '#b91c1c' }}
+                onClick={handleRespec}
+                aria-label="Respec / reset profile"
+              >
+                Reset
+              </button>
+            </div>
             <div style={{ maxHeight: '70vh', overflowX: 'hidden', paddingRight: '20px' }}>
               {step === 0 && (
                 <>
-                  <h3 id="modalTitle" style={{ textAlign: 'center' }}>
-                    Identify Role
-                  </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                     <button
                       className="qh-btn"
@@ -265,9 +273,6 @@ export default function HomePage() {
 
               {step === 1 && (
                 <>
-                  <h3 id="modalTitle" style={{ textAlign: 'center' }}>
-                    Operative Profile
-                  </h3>
                   <label className="qh-label">
                     Name <span style={{ color: '#f87171' }}>*</span>
                     <input
@@ -285,11 +290,20 @@ export default function HomePage() {
                       type="number"
                       min="1"
                       max="10"
-                      value={level}
+                      value={levelInput}
                       onChange={(e) => {
-                        const v = Math.max(1, Math.min(10, Number(e.target.value)));
-                        setLevel(v);
+                        const val = e.target.value;
+                        // allow empty/partial input for easier typing
+                        if (!/^[0-9]*$/.test(val)) return;
+                        setLevelInput(val);
+                        if (val === '') return;
+                        const num = Number(val);
+                        if (Number.isFinite(num)) {
+                          const clamped = Math.max(1, Math.min(10, num));
+                          setLevel(clamped);
+                        }
                       }}
+                      onBlur={() => setLevelInput(String(level))}
                       aria-required="true"
                     />
                   </label>
