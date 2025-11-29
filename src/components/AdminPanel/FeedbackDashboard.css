@@ -1,0 +1,85 @@
+.feedback-layout {
+  background: #202327;
+  color: #e6eef7;
+}
+
+.feedback-main {
+  padding: 16px;
+}
+
+.feedback-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.feedback-tabs {
+  display: inline-flex;
+  background: #16181d;
+  border: 1px solid #2c3038;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.feedback-tab {
+  background: transparent;
+  border: none;
+  color: #cdd7e5;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.feedback-tab.active {
+  background: #222631;
+  color: #fff;
+}
+
+.feedback-table-wrapper {
+  overflow: auto;
+}
+
+.feedback-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.feedback-table th,
+.feedback-table td {
+  border-bottom: 1px solid #2f3540;
+  padding: 0.55rem 0.45rem;
+  text-align: left;
+}
+
+.feedback-table th {
+  color: #aeb9c8;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  background: #1e2129;
+  z-index: 1;
+}
+
+.feedback-note-cell {
+  max-width: 320px;
+  white-space: pre-wrap;
+}
+
+.feedback-delete {
+  background: #b91c1c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.feedback-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,14 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 import BootSplash from './BootSplash';
 import SequencePuzzle from '../Puzzle/SequencePuzzle';
 import FrequencyPuzzle from '../Puzzle/FrequencyPuzzle';
 import LogicPuzzle from '../Puzzle/LogicPuzzle';
 import MasterLockPuzzle from '../Puzzle/MasterLockPuzzle';
-
-import UnlockedLockSvgRaw from '../../assets/lock-unlock-icon-22.svg?raw';
-
-const UNLOCKED_LOCK_SRC = `data:image/svg+xml,${encodeURIComponent(UnlockedLockSvgRaw)}`;
+import { db } from '../../firebaseConfig';
 
 const DEFAULT_BOOT_STEPS = [
   { label: 'Establishing secure connection...', ms: 420 },
@@ -17,6 +15,52 @@ const DEFAULT_BOOT_STEPS = [
   { label: 'Accessing ICE layer...', ms: 480 },
   { label: 'Channel stable.', ms: 320 },
 ];
+
+const SOLVE_SEQUENCE_STEPS = [
+  { label: 'ICE response nullified', ms: 320 },
+  { label: 'Exfiltration tunnel stabilized', ms: 360 },
+  { label: 'Uplink authenticated', ms: 420 },
+];
+
+const SOLVE_SEQUENCE_TRAILING_MS = 260;
+
+function SolvedBadge() {
+  return (
+    <div className="solved-badge">
+      <div className="solved-badge-core">{'\u2713'}</div>
+      <div className="solved-badge-ring solved-badge-ring--outer" />
+      <div className="solved-badge-ring solved-badge-ring--inner" />
+      <div className="solved-badge-scan" />
+      <div className="solved-badge-particle solved-badge-particle--a" />
+      <div className="solved-badge-particle solved-badge-particle--b" />
+      <div className="solved-badge-particle solved-badge-particle--c" />
+    </div>
+  );
+}
+
+function SolvedSequenceOverlay({ stepIndex }) {
+  return (
+    <div className="main solved-sequence-overlay">
+      <div className="solved-sequence-card">
+        <div className="solved-sequence-title">Access granted</div>
+        <div className="solved-sequence-steps">
+          {SOLVE_SEQUENCE_STEPS.map((step, idx) => {
+            const state = idx < stepIndex ? 'done' : idx === stepIndex ? 'active' : 'idle';
+            return (
+              <div key={step.label} className={`solved-sequence-step ${state}`}>
+                <span className="bullet" />
+                <span className="label">{step.label}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="solved-sequence-progress">
+          <span style={{ width: `${((stepIndex + 1) / SOLVE_SEQUENCE_STEPS.length) * 100}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Shared puzzle wrapper used by both session-based puzzles and local QuickHack puzzles.
@@ -33,6 +77,22 @@ export default function PuzzleHost({
   onExit,
   onLocalPuzzleComplete,
 }) {
+  const feedbackKey = useMemo(() => {
+    if (sessionId && layerId) return `fb:${sessionId}:${layerId}`;
+    const base = puzzleType || 'unknown';
+    const diff = layerData?.difficulty ?? 'na';
+    return `fb:local:${base}:${diff}`;
+  }, [sessionId, layerId, puzzleType, layerData?.difficulty]);
+
+  const characterInfo = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('characterInfo');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const [showBoot, setShowBoot] = useState(() => {
     if (!skipBootKey) return true;
     try {
@@ -44,6 +104,27 @@ export default function PuzzleHost({
     }
   });
   const [localSolved, setLocalSolved] = useState(false);
+  const [showSolveSequence, setShowSolveSequence] = useState(false);
+  const [solveSequenceStep, setSolveSequenceStep] = useState(0);
+  const solveSequenceStartedRef = useRef(false);
+  const [feedbackRating, setFeedbackRating] = useState(3);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(() => {
+    try {
+      return localStorage.getItem(`ab:${feedbackKey}:submitted`) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [feedbackDeferUntil, setFeedbackDeferUntil] = useState(() => {
+    try {
+      return Number(localStorage.getItem(`ab:${feedbackKey}:deferUntil`)) || 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [feedbackError, setFeedbackError] = useState('');
 
   const handleBootDone = () => setShowBoot(false);
 
@@ -54,28 +135,154 @@ export default function PuzzleHost({
 
   const isSolved = useMemo(() => localSolved || layerData?.status === 'SOLVED', [localSolved, layerData]);
 
+  useEffect(() => {
+    if (!isSolved || solveSequenceStartedRef.current) return undefined;
+
+    solveSequenceStartedRef.current = true;
+    setShowSolveSequence(true);
+    setSolveSequenceStep(0);
+
+    const timeouts = [];
+    let cursorMs = 0;
+    SOLVE_SEQUENCE_STEPS.forEach((step, idx) => {
+      cursorMs += step.ms;
+      timeouts.push(setTimeout(() => setSolveSequenceStep(idx), cursorMs));
+    });
+    timeouts.push(setTimeout(() => setShowSolveSequence(false), cursorMs + SOLVE_SEQUENCE_TRAILING_MS));
+
+    return () => timeouts.forEach(clearTimeout);
+  }, [isSolved]);
+
   const bootOverlay = (
     <BootSplash show={showBoot || loading} onDone={handleBootDone} steps={bootSteps} allowSkip={allowBootSkip} />
   );
 
   if (isSolved) {
-    return (
-      <div className="main layer-solved" style={{ textAlign: 'center' }}>
-        <h3>Layer solved</h3>
-        <img
-          src={UNLOCKED_LOCK_SRC}
-          alt="Unlocked lock"
-          className="filter-green"
-          style={{ opacity: 0.4, width: '230px', height: '280px' }}
-          loading="eager"
-        />
+    const now = Date.now();
+    const shouldHideFeedback = feedbackSubmitted || feedbackDeferUntil > now;
+
+    const submitFeedback = async () => {
+      if (feedbackSubmitting) return;
+      setFeedbackSubmitting(true);
+      setFeedbackError('');
+      try {
+        const note = feedbackText.trim();
+        const payload = {
+          rating: feedbackRating,
+          note: note || null,
+          sessionId: sessionId || null,
+          layerId: layerId || null,
+          puzzleType: puzzleType || null,
+          difficulty: layerData?.difficulty ?? null,
+          layerStatus: layerData?.status ?? null,
+          faction: characterInfo?.faction ?? null,
+          characterName: characterInfo?.name ?? null,
+          characterLevel: characterInfo?.level ?? null,
+          characterSkills: characterInfo?.skills ?? null,
+          role: characterInfo?.role ?? null,
+          clientTs: new Date().toISOString(),
+          createdAt: serverTimestamp(),
+        };
+        await addDoc(collection(db, 'feedback'), payload);
+        try {
+          localStorage.setItem(`ab:${feedbackKey}:submitted`, '1');
+        } catch {
+          /* ignore */
+        }
+        setFeedbackSubmitted(true);
+      } catch (err) {
+        console.error('Failed to send feedback', err);
+        setFeedbackError('Could not send feedback. Please try again.');
+      } finally {
+        setFeedbackSubmitting(false);
+      }
+    };
+
+    const remindLater = () => {
+      const later = Date.now() + 30 * 60 * 1000; // 30 minutes
+      try {
+        localStorage.setItem(`ab:${feedbackKey}:deferUntil`, String(later));
+      } catch {
+        /* ignore */
+      }
+      setFeedbackDeferUntil(later);
+    };
+
+    const solvedBody = (
+      <div className="main layer-solved">
+        <div className="solved-hero">
+          <SolvedBadge />
+          <div className="solved-copy">
+            <p className="solved-eyebrow">Layer bypassed</p>
+            <h3>Access granted</h3>
+            <p className="solved-subtitle">ICE layer neutralized. Data channel is stable.</p>
+          </div>
+        </div>
         {onExit && (
           <button className="qh-btn" onClick={onExit}>
             Close connection
           </button>
         )}
+        {!shouldHideFeedback && (
+          <div className="feedback-card">
+            <div className="feedback-header">
+              <span>How was this puzzle?</span>
+              <div className="feedback-actions">
+                <button className="feedback-link" onClick={remindLater} disabled={feedbackSubmitting}>
+                  Remind me later
+                </button>
+                <button
+                  className="feedback-link"
+                  onClick={() => {
+                    try {
+                      localStorage.setItem(`ab:${feedbackKey}:submitted`, '1');
+                    } catch {
+                      /* ignore */
+                    }
+                    setFeedbackSubmitted(true);
+                  }}
+                  disabled={feedbackSubmitting}
+                >
+                  Skip
+                </button>
+              </div>
+            </div>
+            <div className="feedback-stars" role="radiogroup" aria-label="Rate this puzzle">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`feedback-star ${feedbackRating >= star ? 'active' : ''}`}
+                  onClick={() => setFeedbackRating(star)}
+                  aria-label={`${star} star${star > 1 ? 's' : ''}`}
+                >
+                  {feedbackRating >= star ? '★' : '☆'}
+                </button>
+              ))}
+            </div>
+            <label className="feedback-label">
+              Any further thoughts or feedback?
+              <textarea
+                className="feedback-textarea"
+                rows="3"
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="What worked well? What was confusing?"
+              />
+            </label>
+            {feedbackError && <div className="feedback-error">{feedbackError}</div>}
+            <button className="qh-btn" onClick={submitFeedback} disabled={feedbackSubmitting}>
+              {feedbackSubmitting ? 'Sending…' : 'Send feedback'}
+            </button>
+          </div>
+        )}
+        {feedbackSubmitted && (
+          <div className="feedback-thanks">Thanks for the intel. Routing to HQ.</div>
+        )}
       </div>
     );
+
+    return showSolveSequence ? <SolvedSequenceOverlay stepIndex={solveSequenceStep} /> : solvedBody;
   }
 
   if (loading || showBoot) {

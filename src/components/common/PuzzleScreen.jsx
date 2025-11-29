@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
-import '../Puzzle/PuzzleScreen.css';
+import './PuzzleScreen.css';
 
 import PuzzleHost from './PuzzleHost';
 

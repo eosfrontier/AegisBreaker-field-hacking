@@ -213,6 +213,9 @@ export default function HomePage() {
             <button className="qh-btn" onClick={() => navigate('/admin')}>
               Admin Panel
             </button>
+            <button className="qh-btn" onClick={() => navigate('/admin/feedback')}>
+              Feedback Dashboard
+            </button>
           </div>
         )}
       </div>
@@ -296,16 +299,25 @@ export default function HomePage() {
                       max="10"
                       value={levelInput}
                       onChange={(e) => {
-                        const val = e.target.value;
-                        // allow empty/partial input for easier typing
-                        if (!/^[0-9]*$/.test(val)) return;
-                        setLevelInput(val);
-                        if (val === '') return;
-                        const num = Number(val);
-                        if (Number.isFinite(num)) {
-                          const clamped = Math.max(1, Math.min(10, num));
-                          setLevel(clamped);
+                        let val = e.target.value.replace(/\\D/g, '');
+                        // Only allow one-digit levels, except the special case "10"
+                        if (val.length > 0) {
+                          if (val === '10' || (val.length >= 2 && val.startsWith('10'))) {
+                            val = '10';
+                            setLevel(10);
+                          } else {
+                            // take the last digit typed
+                            const last = val[val.length - 1];
+                            const num = Number(last);
+                            if (num >= 1 && num <= 9) {
+                              val = String(num);
+                              setLevel(num);
+                            } else {
+                              return;
+                            }
+                          }
                         }
+                        setLevelInput(val);
                       }}
                       onBlur={() => setLevelInput(String(level))}
                       aria-required="true"
