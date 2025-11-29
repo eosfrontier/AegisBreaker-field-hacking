@@ -232,7 +232,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
       },
       y: {
         ticks: { display: false },
-        grid: { color: 'rgba(255, 0, 0, 0.05)', lineWidth: 1 },
+        grid: { color: 'rgba(96, 165, 250, 0.08)', lineWidth: 1 },
         min: -3,
         max: 3,
         border: { display: false },
@@ -293,7 +293,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
       <div className="freq-panel">
         <header className="freq-header">
           <div className="freq-titleblock">
-            <p className="freq-eyebrow">Frequency Tuning</p>
+            <p className="freq-eyebrow">Red Channel // Frequency Tuning</p>
           </div>
           <div className="freq-actions">
             <div className="freq-lock-card">
