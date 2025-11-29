@@ -173,7 +173,7 @@ button:focus-visible {
 .main {
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 8px;
   margin: 0 auto;
   background: var(--hexbackground);
   height: 100%;

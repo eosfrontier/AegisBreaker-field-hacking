@@ -202,14 +202,18 @@ export default function HomePage() {
           Scripts Store
         </button>
         {info?.role === 'admin' && (
-          <>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', maxWidth: '260px' }}>
+              <span style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Admin</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--card-border)' }} />
+            </div>
             <button className="qh-btn" onClick={() => navigate('/gm-qr')}>
               Generate Puzzle QR
             </button>
             <button className="qh-btn" onClick={() => navigate('/admin')}>
               Admin Panel
             </button>
-          </>
+          </div>
         )}
       </div>
 

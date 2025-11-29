@@ -37,6 +37,11 @@ function QrScannerPage() {
 
   return (
     <div className="main">
+      <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '0.5rem' }}>
+        <button className="qh-btn secondary" onClick={() => navigate('/')} style={{ minWidth: '120px' }}>
+          Back
+        </button>
+      </div>
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>QR Scanner</h2>
       <p style={{ textAlign: 'center' }}>Point your camera at a QR or barcode to scan.</p>
 
@@ -54,22 +59,6 @@ function QrScannerPage() {
             // You can add borders or backgrounds if desired
           }}
         />
-      </div>
-
-      {/* Optionally: a back button or a row of buttons */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{
-            padding: '0.6rem 1rem',
-            backgroundColor: '#222426',
-            color: '#fff',
-            border: '1px solid #999',
-            cursor: 'pointer',
-          }}
-        >
-          Home
-        </button>
       </div>
     </div>
   );

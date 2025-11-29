@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import SessionList from './SessionList';
@@ -7,6 +8,7 @@ import './AdminPanelLayout.css';
 
 
 function AdminPanelLayout() {
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // for mobile
@@ -75,6 +77,11 @@ function AdminPanelLayout() {
   return (
     
     <div className="admin-layout">
+      <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 1002 }}>
+        <button className="qh-btn secondary" onClick={() => navigate('/')} style={{ minWidth: '120px' }}>
+          Back
+        </button>
+      </div>
       {/* Hamburger button (only visible on mobile via CSS) */}
       <button
         className="hamburger-btn"
