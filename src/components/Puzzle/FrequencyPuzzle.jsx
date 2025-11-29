@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Line } from 'react-chartjs-2';
 import {
@@ -13,6 +13,8 @@ import {
 } from 'chart.js';
 
 import { db } from '../../firebaseConfig';
+import './FrequencyPuzzle.css';
+import TutorialModal from './TutorialModal';
 
 // Register chart components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -33,6 +35,7 @@ function getRandomFloat(min, max) {
  */
 const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) => {
   const difficulty = Number(layerData?.difficulty ?? 1);
+  const TUTORIAL_KEY = 'freq_tutorial_seen_v1';
 
   // If sessionId/layerId exist, we want to update Firestore. Otherwise, it's local puzzle.
   const isFirestorePuzzle = sessionId && layerId;
@@ -55,6 +58,18 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   const [userOffset2, setUserOffset2] = useState(0);
 
   const stableMatchTimer = useRef(null);
+  const solvedRef = useRef(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [activeWave, setActiveWave] = useState(1);
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem(TUTORIAL_KEY);
+      if (!seen) setShowTutorial(true);
+    } catch (e) {
+      console.warn('Tutorial storage unavailable', e);
+    }
+  }, []);
 
   // Generate wave parameters once, or only if difficulty changes and we haven't generated yet
   useEffect(() => {
@@ -138,32 +153,60 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   if (difficulty === 4) matchThreshold = 0.07;
   if (difficulty === 5) matchThreshold = 0.05;
 
-  // Checking puzzle status => if under threshold for 2s => solved
+  // Visual feedback for how close the waves are
+  const lockStrength = Math.max(0, Math.min(1, 1 - rmse / matchThreshold));
+  const lockLabel =
+    lockStrength >= 0.98 ? 'Signal Locked' : lockStrength >= 0.7 ? 'Closing Phase' : 'Searching Spectrum';
+  const lockClass = lockStrength >= 0.98 ? 'locked' : lockStrength >= 0.7 ? 'warm' : 'cold';
+
+  // One-shot solver guard
+  const finalizePuzzle = useCallback(() => {
+    if (solvedRef.current) return;
+    solvedRef.current = true;
+    clearTimeout(stableMatchTimer.current);
+
+    if (isFirestorePuzzle) {
+      updateDoc(puzzleDocRef, { status: 'SOLVED' }).catch((err) =>
+        console.error('Error setting puzzle to SOLVED:', err),
+      );
+    } else if (onLocalPuzzleComplete) {
+      onLocalPuzzleComplete();
+    }
+  }, [isFirestorePuzzle, puzzleDocRef, onLocalPuzzleComplete]);
+
+  // Checking puzzle status => if under threshold for 2s => solved.
+  // Also: if the lock meter actually hits 100%, solve immediately.
   useEffect(() => {
     if (!target1) return;
 
-    // Firestore puzzle => must have layerData?.status === "IN_PROGRESS"
-    // Local puzzle => just check if we haven't called onLocalPuzzleComplete yet
-    const puzzleIsInProgress = (isFirestorePuzzle && layerData?.status === 'IN_PROGRESS') || !isFirestorePuzzle; // for local, we treat it as "in progress" by default
+    const puzzleIsInProgress = (isFirestorePuzzle && layerData?.status === 'IN_PROGRESS') || !isFirestorePuzzle;
+    if (!puzzleIsInProgress) return;
 
-    if (puzzleIsInProgress && rmse < matchThreshold) {
+    if (lockStrength >= 0.999) {
+      finalizePuzzle();
+      return;
+    }
+
+    if (rmse < matchThreshold) {
       stableMatchTimer.current = setTimeout(() => {
-        if (isFirestorePuzzle) {
-          // Update Firestore
-          updateDoc(puzzleDocRef, { status: 'SOLVED' }).catch((err) =>
-            console.error('Error setting puzzle to SOLVED:', err),
-          );
-        } else if (onLocalPuzzleComplete) {
-          // Local puzzle => call the callback
-          onLocalPuzzleComplete();
-        }
+        finalizePuzzle();
       }, 2000);
     } else {
       clearTimeout(stableMatchTimer.current);
     }
 
     return () => clearTimeout(stableMatchTimer.current);
-  }, [rmse, matchThreshold, target1, puzzleDocRef, isFirestorePuzzle, layerData?.status, onLocalPuzzleComplete]);
+  }, [
+    rmse,
+    matchThreshold,
+    target1,
+    puzzleDocRef,
+    isFirestorePuzzle,
+    layerData?.status,
+    onLocalPuzzleComplete,
+    finalizePuzzle,
+    lockStrength,
+  ]);
 
   //
   // Chart styling
@@ -176,16 +219,23 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
     responsive: true,
     maintainAspectRatio: false,
     animation: { duration: 0 },
+    layout: { padding: 8 },
     plugins: {
       legend: { display: false },
       tooltip: { enabled: false },
     },
     scales: {
-      x: { display: false },
+      x: {
+        ticks: { display: false },
+        grid: { color: 'rgba(255, 255, 255, 0.04)', lineWidth: 1 },
+        border: { display: false },
+      },
       y: {
-        display: false,
+        ticks: { display: false },
+        grid: { color: 'rgba(255, 0, 0, 0.05)', lineWidth: 1 },
         min: -3,
         max: 3,
+        border: { display: false },
       },
     },
   };
@@ -196,205 +246,240 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
       {
         label: 'Target',
         data: targetValues,
-        borderColor: 'rgba(255, 0, 0, 0.5)',
+        borderColor: 'rgba(255, 0, 0, 0.9)',
         borderWidth: targetLineWidth,
         pointRadius: 0,
         fill: false,
-        tension: 0.1,
+        tension: 0.4,
       },
       {
         label: 'User',
         data: userValues,
-        borderColor: 'cyan',
+        borderColor: '#2de2e6',
         borderWidth: userLineWidth,
-        pointBorderColor: 'cyan',
-        pointBackgroundColor: 'cyan',
+        pointBorderColor: '#2de2e6',
+        pointBackgroundColor: '#2de2e6',
         pointRadius: userPointRadius,
         fill: false,
-        tension: 0.1,
+        tension: 0.4,
       },
     ],
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        backgroundColor: '#000',
-        color: '#fff',
-      }}
-    >
-      {/* Landscape chart at top (16:9 ratio) */}
-      <div
-        style={{
-          width: '100%',
-          aspectRatio: '16/9',
-          background: 'rgba(0,0,0,0.5)',
-          position: 'relative',
-          maxWidth: '600px',
-          margin: '0 auto',
-        }}
-      >
-        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}>
-          <Line data={chartData} options={chartOptions} />
-        </div>
-      </div>
-
-      {/* Two-column sliders */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          padding: '0.5rem',
-        }}
-      >
-        {/* Column for wave #1 */}
-        <div
-          style={{
-            flex: '1 1 300px',
-            maxWidth: '450px',
-            margin: '0.5rem',
-            border: '1px solid #333',
-            padding: '0.5rem',
+    <div className="freq-shell">
+      {showTutorial && (
+        <TutorialModal
+          isOpen={showTutorial}
+          onClose={() => {
+            setShowTutorial(false);
+            try {
+              localStorage.setItem(TUTORIAL_KEY, 'seen');
+            } catch (e) {
+              console.warn('Unable to persist tutorial flag', e);
+            }
           }}
-        >
-          <h3 style={{ marginTop: 0 }}>Wave #1</h3>
+          title="Frequency Tuning // Quick Briefing"
+          intro="Align your outgoing waveform to the incoming carrier. Keep drift below tolerance until the lock turns solid red."
+          bullets={[
+            'Wave 01 is always present. Wave 02 only appears on max difficulty.',
+            'Adjust sliders; watch the drift and meter charge toward 100%.',
+            'Once locked, the puzzle auto-completes.',
+          ]}
+          ctaLabel="Understood"
+        />
+      )}
 
-          <div style={{ marginBottom: '0.5rem' }}>
-            <label>Freq1: {userFreq1.toFixed(2)}</label>
-            <input
-              type="range"
-              min="2"
-              max="10"
-              step="0.01"
-              value={userFreq1}
-              onChange={(e) => setUserFreq1(parseFloat(e.target.value))}
-              style={{ width: '100%' }}
-            />
+      <div className="freq-panel">
+        <header className="freq-header">
+          <div className="freq-titleblock">
+            <p className="freq-eyebrow">Frequency Tuning</p>
           </div>
+          <div className="freq-actions">
+            <div className="freq-lock-card">
+              <div className="freq-lock-row">
+                <span className={`freq-lock-dot ${lockClass}`} />
+                <span className="freq-lock-label">{lockLabel}</span>
+                <span className="freq-lock-percent">{Math.round(lockStrength * 100)}%</span>
+              </div>
+              <div className="freq-meter">
+                <div className="freq-meter-fill" style={{ width: `${Math.round(lockStrength * 100)}%` }} />
+              </div>
+              <div className="freq-lock-stats">
+                <span>drift {rmse.toFixed(3)}</span>
+                <span>tolerance {matchThreshold.toFixed(3)}</span>
+              </div>
+            </div>
+          </div>
+        </header>
 
-          {difficulty >= 2 && (
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>Amp1: {userAmp1.toFixed(2)}</label>
-              <input
-                type="range"
-                min="0.8"
-                max="3"
-                step="0.01"
-                value={userAmp1}
-                onChange={(e) => setUserAmp1(parseFloat(e.target.value))}
-                style={{ width: '100%' }}
-              />
+        <div className="freq-oscilloscope-wrap">
+          <div className="freq-oscilloscope">
+            <div className="freq-oscilloscope-glow" />
+            <div className="freq-chart">
+              <Line data={chartData} options={chartOptions} />
+            </div>
+            <div className="freq-legend">
+              <div className="legend-entry">
+                <span className="legend-dot target" />
+                <span>Target</span>
+              </div>
+              <div className="legend-entry">
+                <span className="legend-dot user" />
+                <span>User</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {difficulty === 5 && (
+          <div className="freq-tabs">
+            <button className={`freq-tab-btn ${activeWave === 1 ? 'active' : ''}`} onClick={() => setActiveWave(1)}>
+              Wave 01
+            </button>
+            <button className={`freq-tab-btn ${activeWave === 2 ? 'active' : ''}`} onClick={() => setActiveWave(2)}>
+              Wave 02
+            </button>
+          </div>
+        )}
+
+        <div className="freq-grid">
+          {(activeWave === 1 || difficulty < 5) && (
+            <div className="freq-card">
+              <div className="freq-card-head">
+                <span className="freq-badge">Wave 01</span>
+                <span className="freq-card-meta">Primary carrier</span>
+              </div>
+
+              <div className="freq-slider">
+                <div className="freq-slider-label">
+                  <span>Frequency</span>
+                  <span className="freq-slider-value">{userFreq1.toFixed(2)} Hz</span>
+                </div>
+                <input
+                  type="range"
+                  min="2"
+                  max="10"
+                  step="0.01"
+                  value={userFreq1}
+                  onChange={(e) => setUserFreq1(parseFloat(e.target.value))}
+                  className="freq-range"
+                />
+              </div>
+
+              {difficulty >= 2 && (
+                <div className="freq-slider">
+                  <div className="freq-slider-label">
+                    <span>Amplitude</span>
+                    <span className="freq-slider-value">{userAmp1.toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.8"
+                    max="3"
+                    step="0.01"
+                    value={userAmp1}
+                    onChange={(e) => setUserAmp1(parseFloat(e.target.value))}
+                    className="freq-range"
+                  />
+                </div>
+              )}
+
+              {difficulty >= 3 && (
+                <div className="freq-slider">
+                  <div className="freq-slider-label">
+                    <span>Phase</span>
+                    <span className="freq-slider-value">{userPhase1.toFixed(2)} rad</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={-Math.PI}
+                    max={Math.PI}
+                    step="0.01"
+                    value={userPhase1}
+                    onChange={(e) => setUserPhase1(parseFloat(e.target.value))}
+                    className="freq-range"
+                  />
+                </div>
+              )}
+
+              {difficulty === 4 && (
+                <div className="freq-slider">
+                  <div className="freq-slider-label">
+                    <span>Offset</span>
+                    <span className="freq-slider-value">{userOffset1.toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={-2}
+                    max={2}
+                    step="0.01"
+                    value={userOffset1}
+                    onChange={(e) => setUserOffset1(parseFloat(e.target.value))}
+                    className="freq-range"
+                  />
+                </div>
+              )}
             </div>
           )}
 
-          {difficulty >= 3 && (
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>Phase1: {userPhase1.toFixed(2)}</label>
-              <input
-                type="range"
-                min={-Math.PI}
-                max={Math.PI}
-                step="0.01"
-                value={userPhase1}
-                onChange={(e) => setUserPhase1(parseFloat(e.target.value))}
-                style={{ width: '100%' }}
-              />
-            </div>
-          )}
+          {difficulty === 5 && activeWave === 2 && (
+            <div className="freq-card">
+              <div className="freq-card-head">
+                <span className="freq-badge">Wave 02</span>
+                <span className="freq-card-meta">Interference layer</span>
+              </div>
 
-          {difficulty === 4 && (
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>Offset1: {userOffset1.toFixed(2)}</label>
-              <input
-                type="range"
-                min={-2}
-                max={2}
-                step="0.01"
-                value={userOffset1}
-                onChange={(e) => setUserOffset1(parseFloat(e.target.value))}
-                style={{ width: '100%' }}
-              />
+              <div className="freq-slider">
+                <div className="freq-slider-label">
+                  <span>Frequency</span>
+                  <span className="freq-slider-value">{userFreq2.toFixed(2)} Hz</span>
+                </div>
+                <input
+                  type="range"
+                  min="2"
+                  max="10"
+                  step="0.01"
+                  value={userFreq2}
+                  onChange={(e) => setUserFreq2(parseFloat(e.target.value))}
+                  className="freq-range"
+                />
+              </div>
+
+              <div className="freq-slider">
+                <div className="freq-slider-label">
+                  <span>Amplitude</span>
+                  <span className="freq-slider-value">{userAmp2.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.8"
+                  max="3"
+                  step="0.01"
+                  value={userAmp2}
+                  onChange={(e) => setUserAmp2(parseFloat(e.target.value))}
+                  className="freq-range"
+                />
+              </div>
+
+              <div className="freq-slider">
+                <div className="freq-slider-label">
+                  <span>Phase</span>
+                  <span className="freq-slider-value">{userPhase2.toFixed(2)} rad</span>
+                </div>
+                <input
+                  type="range"
+                  min={-Math.PI}
+                  max={Math.PI}
+                  step="0.01"
+                  value={userPhase2}
+                  onChange={(e) => setUserPhase2(parseFloat(e.target.value))}
+                  className="freq-range"
+                />
+              </div>
             </div>
           )}
         </div>
-
-        {/* Column for wave #2 (difficulty=5 only) */}
-        {difficulty === 5 && (
-          <div
-            style={{
-              flex: '1 1 300px',
-              maxWidth: '450px',
-              margin: '0.5rem',
-              border: '1px solid #333',
-              padding: '0.5rem',
-            }}
-          >
-            <h3 style={{ marginTop: 0 }}>Wave #2</h3>
-
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>Freq2: {userFreq2.toFixed(2)}</label>
-              <input
-                type="range"
-                min="2"
-                max="10"
-                step="0.01"
-                value={userFreq2}
-                onChange={(e) => setUserFreq2(parseFloat(e.target.value))}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>Amp2: {userAmp2.toFixed(2)}</label>
-              <input
-                type="range"
-                min="0.8"
-                max="3"
-                step="0.01"
-                value={userAmp2}
-                onChange={(e) => setUserAmp2(parseFloat(e.target.value))}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '0.5rem' }}>
-              <label>Phase2: {userPhase2.toFixed(2)}</label>
-              <input
-                type="range"
-                min={-Math.PI}
-                max={Math.PI}
-                step="0.01"
-                value={userPhase2}
-                onChange={(e) => setUserPhase2(parseFloat(e.target.value))}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            {/* If you want offset2 for wave #2, add a slider here */}
-          </div>
-        )}
-      </div>
-
-      {/* Debugging info (optional) */}
-      <div style={{ padding: '0.5rem', background: '#111', display: 'none' }}>
-        <p>RMSE: {rmse.toFixed(3)}</p>
-        {target1 && (
-          <p>
-            Target #1 &gt; freq={target1.freq.toFixed(2)}, amp={target1.amp.toFixed(2)}, phase=
-            {target1.phase.toFixed(2)}, offset={target1.offset.toFixed(2)}
-          </p>
-        )}
-        {target2 && (
-          <p>
-            Target #2 &gt; freq={target2.freq.toFixed(2)}, amp={target2.amp.toFixed(2)}, phase=
-            {target2.phase.toFixed(2)}, offset={target2.offset.toFixed(2)}
-          </p>
-        )}
       </div>
     </div>
   );
@@ -402,7 +487,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
 
 /**
  * Helper to generate wave params that won't be "flat":
- * - freq >= 2 => at least 2 cycles in 0..2π
+ * - freq >= 2 => at least 2 cycles in 0..2*pi
  * - amp >= 0.8 => no near-flat amplitude
  */
 function generateWaveParams(difficulty) {
