@@ -1,0 +1,201 @@
+.defense-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.defense-tile {
+  position: relative;
+  display: flex;
+  background: linear-gradient(135deg, var(--surface, #121924), var(--surface-2, #0f141d));
+  border: 1px solid var(--card-border, #2f3847);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 20px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  min-height: 150px;
+}
+
+.tile-rail {
+  width: 6px;
+  background: var(--muted, #6b7b8f);
+  flex-shrink: 0;
+}
+
+.tile-body {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem 0.85rem 0.85rem;
+  align-items: center;
+  width: 100%;
+}
+
+.tile-qr {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.5rem;
+  min-height: 150px;
+}
+
+.qr-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: #a3ffb4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.qr-locked {
+  width: 100%;
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+  border: 1px dashed var(--card-border, #2f3847);
+  color: var(--muted, #7c8ba0);
+  letter-spacing: 0.08em;
+}
+
+.tile-info {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 0.35rem;
+  color: var(--text, #e8f0ff);
+}
+
+.tile-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tile-name {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text, #e8f0ff);
+  text-transform: uppercase;
+}
+
+.type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.2rem;
+  background: var(--accent, #3b82f6);
+  color: #000;
+  font-weight: 800;
+  border-radius: 999px;
+}
+
+.type-label {
+  color: var(--muted, #9fb1c1);
+}
+
+.tile-middle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.difficulty-row {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.pip-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--accent-2, #67e8f9), var(--accent, #3b82f6));
+  box-shadow: 0 0 8px rgba(103, 232, 249, 0.35);
+}
+
+.tile-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--muted, #9fb1c1);
+  font-size: 0.9rem;
+}
+
+.claimed-by {
+  color: var(--text, #e8f0ff);
+  font-weight: 600;
+}
+
+/* ---------- Status rails & subtle pulses ---------- */
+.defense-tile.status-in_progress .tile-rail {
+  background: var(--accent, #3b82f6);
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.55);
+  animation: railPulse 1.6s infinite;
+}
+
+.defense-tile.status-solved .tile-rail {
+  background: #4ade80;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+.defense-tile.status-locked .tile-rail {
+  background: var(--card-border, #2f3847);
+  opacity: 0.6;
+}
+
+@keyframes railPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---------- Responsive tightening ---------- */
+@media (max-width: 900px) {
+  .defense-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  }
+
+  .tile-body {
+    grid-template-columns: 150px 1fr;
+    padding: 0.65rem 0.75rem;
+  }
+}
+
+@media (max-width: 620px) {
+  .tile-body {
+    grid-template-columns: 1fr;
+  }
+
+  .tile-qr {
+    justify-self: center;
+    width: 100%;
+  }
+
+  .tile-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
