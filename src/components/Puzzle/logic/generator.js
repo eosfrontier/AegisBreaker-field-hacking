@@ -104,8 +104,30 @@ export function generatePuzzleEnsuringUnique(difficulty) {
     }
   }
 
-  // Fallback (very unlikely): trivial direct claims that force a unique mapping
-  const processes = names.map((n) => ({ name: n.name, responses: [`${n.name} is a Utility process.`] }));
-  const solution = Object.fromEntries(names.map((n) => [n.name, true]));
+  // Fallback (very unlikely): trivial direct claims that force a unique mapping while respecting rules
+  const processes = names.map((n) => ({ name: n.name, responses: [] }));
+
+  // Build an assignment that honors the global rules
+  const assign = {};
+  const total = names.length;
+  let securityNeeded = 1;
+  if (rules?.exactSecurity != null) securityNeeded = Math.min(total, Math.max(0, rules.exactSecurity));
+  else if (rules?.minSecurity != null) securityNeeded = Math.min(total, Math.max(1, rules.minSecurity));
+
+  names.forEach((n, idx) => {
+    const isSecurity = idx < securityNeeded;
+    assign[n.name] = !isSecurity; // true = Utility, false = Security
+    processes[idx].responses.push(
+      `${n.name} is a ${isSecurity ? 'Security' : 'Utility'} process.`,
+    );
+  });
+
+  // If we didn't fill all, mark the rest as Utility
+  for (let i = securityNeeded; i < total; i++) {
+    const n = names[i].name;
+    if (!assign[n]) assign[n] = true;
+  }
+
+  const solution = assign;
   return { processes, rules, solution };
 }

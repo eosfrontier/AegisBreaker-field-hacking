@@ -72,7 +72,6 @@ const VALID_CHARS = [
   'b',
   'c',
   'd',
-  'e',
   'f',
   'g',
   'h',
