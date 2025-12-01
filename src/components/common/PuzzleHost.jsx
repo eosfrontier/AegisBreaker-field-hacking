@@ -252,6 +252,7 @@ export default function PuzzleHost({
                 <button
                   key={star}
                   type="button"
+                  style={{ padding: 0 }}
                   className={`feedback-star ${feedbackRating >= star ? 'active' : ''}`}
                   onClick={() => setFeedbackRating(star)}
                   aria-label={`${star} star${star > 1 ? 's' : ''}`}
@@ -276,9 +277,7 @@ export default function PuzzleHost({
             </button>
           </div>
         )}
-        {feedbackSubmitted && (
-          <div className="feedback-thanks">Thanks for the intel. Routing to HQ.</div>
-        )}
+        {feedbackSubmitted && <div className="feedback-thanks">Thanks for the intel. Routing to HQ.</div>}
       </div>
     );
 

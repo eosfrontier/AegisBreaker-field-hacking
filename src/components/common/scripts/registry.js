@@ -13,7 +13,7 @@ export const SCRIPT_REGISTRY = {
       },
       sequence: {
         label: 'Narrow band',
-        description: 'Reduce distractors for a few steps.',
+        description: 'Reduces the amount of dud options.',
         run: (ctx) => ctx?.narrowBand?.(),
       },
     },
