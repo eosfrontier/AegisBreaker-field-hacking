@@ -4,6 +4,8 @@ import { doc, collection, query, where, onSnapshot, updateDoc, getDoc, Timestamp
 import { db } from '../../firebaseConfig';
 import './MainHackingScreen.css';
 import HexGrid from './HexGrid';
+
+// import DefenseGrid from './DefenseGrid';
 import { useScriptContext } from '../common/ScriptProvider';
 
 function MainHackingScreen() {
@@ -299,7 +301,29 @@ function MainHackingScreen() {
   }, [currentGroup]);
 
   // ============== THEME CLASS ==============
-  const themeClass = sessionData?.theme ? `theme-${sessionData.theme}` : 'theme-default';
+  const themeValue = sessionData?.theme;
+  const normalizedTheme = themeValue ? themeValue.toLowerCase() : null;
+  const themeClass = themeValue ? `theme-${themeValue}` : 'theme-default';
+  const showTimerBar = sessionData?.timeLimit && sessionData.timeLimit < 9999;
+
+  const formatTime = (seconds) => {
+    const safe = Math.max(0, seconds || 0);
+    const hrs = Math.floor(safe / 3600)
+      .toString()
+      .padStart(2, '0');
+    const mins = Math.floor((safe % 3600) / 60)
+      .toString()
+      .padStart(2, '0');
+    const secs = Math.floor(safe % 60)
+      .toString()
+      .padStart(2, '0');
+    return `${hrs}:${mins}:${secs}`;
+  };
+
+  useEffect(() => {
+    const faction = normalizedTheme || 'neutral';
+    document.documentElement.setAttribute('data-faction', faction);
+  }, [normalizedTheme]);
 
   useEffect(() => {
     if (hackPhase === 'INIT') {
@@ -359,11 +383,11 @@ function MainHackingScreen() {
           {hackPhase === 'INIT' && (
             <div className="init-phase">
               <div className="header-box">
-                <h1>Hacking Session: {sessionData.playerName}</h1>
+                <h1>{sessionData.playerName}</h1>
               </div>
               <p>Time Limit: {sessionData.timeLimit || 60} seconds</p>
               {reconRevealed && nextGroup != null && (
-                <p style={{ color: '#0ff' }}>Recon: upcoming group appears to be {nextGroup}.</p>
+                <p style={{ color: 'var(--accent-2)' }}>Recon: upcoming group appears to be {nextGroup}.</p>
               )}
               <button className="initialize-btn" onClick={handleInitializeHack}>
                 Initialize Hack
@@ -374,9 +398,23 @@ function MainHackingScreen() {
           {hackPhase === 'ACTIVE' && (
             <div className="active-phase">
               <div className="header-box">
-                <h1>Hacking Session: {sessionData.playerName}</h1>
+                <h1>{sessionData.playerName}</h1>
               </div>
-              <h2>Time Left: {timeLeft}s</h2>
+              {showTimerBar && (
+                <div className="timer-bar">
+                  <div className="timer-bar-track">
+                    <div
+                      className="timer-bar-fill"
+                      style={{
+                        width: sessionData.timeLimit
+                          ? `${Math.max(0, Math.min(100, (timeLeft / sessionData.timeLimit) * 100))}%`
+                          : '0%',
+                      }}
+                    />
+                    <div className="timer-bar-text">{formatTime(timeLeft)}</div>
+                  </div>
+                </div>
+              )}
 
               {/* CURRENT GROUP (active) */}
               {currentGroup != null && (
@@ -385,7 +423,7 @@ function MainHackingScreen() {
                   <HexGrid
                     layers={groupedLayers[currentGroup]}
                     sessionId={sessionId}
-                    variant="active" // pass a prop to HexGrid so it knows it's the active group
+                    variant="active" // active group shows full codes
                   />
                 </div>
               )}
@@ -397,7 +435,7 @@ function MainHackingScreen() {
                   <HexGrid
                     layers={groupedLayers[nextGroup]}
                     sessionId={sessionId}
-                    variant="preview" // pass a prop to handle locked/hidden puzzle info
+                    variant="preview" // preview group stays locked/low emphasis
                   />
                 </div>
               )}

@@ -70,6 +70,38 @@
   white-space: pre-wrap;
 }
 
+.feedback-chart {
+  margin-bottom: 1.5rem;
+}
+
+.feedback-chart-title {
+  margin: 0 0 0.35rem;
+  color: #cdd7e5;
+}
+
+.feedback-notes-list {
+  list-style: disc;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.feedback-note-meta {
+  color: #9fb1c1;
+  font-size: 0.9rem;
+}
+
+.feedback-note-meta .dot {
+  opacity: 0.65;
+  margin: 0 0.35rem;
+}
+
+.feedback-note-text {
+  color: #e6eef7;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
 .feedback-delete {
   background: #b91c1c;
   color: #fff;

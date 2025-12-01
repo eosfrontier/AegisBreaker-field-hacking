@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, deleteDoc, doc, getDocs } from 'firebase/firestore';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 import { db } from '../../firebaseConfig';
 import './AdminPanelLayout.css';
 import './FeedbackDashboard.css';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default function FeedbackDashboard() {
   const navigate = useNavigate();
@@ -46,6 +50,50 @@ export default function FeedbackDashboard() {
     };
     fetchFeedback();
   }, []);
+
+  const chartDataByType = useMemo(() => {
+    const buckets = new Map();
+    rows.forEach((row) => {
+      const rating = Number(row.rating);
+      if (!Number.isFinite(rating)) return;
+      const type = row.puzzleType || 'unknown';
+      const difficulty = row.difficulty ?? 'n/a';
+      if (!buckets.has(type)) buckets.set(type, {});
+      const diffBucket = buckets.get(type);
+      if (!diffBucket[difficulty]) diffBucket[difficulty] = [];
+      diffBucket[difficulty].push(rating);
+    });
+
+    return Array.from(buckets.entries()).map(([type, diffMap]) => {
+      const baseDiffs = ['1', '2', '3', '4', '5'];
+      const averages = {};
+      Object.entries(diffMap).forEach(([diff, ratings]) => {
+        const sum = ratings.reduce((acc, r) => acc + r, 0);
+        averages[String(diff)] = +(sum / ratings.length).toFixed(2);
+      });
+
+      // Keep 1-5 in order, append any other diff keys afterward
+      const extraDiffs = Object.keys(averages)
+        .filter((d) => !baseDiffs.includes(d))
+        .sort();
+      const labels = [...baseDiffs, ...extraDiffs];
+      const data = labels.map((label) => (label in averages ? averages[label] : null));
+
+      return { type, labels, data };
+    });
+  }, [rows]);
+
+  const notedRows = useMemo(
+    () =>
+      rows
+        .map((row) => ({
+          ...row,
+          note: typeof row.note === 'string' ? row.note.trim() : '',
+          ts: row.createdAt?.toMillis?.() ?? (row.clientTs ? new Date(row.clientTs).getTime() : 0),
+        }))
+        .filter((row) => row.note),
+    [rows],
+  );
 
   const handleDelete = async (id) => {
     if (!id) return;
@@ -100,14 +148,78 @@ export default function FeedbackDashboard() {
         </div>
 
         {activeTab === 'dashboard' && (
-          <div className="feedback-card" style={{ width: '95%' }}>
-            <p style={{ margin: 0, color: 'var(--muted, #9fb1c1)' }}>Charts and metrics coming next.</p>
-          </div>
+          <>
+            <div className="feedback-card">
+              {!loading && chartDataByType.length === 0 && <div>No ratings yet to chart.</div>}
+              {loading && <div>Loading feedback...</div>}
+              {!loading &&
+                chartDataByType.map((chart) => (
+                  <div key={chart.type} className="feedback-chart">
+                    <h4 className="feedback-chart-title">{chart.type}</h4>
+                    <Bar
+                      data={{
+                        labels: chart.labels,
+                        datasets: [
+                          {
+                            label: 'Avg rating',
+                            data: chart.data,
+                            backgroundColor: 'rgba(103, 232, 249, 0.35)',
+                            borderColor: 'rgba(103, 232, 249, 0.9)',
+                            borderWidth: 1,
+                          },
+                        ],
+                      }}
+                      options={{
+                        responsive: true,
+                        plugins: {
+                          legend: { display: false },
+                          tooltip: { mode: 'index', intersect: false },
+                          title: { display: false },
+                        },
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            suggestedMax: 5,
+                            ticks: { stepSize: 1 },
+                          },
+                          x: {
+                            grid: { display: false },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                ))}
+            </div>
+            {!loading && notedRows.length > 0 && (
+              <div className="feedback-card feedback-notes-card">
+                <h4 className="feedback-chart-title">Notes</h4>
+                <ul className="feedback-notes-list">
+                  {notedRows.map((row) => (
+                    <li key={row.id}>
+                      <div className="feedback-note-meta">
+                        <span>{row.characterName || 'Anon'}</span>
+                        <span className="dot">·</span>
+                        <span>{row.puzzleType || 'Unknown'}</span>
+                        {row.difficulty ? (
+                          <>
+                            <span className="dot">·</span>
+                            <span>Diff {row.difficulty}</span>
+                          </>
+                        ) : null}
+                      </div>
+                      <div className="feedback-note-text">{row.note}</div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
 
         {activeTab === 'raw' && (
           <div className="feedback-card" style={{ width: '95%' }}>
-            {loading && <div>Loading feedback…</div>}
+            {loading && <div>Loading feedback...</div>}
             {error && (
               <div className="feedback-error" style={{ marginBottom: '0.75rem' }}>
                 {error}
@@ -142,7 +254,7 @@ export default function FeedbackDashboard() {
                             onClick={() => handleDelete(row.id)}
                             disabled={deletingId === row.id}
                           >
-                            ✕
+                            X
                           </button>
                         </td>
                         <td>{row.rating ?? '-'}</td>
