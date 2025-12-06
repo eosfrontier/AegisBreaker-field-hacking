@@ -2,6 +2,21 @@
   filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
 }
 
+.qh-label {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--text);
+}
+
+.qh-input {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--surface-2);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  margin-top: 4px;
+}
+
 /* Modal styling borrowed from profile modal so QR overlay looks consistent */
 .qh-modal-overlay {
   position: fixed;

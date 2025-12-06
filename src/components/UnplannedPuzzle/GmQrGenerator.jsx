@@ -4,17 +4,24 @@ import { useNavigate } from 'react-router-dom';
 import './QuickHackScreen.css';
 import { DIFFICULTY_LABELS, PUZZLE_TOOLS } from './puzzleOptions';
 
+const DEFAULT_SOLVED_TITLE = 'Access granted';
+const DEFAULT_SOLVED_SUBTITLE = 'ICE layer neutralized. Data channel is stable.';
+
 export default function GmQrGenerator() {
   const [selectedTool, setSelectedTool] = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+  const [completionTitle, setCompletionTitle] = useState('');
+  const [completionSubtitle, setCompletionSubtitle] = useState('');
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   const qrValue = useMemo(() => {
     if (!selectedTool || !selectedDifficulty) return '';
     const params = new URLSearchParams({ type: selectedTool, difficulty: selectedDifficulty });
+    if (completionTitle.trim()) params.set('title', completionTitle.trim());
+    if (completionSubtitle.trim()) params.set('subtitle', completionSubtitle.trim());
     return `${window.location.origin}/puzzle?${params.toString()}`;
-  }, [selectedTool, selectedDifficulty]);
+  }, [selectedTool, selectedDifficulty, completionTitle, completionSubtitle]);
 
   const handleShowModal = () => {
     if (!qrValue) return;
@@ -75,6 +82,34 @@ export default function GmQrGenerator() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: '1.5rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '1rem',
+        }}
+      >
+        <label className="qh-label">
+          Solved Title (optional)
+          <input
+            className="qh-input"
+            value={completionTitle}
+            placeholder={DEFAULT_SOLVED_TITLE}
+            onChange={(e) => setCompletionTitle(e.target.value)}
+          />
+        </label>
+        <label className="qh-label">
+          Solved Subtitle (optional)
+          <input
+            className="qh-input"
+            value={completionSubtitle}
+            placeholder={DEFAULT_SOLVED_SUBTITLE}
+            onChange={(e) => setCompletionSubtitle(e.target.value)}
+          />
+        </label>
       </div>
 
       <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>

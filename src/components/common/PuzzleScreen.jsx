@@ -23,6 +23,8 @@ export default function PuzzleScreen() {
   const hasSessionParams = Boolean(sessionId && layerId);
   const localPuzzleType = searchParams.get('type');
   const localDifficulty = searchParams.get('difficulty');
+  const completionTitleParam = searchParams.get('title') || searchParams.get('completionTitle');
+  const completionSubtitleParam = searchParams.get('subtitle') || searchParams.get('completionSubtitle');
 
   const [layerData, setLayerData] = useState(() => {
     if (hasSessionParams) return null;
@@ -31,6 +33,8 @@ export default function PuzzleScreen() {
       puzzleType: localPuzzleType,
       difficulty: Number(localDifficulty) || 1,
       status: 'IN_PROGRESS',
+      completionTitle: completionTitleParam || undefined,
+      completionSubtitle: completionSubtitleParam || undefined,
     };
   });
   const [sessionData, setSessionData] = useState(null);
@@ -87,8 +91,10 @@ export default function PuzzleScreen() {
       puzzleType: localPuzzleType,
       difficulty: Number(localDifficulty) || 1,
       status: 'IN_PROGRESS',
+      completionTitle: completionTitleParam || undefined,
+      completionSubtitle: completionSubtitleParam || undefined,
     };
-  }, [hasSessionParams, layerData, localPuzzleType, localDifficulty]);
+  }, [hasSessionParams, layerData, localPuzzleType, localDifficulty, completionTitleParam, completionSubtitleParam]);
 
   if (!hasSessionParams && !resolvedLayerData?.puzzleType) {
     return (
@@ -111,6 +117,8 @@ export default function PuzzleScreen() {
       sessionId={hasSessionParams ? sessionId : null}
       layerId={hasSessionParams ? layerId : null}
       bootSteps={PUZZLE_BOOT_STEPS}
+      completionTitle={completionTitleParam || resolvedLayerData?.completionTitle}
+      completionSubtitle={completionSubtitleParam || resolvedLayerData?.completionSubtitle}
       onExit={handleExit}
     />
   );
