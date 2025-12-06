@@ -12,7 +12,7 @@ export function ScriptProvider({ children }) {
   const shouldShowScripts = useMemo(() => {
     if (!location) return false;
     const path = location.pathname || '';
-    return path.startsWith('/puzzle') || path.startsWith('/gm-qr');
+    return path.startsWith('/puzzle');
   }, [location]);
 
   const setScriptContext = useCallback(({ id, api }) => {
@@ -38,6 +38,16 @@ export function ScriptProvider({ children }) {
       setDrawerOpen(false);
     }
   }, [shouldShowScripts, drawerOpen]);
+
+  // Lock background scroll when drawer is open
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [drawerOpen]);
 
   return (
     <ScriptCtx.Provider value={value}>

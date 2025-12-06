@@ -53,6 +53,7 @@ export default function ScriptsDrawer() {
         transition: 'right 200ms ease',
         zIndex: 1090,
         overflowY: 'auto',
+        overscrollBehavior: 'contain',
         borderLeft: '1px solid rgba(255,255,255,0.08)',
       }}
     >

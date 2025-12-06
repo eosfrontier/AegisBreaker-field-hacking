@@ -144,9 +144,6 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
 
   // A new state to track "solved" so we can freeze rings
   const [isSolved, setIsSolved] = useState(false);
-  // Another state to handle "showing locked overlay" vs "final puzzle solved screen"
-  const [showLockedOverlay, setShowLockedOverlay] = useState(false);
-  const [showFinalScreen, setShowFinalScreen] = useState(false);
 
   // On mount, randomize puzzle
   useEffect(() => {
@@ -201,26 +198,19 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
 
     if (allAligned) {
       setIsSolved(true);
-      setShowLockedOverlay(true);
-
-      setTimeout(() => {
-        setShowLockedOverlay(false);
-        setShowFinalScreen(true);
-
-        // Firestore / local callback
-        (async () => {
-          if (sessionId && layerId) {
-            try {
-              const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
-              await updateDoc(layerRef, { status: 'SOLVED' });
-            } catch (err) {
-              console.error('Error marking solved:', err);
-            }
-          } else if (onLocalPuzzleComplete) {
-            onLocalPuzzleComplete();
+      // Firestore / local callback (immediately hand off to PuzzleHost solved flow)
+      (async () => {
+        if (sessionId && layerId) {
+          try {
+            const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
+            await updateDoc(layerRef, { status: 'SOLVED' });
+          } catch (err) {
+            console.error('Error marking solved:', err);
           }
-        })();
-      }, 2000); // 2s "locked" overlay
+        } else if (onLocalPuzzleComplete) {
+          onLocalPuzzleComplete();
+        }
+      })();
     }
   }, [rawAngles, isSolved, sessionId, layerId, onLocalPuzzleComplete]);
 
@@ -229,8 +219,18 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
     // If puzzle is solved, ignore rotation
     if (isSolved) return;
 
+    // Outer rings have a larger radius, so give them a proportionally larger
+    // angular delta to keep their perceived speed in line with inner rings.
+    const minRadius = R_BASE - (ringCount - 1) * ringSpacing;
+    const radius = R_BASE - i * ringSpacing;
+    const radiusMultiplier =
+      radius > 0 && minRadius > 0 ? Math.min(radius / minRadius, 3) : 1;
+
     const puzzleIndex = perm[i];
-    setRawAngles((prev) => applyRotationWithLinks(puzzleIndex, delta, prev, links));
+    const scaledDelta = delta * radiusMultiplier;
+
+    // Only scale the user-initiated ring; linked rings still follow the same ratio chain.
+    setRawAngles((prev) => applyRotationWithLinks(puzzleIndex, scaledDelta, prev, links));
   };
 
   // scale dash array
@@ -241,15 +241,6 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
     const scaled = baseDash.map((val) => val * scale);
     return scaled.join(' ');
   };
-
-  // If the puzzle is fully done, show the final screen
-  if (showFinalScreen) {
-    return (
-      <div className="masterlock-solved-screen">
-        <h2>LOCK SOLVED</h2>
-      </div>
-    );
-  }
 
   return (
     <div className="masterlock-container">
@@ -279,14 +270,6 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
             </div>
           );
         })}
-        {/* Overlay if puzzle is locked */}
-        {showLockedOverlay && (
-          <div className="locked-overlay">
-            <div className="locked-message">
-              <h2>Lock Bypassed...</h2>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* If puzzle not solved, show ring controls */}
