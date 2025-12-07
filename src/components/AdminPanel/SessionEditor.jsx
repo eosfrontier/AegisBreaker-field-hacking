@@ -14,7 +14,7 @@ const PUZZLE_TYPES = [
   { value: 'frequencyTuning', label: 'Frequency Tuning' },
   { value: 'logic', label: 'Logic Puzzle' },
   { value: 'masterLock', label: 'Circle Lock' },
-  { value: 'signalShunt', label: 'Signal Identifier' },
+  { value: 'signalShunt', label: 'Signal Rerouter' },
 ];
 
 const DIFFICULTY_LABELS = {

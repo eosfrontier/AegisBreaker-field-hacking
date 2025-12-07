@@ -121,7 +121,7 @@ function generateRules(difficulty, seed) {
     const desc = chosen.map((c) => c.desc).join(' AND ');
     const tokens = chosen.flatMap((c, idx) => [
       ...(c.tokens ? c.tokens : [{ type: 'text', value: c.desc }]),
-      ...(idx < chosen.length - 1 ? [{ type: 'keyword', value: 'AND' }] : []),
+      ...(idx < chosen.length - 1 ? [{ type: 'keyword', value: ' AND ' }] : []),
     ]);
     return { fn, desc, tokens };
   };
@@ -351,8 +351,6 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
       const packet = packets.find((p) => p.id === packetId);
       if (!packet) return;
       const prevBin = assignments[packetId];
-      const nextCount = currentBinCount(assignments, binId) + (prevBin === binId ? 0 : 1);
-      // allow overfilling; only enforce at submit time
       const next = { ...assignments };
       if (prevBin != null) delete next[packetId];
       next[packetId] = binId;
@@ -476,7 +474,7 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
       <header className="datastream-header">
         <div className="datastream-title">
           <span className="datastream-icon">◈</span>
-          SIGNAL IDENTIFIER
+          Signal Rerouter
         </div>
         <div className="datastream-stats">
           <div className="stat">

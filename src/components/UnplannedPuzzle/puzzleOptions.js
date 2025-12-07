@@ -3,7 +3,7 @@ export const PUZZLE_TOOLS = [
   { type: 'frequencyTuning', label: 'Frequency Tuner' },
   { type: 'logic', label: 'Logic Sifter' },
   { type: 'masterLock', label: 'Lock Picker' },
-  { type: 'signalShunt', label: 'Signal Identifier' },
+  { type: 'signalShunt', label: 'Signal Rerouter' },
 ];
 
 export const DIFFICULTY_LABELS = {

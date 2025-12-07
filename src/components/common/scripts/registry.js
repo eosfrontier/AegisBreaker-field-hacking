@@ -16,6 +16,11 @@ export const SCRIPT_REGISTRY = {
         description: 'Reduces the amount of dud options.',
         run: (ctx) => ctx?.narrowBand?.(),
       },
+      masterLock: {
+        label: 'Stabilize ring',
+        description: 'Nudges the most misaligned ring toward alignment.',
+        run: (ctx) => ctx?.stabilizeRing?.(),
+      },
     },
   },
   mask: {
@@ -53,6 +58,11 @@ export const SCRIPT_REGISTRY = {
         description: 'Highlight the correct symbol briefly.',
         run: (ctx) => ctx?.revealHint?.(),
       },
+      masterLock: {
+        label: 'Auto-align ring',
+        description: 'Snaps a misaligned ring to the lock baseline.',
+        run: (ctx) => ctx?.autoStep?.(),
+      },
     },
   },
   override: {
@@ -85,8 +95,8 @@ export const SCRIPT_REGISTRY = {
         run: (ctx) => ctx?.autoStep?.(),
       },
       masterLock: {
-        label: 'Auto-toggle correct pin',
-        description: 'Toggles a correct pin to help progress.',
+        label: 'Auto-align ring',
+        description: 'Snaps a misaligned ring to the lock baseline.',
         run: (ctx) => ctx?.autoStep?.(),
       },
     },
