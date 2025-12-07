@@ -7,6 +7,8 @@ export default function ScriptsDrawer() {
   const { contextId, ctxApi, drawerOpen, closeDrawer } = useScriptContext();
   const [, setVersion] = useState(0);
   const [notice, setNotice] = useState(null);
+  const [runningId, setRunningId] = useState(null);
+  const [runningProgress, setRunningProgress] = useState(0);
 
   const usableScripts = useMemo(() => (contextId ? listScriptsForContext(contextId) : []), [contextId]);
   const inventory = useMemo(() => listScripts(), []);
@@ -21,20 +23,32 @@ export default function ScriptsDrawer() {
 
   const handleRun = (scriptId) => {
     if (!contextId) return;
-    const res = runScript(scriptId, contextId, ctxApi);
-    if (res.ok) {
-      setNotice(null);
-      setVersion((v) => v + 1);
-    } else {
-      let msg = 'Unable to run script.';
-      if (res.error === 'no_charges') msg = 'No charges available.';
-      else if (res.error === 'context_unsupported') msg = 'Script not available in this context.';
-      else if (res.error === 'insufficient_labels') msg = 'Not enough labels yet to evaluate any statements.';
-      else if (res.error === 'no_unknown') msg = 'No unknown modules to reveal.';
-      else if (res.error === 'min_difficulty') msg = 'ICE is already at minimum difficulty.';
-      else if (res.error === 'blocked') msg = 'Script could not execute.';
-      setNotice(msg);
-    }
+    if (runningId) return;
+    setRunningId(scriptId);
+    setRunningProgress(0);
+    setNotice('Arming script…');
+    // animate the bar fill
+    requestAnimationFrame(() => setRunningProgress(100));
+    // Brief arming delay so users see feedback, then run and close
+    setTimeout(() => {
+      closeDrawer();
+      const res = runScript(scriptId, contextId, ctxApi);
+      setRunningId(null);
+      setRunningProgress(0);
+      if (res.ok) {
+        setNotice(null);
+        setVersion((v) => v + 1);
+      } else {
+        let msg = 'Unable to run script.';
+        if (res.error === 'no_charges') msg = 'No charges available.';
+        else if (res.error === 'context_unsupported') msg = 'Script not available in this context.';
+        else if (res.error === 'insufficient_labels') msg = 'Not enough labels yet to evaluate any statements.';
+        else if (res.error === 'no_unknown') msg = 'No unknown modules to reveal.';
+        else if (res.error === 'min_difficulty') msg = 'ICE is already at minimum difficulty.';
+        else if (res.error === 'blocked') msg = 'Script could not execute.';
+        setNotice(msg);
+      }
+    }, 2000);
   };
 
   const isOpen = drawerOpen;
@@ -109,21 +123,42 @@ export default function ScriptsDrawer() {
                 {script.contextBehavior?.description || script.description || script.contextBehavior?.label}
               </p>
               <button
-                disabled={!isAdmin && charges <= 0}
+                disabled={runningId != null || (!isAdmin && charges <= 0)}
                 onClick={() => handleRun(script.id)}
                 style={{
                   width: '100%',
                   marginTop: 6,
                   padding: '8px',
                   borderRadius: 6,
-                  background: isAdmin || charges > 0 ? '#0b9' : '#444',
+                  background: runningId === script.id ? '#1f2937' : isAdmin || charges > 0 ? '#0b9' : '#444',
                   border: 'none',
                   color: '#fff',
-                  cursor: isAdmin || charges > 0 ? 'pointer' : 'not-allowed',
+                  cursor: runningId != null ? 'wait' : isAdmin || charges > 0 ? 'pointer' : 'not-allowed',
                 }}
               >
-                {isAdmin ? 'Run (admin)' : charges > 0 ? 'Run' : 'No charges'}
+                {runningId === script.id ? 'Engaging...' : isAdmin ? 'Run (admin)' : charges > 0 ? 'Run' : 'No charges'}
               </button>
+              {runningId === script.id && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    height: 6,
+                    borderRadius: 6,
+                    background: '#111',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${runningProgress}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #0b9, #0ff)',
+                      transition: 'width 2s linear',
+                    }}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
