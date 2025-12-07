@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import PressHoldButton from '../../utils/PressHoldButton';
+import { useScriptContext } from '../common/ScriptProvider';
 
 import './MasterLockPuzzle.css';
 
@@ -128,6 +129,7 @@ function applyRotationWithLinks(start, delta, rawAngles, links) {
 const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) => {
   const difficulty = Number(layerData?.difficulty || 1);
   const ringCount = Math.min(Math.max(difficulty + 2, 3), 6);
+  const ALIGN_TOLERANCE = 3;
 
   // Circle geometry
   const R_BASE = 40; // outer ring radius
@@ -144,6 +146,7 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
 
   // A new state to track "solved" so we can freeze rings
   const [isSolved, setIsSolved] = useState(false);
+  const { setScriptContext } = useScriptContext();
 
   // On mount, randomize puzzle
   useEffect(() => {
@@ -188,12 +191,11 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
     if (rawAngles.length === 0) return;
     if (isSolved) return; // already locked
 
-    const tolerance = 3;
     const baseAngle = rawAngles[0];
     const allAligned = rawAngles.every((angle) => {
       let diff = (angle - baseAngle) % 360;
       if (diff < 0) diff += 360;
-      return diff < tolerance || Math.abs(diff - 360) < tolerance;
+      return diff < ALIGN_TOLERANCE || Math.abs(diff - 360) < ALIGN_TOLERANCE;
     });
 
     if (allAligned) {
@@ -232,6 +234,71 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
     // Only scale the user-initiated ring; linked rings still follow the same ratio chain.
     setRawAngles((prev) => applyRotationWithLinks(puzzleIndex, scaledDelta, prev, links));
   };
+
+  // Script: nudge the most misaligned ring toward alignment (gentle assistance).
+  const stabilizeRing = useCallback(() => {
+    if (isSolved || rawAngles.length === 0) return { ok: false, reason: 'blocked' };
+    const baseAngle = rawAngles[0];
+
+    let targetIdx = -1;
+    let targetDiff = 0;
+    rawAngles.forEach((angle, idx) => {
+      let diff = (angle - baseAngle) % 360;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+      if (Math.abs(diff) > Math.abs(targetDiff)) {
+        targetDiff = diff;
+        targetIdx = idx;
+      }
+    });
+
+    if (targetIdx === -1 || Math.abs(targetDiff) <= ALIGN_TOLERANCE) return { ok: false, reason: 'blocked' };
+
+    const direction = targetDiff > 0 ? -1 : 1; // rotate toward alignment
+    const delta = direction * Math.min(20, Math.abs(targetDiff));
+    setRawAngles((prev) => applyRotationWithLinks(targetIdx, delta, prev, links));
+    return { ok: true };
+  }, [ALIGN_TOLERANCE, isSolved, rawAngles, links]);
+
+  // Script: snap one misaligned ring to the base angle (strong assistance).
+  const autoStep = useCallback(() => {
+    if (isSolved || rawAngles.length === 0) return { ok: false, reason: 'blocked' };
+    const baseAngle = rawAngles[0];
+
+    let targetIdx = -1;
+    let targetDiff = 0;
+    rawAngles.forEach((angle, idx) => {
+      let diff = (angle - baseAngle) % 360;
+      if (diff < 0) diff += 360;
+      if (diff > 180) diff -= 360;
+      if (Math.abs(diff) > Math.abs(targetDiff)) {
+        targetDiff = diff;
+        targetIdx = idx;
+      }
+    });
+
+    if (targetIdx === -1 || Math.abs(targetDiff) <= ALIGN_TOLERANCE) return { ok: false, reason: 'blocked' };
+
+    setRawAngles((prev) => {
+      const next = [...prev];
+      const updatedBase = next[0];
+      next[targetIdx] = updatedBase;
+      return next;
+    });
+    return { ok: true };
+  }, [ALIGN_TOLERANCE, isSolved, rawAngles]);
+
+  // Expose script context for MasterLock
+  useEffect(() => {
+    setScriptContext({
+      id: 'masterLock',
+      api: {
+        stabilizeRing,
+        autoStep,
+      },
+    });
+    return () => setScriptContext({ id: null, api: {} });
+  }, [setScriptContext, stabilizeRing, autoStep]);
 
   // scale dash array
   const getScaledDashArray = (radius) => {
