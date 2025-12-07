@@ -46,6 +46,7 @@
   border: 1px solid var(--card-border);
   padding: 1.5rem;
   color: #fff;
+  font-family: var(--faction-font);
 }
 
 .qh-profile-btn {
