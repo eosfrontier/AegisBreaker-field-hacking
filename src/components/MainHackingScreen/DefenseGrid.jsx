@@ -7,6 +7,9 @@ const PUZZLE_TYPE_META = {
   frequencyTuning: { label: 'Frequency', badge: 'FQ' },
   logic: { label: 'Logic', badge: 'LOG' },
   masterLock: { label: 'Circle Lock', badge: 'CLK' },
+  datastream: { label: 'Data Stream', badge: 'DST' },
+  dataStream: { label: 'Data Stream', badge: 'DST' },
+  signalShunt: { label: 'Signal Identifier', badge: 'SIG' },
 };
 
 const STATUS_COPY = {

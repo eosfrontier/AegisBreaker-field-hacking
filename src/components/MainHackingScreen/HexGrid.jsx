@@ -65,6 +65,7 @@ function HexGrid({ layers, sessionId, variant }) {
     frequencyTuning: '#ff0000',
     logic: '#0aff0a',
     masterLock: '#BF00ff',
+    signalShunt: '#ff9f0a',
   };
 
   return (
