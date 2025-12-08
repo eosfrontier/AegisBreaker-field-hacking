@@ -1,0 +1,253 @@
+:root {
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Base (neutral) – used until a faction is picked ===== */
+:root {
+  --bg: #0e141b;
+  --bg-alt: #121a22;
+  --surface: #1b232e;
+  --surface-2: #222b36;
+
+  --text: #e6eef7;
+  --muted: #9fb1c1;
+
+  --accent: #2555a1; /* primary */
+  --accent-2: #3d909b; /* secondary / highlights */
+  --ring: rgba(59, 130, 246, 0.45);
+
+  --btn-bg: var(--accent);
+  --btn-text: #fff;
+  --btn-disabled: #666;
+
+  --card-border: #3b4150;
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(38,46,62)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+
+  --faction-font: 'Orbitron', system-ui, -apple-system, sans-serif;
+  --faction-font-scale: 1;
+  font-family: var(--faction-font);
+}
+
+/* ===== Aquila: regimented navy/steel ===== */
+[data-faction='aquila'] {
+  --bg: #0a1222;
+  --bg-alt: #0c162a;
+  --surface: #101a2b;
+  --surface-2: #152137;
+
+  --accent: #1d4ed8; /* royal/navy */
+  --accent-2: #60a5fa; /* blue highlight */
+  --ring: rgba(68, 73, 87, 0.45);
+  --card-border: #273450;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(68, 73, 87)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+
+  --faction-font: 'Orbitron', 'Roboto Condensed', 'Segoe UI', sans-serif;
+}
+
+/* ===== Dugo: crimson + gold, premium sheen ===== */
+[data-faction='dugo'] {
+  --bg: #311111;
+  --bg-alt: #520000;
+  --surface: #2a1111;
+  --surface-2: #3a1616;
+
+  --accent: #b91c1c; /* crimson */
+  --accent-2: #f59e0b; /* gold */
+  --ring: rgba(185, 28, 28, 0.45);
+  --card-border: #4a1919;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(22,15,15)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+
+  --faction-font: 'Orbitron', 'Noto Sans JP', 'MS Gothic', 'Segoe UI', sans-serif;
+}
+
+/* ===== Ekanesh: deep teal + sand/gold, ecclesiastic motifs ===== */
+[data-faction='ekanesh'] {
+  --bg: #0f1a19;
+  --bg-alt: #12201f;
+  --surface: #142321;
+  --surface-2: #1a2d2a;
+
+  --accent: #0ea5a4; /* teal */
+  --accent-2: #e0b969; /* sand/gold */
+  --ring: rgba(14, 165, 164, 0.45);
+  --card-border: #1f3a37;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(31, 58, 55)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+
+  --faction-font: 'Palatino Linotype', 'Book Antiqua', 'Georgia', serif;
+}
+
+/* ===== Pendzal: retro CRT (phosphor green) ===== */
+[data-faction='pendzal'] {
+  --bg: #0a0d0a;
+  --bg-alt: #0c110c;
+  --surface: #0f130f;
+  --surface-2: #121812;
+
+  --accent: #2ee66b; /* phosphor */
+  --accent-2: #ffb000; /* amber utility */
+  --ring: rgba(40, 69, 49, 0.35);
+  --card-border: #1a241a;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(40, 69, 49)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+
+  --faction-font: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+}
+[data-faction='pendzal'] .main::after {
+  /* faint scanlines overlay for CRT feel (zero interaction cost) */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+  opacity: 0.12;
+}
+
+/* ===== Sona: cyan/indigo with bright white trims ===== */
+[data-faction='sona'] {
+  --bg: #041019;
+  --bg-alt: #071a26;
+  --surface: #0a2435;
+  --surface-2: #0f334a;
+
+  --accent: #4ec6db; /* primary cyan-blue */
+  --accent-2: #0f6e94; /* deep navy highlight */
+  --ring: rgba(78, 198, 219, 0.45);
+  --card-border: #0f4c63;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(15,76,99)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+
+  --faction-font: 'Aref Ruqaa', 'Segoe UI', sans-serif;
+}
+
+/* ===== Aliens: blood-red and black, ominous tech ===== */
+[data-faction='aliens'] {
+  --bg: #0b0508;
+  --bg-alt: #12070c;
+  --surface: #190a10;
+  --surface-2: #220c15;
+
+  --accent: #61071f; /* base crimson */
+  --accent-2: #9c1333; /* highlight crimson */
+  --ring: rgba(97, 7, 31, 0.45);
+  --card-border: #2b0d16;
+
+  --hexbackground: center
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgb(43,13,22)' viewBox='0 0 100 169.5'%3E%3Cpolygon points='50,34.75 93.5,59.75 93.5,109.75 50,134.75 6.5,109.75 6.5,59.75'%3E%3C/polygon%3E%3Cpolygon points='0,-50 43.5,-25 43.5,25 0,50 -43.5,25 -43.5,-25'%3E%3C/polygon%3E%3Cpolygon points='100,-50 143.5,-25 143.5,25 100,50 56.5,25 56.5,-25'%3E%3C/polygon%3E%3Cpolygon points='0,119.5 43.5,144.5 43.5,194.5 0,219.5 -43.5,194.5 -43.5,144.5'%3E%3C/polygon%3E%3Cpolygon points='100,119.5 143.5,144.5 143.5,194.5 100,219.5 56.5,194.5 56.5,144.5'%3E%3C/polygon%3E%3C/svg%3E");
+
+  --faction-font: 'AquilaEthnocentric', 'Echolot', 'Segoe UI', sans-serif;
+}
+
+/* ---------- Generic components wired to tokens ---------- */
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid var(--accent-2);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: rgb(68, 68, 68);
+  cursor: pointer;
+  transition: border-color 0.25s;
+  color: aliceblue;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  margin: 0 auto;
+  background: var(--hexbackground);
+  min-height: 100vh;
+  background-size: 32px;
+  position: relative; /* for overlays like scanlines */
+  background-color: var(--bg);
+  color: var(--text);
+  padding-bottom: 96px; /* leave space for floating controls (scripts button) */
+}
+
+/* Puzzle containers ensure space at bottom for floating UI */
+.Quickhack-main,
+.logic-puzzle,
+.sequence-puzzle-container {
+  padding-bottom: 96px;
+}
+
+/* Buttons that previously used #00aa00: */
+.qh-btn {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--card-border);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+.qh-btn:disabled {
+  background: var(--btn-disabled);
+  cursor: not-allowed;
+}
+.qh-btn.secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+}
+
+/* Small “cards” (role tiles, faction tiles) */
+.qh-card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+}
+
+/* Focus ring */
+.qh-focus:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

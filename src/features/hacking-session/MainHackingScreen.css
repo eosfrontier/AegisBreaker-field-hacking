@@ -1,0 +1,612 @@
+/* =========================
+   Base Styles
+   ========================= */
+
+/* Main Container Layout */
+.main-container {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  gap: 1rem;
+  flex: 1;
+  padding: 1rem;
+  background: var(--hexbackground);
+  background-size: 32px;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.main-hacking-screen {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+}
+
+/* Left Column: Parent Sessions */
+.parent-sessions-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.parent-session-button {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  /* Button Styles - Customize per theme if needed */
+  background-color: #555;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.parent-session-button:hover {
+  background-color: #777;
+}
+
+/* Center Column: Layers */
+.layers-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Initialize Phase */
+.init-phase {
+  align-items: center;
+}
+
+.initialize-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.initialize-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Active Phase: Layer Grid */
+.active-phase .layer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
+  gap: 1rem;
+  margin-top: 2rem;
+  width: 80vw;
+  margin: auto;
+}
+
+/* Right Column: Child Sessions */
+.child-sessions-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.child-session-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.child-session-button {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  /* Button Styles - Customize per theme */
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.child-session-button:hover {
+  background-color: #218838;
+}
+
+/* Group Sections */
+.group-section {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.group-section.locked {
+  opacity: 0.3; /* Faded out if group is locked */
+  pointer-events: none; /* Prevent clicks */
+}
+
+/* Grid of Layers in Each Group */
+.layer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Layer Item Default Styling */
+.layer-item {
+  transition: opacity 1s ease; /* Allow fade-out for solved */
+}
+
+/* Fade Out Solved Layers */
+.layer-item.solved {
+  opacity: 0.3;
+}
+
+/* Layer Header */
+.layer-header {
+  margin-bottom: 1rem;
+}
+
+/* Layer QR Code */
+.layer-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+/* QR Placeholder */
+.qr-placeholder {
+  padding: 1rem;
+  text-align: center;
+  background-color: #444;
+  border-radius: 4px;
+  color: #ccc;
+}
+
+/* Phase Specific Styling */
+.init-phase,
+.active-phase,
+.success-phase,
+.failure-phase {
+  width: 100%;
+  text-align: center;
+}
+
+/* Logo and header text */
+.header-box {
+  display: flex;
+  justify-content: center;
+}
+
+.timer-bar {
+  width: 100%;
+  max-width: 760px;
+  margin: 0.75rem auto 1.25rem;
+}
+
+.timer-bar-track {
+  position: relative;
+  width: 100%;
+  height: 28px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--card-border, #2f3847);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45), 0 0 12px rgba(0, 0, 0, 0.25);
+}
+
+.timer-bar-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--accent, #3b82f6), var(--accent-2, #67e8f9));
+  filter: drop-shadow(0 0 12px rgba(103, 232, 249, 0.45));
+  transition: width 0.3s ease-out;
+}
+
+.timer-bar-text {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text, #e8f0ff);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+/* Locked Session Message */
+.locked-session-message {
+  text-align: center;
+  margin-top: 4rem;
+}
+
+/* Theme Logo */
+.theme-logo {
+  width: 150px;
+  margin-bottom: 1rem;
+  margin-right: 10rem;
+}
+
+/* =========================
+   Theme Classes
+   ========================= */
+
+/* ICC Theme */
+.theme-ICC {
+  /* Background Styles */
+  background-color: #1c1c1c;
+  /* background-image: url('/themes/ICC/background.jpg'); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ffffff; /* Font color */
+  font-family: 'ICCFont', sans-serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #ff5733; /* ICC-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #c70039;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #ff5733;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #c70039;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #333333;
+  }
+}
+
+/* Aliens Theme */
+.theme-Aliens {
+  /* Background Styles */
+  background-color: #001900;
+  /* background-image: url('/themes/Aliens/background.jpg'); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ff2020;
+  font-family: 'Orbitron', sans-serif;
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #00ff99; /* Aliens-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #00cc77;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #00ff99;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #00cc77;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #001408;
+  }
+}
+
+/* Aquila Theme */
+.theme-Aquila {
+  /* Background Styles */
+  background-color: #1c1c1c;
+  /* background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg'); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #c7d2e4;
+  font-family: 'AquilaEthnocentric', monospace;
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #3498db; /* Aquila-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #2980b9;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #3498db;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #2980b9;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #2c3e50;
+  }
+}
+
+/* Dugo Theme */
+.theme-Dugo {
+  /* Background Styles */
+  background-color: #242424;
+  /* background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/DugoWallpaper.jpg');  */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ff2020;
+  font-family: 'DugoMadeInChina', sans-serif;
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #e74c3c; /* Dugo-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #c0392b;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #e74c3c;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #c0392b;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #4b1414;
+  }
+}
+
+/* Pendzal Theme */
+.theme-Pendzal {
+  /* Background Styles */
+  background-color: #f0f8ff; /* Placeholder */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #333333; /* Placeholder font color */
+  font-family: 'PendzalFont', serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #0a0d0a; /* Pendzal-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #0c110c;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #0a0d0a;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #0c110c;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #ffb000;
+  }
+}
+
+/* Sona Theme */
+.theme-Sona {
+  /* Background Styles */
+  background-color: #f5f5dc; /* Placeholder */
+  /* background-image: url('/themes/Sona/background.jpg'); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #2c3e50; /* Placeholder font color */
+  font-family: 'SonaFont', sans-serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #16a085; /* Sona-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #138d75;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #16a085;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #138d75;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #1abc9c;
+  }
+}
+
+/* Ekanesh Theme */
+.theme-Ekanesh {
+  /* Background Styles */
+  background-color: #2f4f4f; /* Placeholder */
+  /* background-image: url('/themes/Ekanesh/background.jpg'); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Font Styles */
+  color: #ecf0f1; /* Placeholder font color */
+  font-family: 'EkaneshFont', sans-serif; /* Placeholder font */
+
+  /* Button Backgrounds */
+  .initialize-btn {
+    background-color: #e67e22; /* Ekanesh-specific button color */
+  }
+
+  .initialize-btn:hover {
+    background-color: #d35400;
+  }
+
+  .parent-session-button,
+  .child-session-button {
+    background-color: #e67e22;
+  }
+
+  .parent-session-button:hover,
+  .child-session-button:hover {
+    background-color: #d35400;
+  }
+
+  /* Layer Card Backgrounds */
+  .layer-item {
+    background-color: #d35400;
+  }
+}
+
+/* Theme Default */
+.theme-default {
+  background-color: #000;
+  color: #fff;
+}
+
+.theme-default .main-container {
+  background-color: transparent; /* Let main-hacking-screen show */
+}
+
+/* =========================
+   Additional Styles
+   ========================= */
+
+/* Success and Failure Phases */
+.success-phase,
+.failure-phase {
+  /* Customize per theme if needed */
+  /* Example for theme-ICC:
+  .theme-ICC .success-phase {
+    background-color: #28a745;
+    color: #fff;
+  }
+  */
+}
+
+/* Locked Session Message */
+.locked-session-message {
+  text-align: center;
+  margin-top: 4rem;
+}
+
+/* Blinking animation for IN_PROGRESS */
+@keyframes blinkOpacity {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.layer-item.in-progress {
+  animation: blinkOpacity 1.5s infinite;
+}
+
+/**
+ * If a layer is SOLVED, we keep it in the grid (occupies space),
+ * but remove its visible contents.
+ * 
+ * Option A: Use visibility: hidden;
+ * Option B: Hide the child elements while keeping dimension.
+ */
+
+/* Approach A: Entire card invisible but occupies space */
+.layer-item.solved {
+  visibility: hidden; /* Remains in layout, but invisible */
+  pointer-events: none;
+  /* If you want a small fade effect, use transition:
+     transition: visibility 0.3s, opacity 0.3s;
+     but note that visibility doesn't animate nicely by default. */
+}
+
+/* 
+  If you prefer "Approach B" (keeping the border, but removing inside content),
+  you could do something like: */
+
+/* .layer-item.solved > * {
+  display: none;
+} */
+/*
+.layer-item.solved {
+  background-color: transparent;
+  border: none;
+  cursor: default;
+  pointer-events: none;
+}
+*/
+
+/* 
+  For your scenario, "visibility: hidden" is often simplest 
+  to keep an empty placeholder in the grid.
+*/
+
+/* 
+  The rest of your existing CSS from previous examples 
+  (themes, layout, etc.) remains intact.
+*/
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .main-container {
+    grid-template-columns: 1fr; /* Single column on small screens */
+  }
+
+  .child-sessions-column,
+  .parent-sessions-column {
+    display: none; /* Hide sidebars on small screens */
+  }
+
+  .layers-column {
+    width: 100%;
+  }
+
+  .active-phase .layer-grid,
+  .layer-grid {
+    width: 100%;
+  }
+}
