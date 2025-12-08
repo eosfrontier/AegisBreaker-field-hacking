@@ -15,6 +15,7 @@ import {
 import { db } from '../../lib/firebaseConfig';
 import './styles/FrequencyPuzzle.css';
 import TutorialModal from './TutorialModal';
+import { useScriptContext } from '../scripts/ScriptProvider';
 
 // Register chart components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -61,6 +62,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   const solvedRef = useRef(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [activeWave, setActiveWave] = useState(1);
+  const { setScriptContext } = useScriptContext();
 
   useEffect(() => {
     try {
@@ -159,6 +161,52 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
     lockStrength >= 0.98 ? 'Signal Locked' : lockStrength >= 0.7 ? 'Closing Phase' : 'Searching Spectrum';
   const lockClass = lockStrength >= 0.98 ? 'locked' : lockStrength >= 0.7 ? 'warm' : 'cold';
 
+  // Script assists
+  const harmonicSweep = useCallback(() => {
+    if (!target1) return { ok: false, reason: 'blocked' };
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const t = 0.45; // substantial nudge toward target
+
+    setUserFreq1((v) => lerp(v, target1.freq, t));
+    setUserAmp1((v) => lerp(v, target1.amp, t));
+    setUserPhase1((v) => lerp(v, target1.phase, t));
+    setUserOffset1((v) => lerp(v, target1.offset, t));
+
+    if (difficulty === 5 && target2) {
+      setUserFreq2((v) => lerp(v, target2.freq, t));
+      setUserAmp2((v) => lerp(v, target2.amp, t));
+      setUserPhase2((v) => lerp(v, target2.phase, t));
+      setUserOffset2((v) => lerp(v, target2.offset, t));
+    }
+    return { ok: true };
+  }, [target1, target2, difficulty]);
+
+  const revealPrimary = useCallback(() => {
+    if (!target1) return { ok: false, reason: 'blocked' };
+    setActiveWave(1);
+    setUserFreq1(target1.freq);
+    if (difficulty >= 2) setUserAmp1(target1.amp);
+    if (difficulty >= 3) setUserPhase1(target1.phase);
+    if (difficulty === 4) setUserOffset1(target1.offset);
+    return { ok: true };
+  }, [target1, difficulty]);
+
+  const autoLock = useCallback(() => {
+    if (!target1) return { ok: false, reason: 'blocked' };
+    setActiveWave(1);
+    setUserFreq1(target1.freq);
+    setUserAmp1(target1.amp);
+    setUserPhase1(target1.phase);
+    setUserOffset1(target1.offset);
+    if (difficulty === 5 && target2) {
+      setUserFreq2(target2.freq);
+      setUserAmp2(target2.amp);
+      setUserPhase2(target2.phase);
+      setUserOffset2(target2.offset);
+    }
+    return { ok: true };
+  }, [target1, target2, difficulty]);
+
   // One-shot solver guard
   const finalizePuzzle = useCallback(() => {
     if (solvedRef.current) return;
@@ -207,6 +255,15 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
     finalizePuzzle,
     lockStrength,
   ]);
+
+  // Expose script APIs
+  useEffect(() => {
+    setScriptContext({
+      id: 'frequency',
+      api: { harmonicSweep, revealPrimary, autoLock },
+    });
+    return () => setScriptContext({ id: null, api: {} });
+  }, [setScriptContext, harmonicSweep, revealPrimary, autoLock]);
 
   //
   // Chart styling
