@@ -194,13 +194,34 @@ export default function HomePage() {
       </h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
-        <button className="qh-btn home-nav-btn" onClick={() => navigate('/quickhack')}>
+        <button
+          className="qh-btn home-nav-btn"
+          onClick={() =>
+            navigate('/QuickHack', {
+              state: { transition: { direction: 'from-right' } },
+            })
+          }
+        >
           QuickHack
         </button>
-        <button className="qh-btn home-nav-btn" onClick={() => navigate('/qr-scanner')}>
+        <button
+          className="qh-btn home-nav-btn"
+          onClick={() =>
+            navigate('/qr-scanner', {
+              state: { transition: { direction: 'from-left' } },
+            })
+          }
+        >
           QR Scanner
         </button>
-        <button className="qh-btn home-nav-btn" onClick={() => navigate('/scripts-store')}>
+        <button
+          className="qh-btn home-nav-btn"
+          onClick={() =>
+            navigate('/scripts-store', {
+              state: { transition: { direction: 'from-bottom' } },
+            })
+          }
+        >
           Scripts Store
         </button>
         {info?.role === 'admin' && (

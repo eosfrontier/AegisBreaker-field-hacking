@@ -157,7 +157,11 @@
   --faction-font: 'AquilaEthnocentric', 'Echolot', 'Segoe UI', sans-serif;
 }
 
-/* ---------- Generic components wired to tokens ---------- */
+#root,
+.App {
+  min-height: 100vh;
+  width: 100%;
+}
 
 a {
   font-weight: 500;
@@ -170,10 +174,13 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--hexbackground);
+  background-size: 32px;
+  background-color: var(--bg);
+  color: var(--text);
+  display: block;
 }
 
 h1 {
@@ -206,13 +213,9 @@ button:focus-visible {
   flex-direction: column;
   padding: 8px;
   margin: 0 auto;
-  background: var(--hexbackground);
-  min-height: 100vh;
   background-size: 32px;
-  position: relative; /* for overlays like scanlines */
-  background-color: var(--bg);
   color: var(--text);
-  padding-bottom: 96px; /* leave space for floating controls (scripts button) */
+  padding-bottom: 96px;
 }
 
 /* Puzzle containers ensure space at bottom for floating UI */

@@ -81,7 +81,14 @@ export default function ScriptStore() {
     <div className="main" style={{ padding: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Scripts Store</h2>
-        <button className="qh-btn" onClick={() => navigate(-1)}>
+        <button
+          className="qh-btn"
+          onClick={() =>
+            navigate('/', {
+              state: { transition: { direction: 'from-bottom' } },
+            })
+          }
+        >
           Back
         </button>
       </div>
