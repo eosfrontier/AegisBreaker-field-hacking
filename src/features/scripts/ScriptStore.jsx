@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
-import { getScriptCharges, grantScript } from './scripts/scriptsStore';
-import { getScriptDefinition } from './scripts/registry';
+import { getScriptCharges, grantScript } from './scriptsStore';
+import { getScriptDefinition } from './registry';
 import { useNavigate } from 'react-router-dom';
 
 const SCRIPT_STORE_ITEMS = [

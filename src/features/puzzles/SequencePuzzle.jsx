@@ -152,7 +152,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
     if (progressIndex >= sequence.length) return;
     const correctChar = sequence[progressIndex];
     setCurrentChoices(generateShuffledChoices(correctChar));
-  }, [narrowBandSteps]); // re-render choices when band toggles
+  }, [generateShuffledChoices, narrowBandSteps, progressIndex, sequence]); // re-render choices when band toggles
 
   useEffect(() => {
     if (sequence.length === 0) return;

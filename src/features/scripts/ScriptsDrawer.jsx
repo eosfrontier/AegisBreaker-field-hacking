@@ -1,6 +1,6 @@
 ﻿import { useMemo, useState } from 'react';
-import { listScriptsForContext, getScriptDefinition } from './scripts/registry';
-import { getScriptCharges, listScripts, runScript } from './scripts/scriptsStore';
+import { listScriptsForContext, getScriptDefinition } from './registry';
+import { getScriptCharges, listScripts, runScript } from './scriptsStore';
 import { useScriptContext } from './ScriptProvider';
 
 export default function ScriptsDrawer() {

@@ -408,7 +408,7 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
     setBinFeedback({});
     setAttemptsLeft(getAttemptLimit(difficulty));
     setStatusMessage('');
-  }, [runSeed]);
+  }, [difficulty, runSeed]);
 
   // solved sync
   useEffect(() => {
@@ -455,7 +455,7 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
       setSelectedPacket(null);
       if (checkSolved(next)) setSolved(true);
     },
-    [assignments, packets, requiredCounts, currentBinCount, checkSolved],
+    [assignments, packets, checkSolved],
   );
 
   const handleUnassign = useCallback(
