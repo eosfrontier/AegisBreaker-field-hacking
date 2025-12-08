@@ -1,5 +1,5 @@
 import { setFlag } from '../prefs/prefsStore';
-import './LogicPuzzle.css';
+import './PuzzleBase.css';
 
 const TutorialModal = ({
   isOpen,
@@ -22,19 +22,19 @@ const TutorialModal = ({
   };
 
   return (
-    <div className="ls-modal-overlay" onClick={handleClose} role="dialog" aria-modal="true">
-      <div className="ls-modal-card" onClick={(e) => e.stopPropagation()}>
-        <h3 className="ls-modal-title">{title}</h3>
-        {intro && <p className="ls-modal-body">{intro}</p>}
+    <div className="puzzle-modal-overlay" onClick={handleClose} role="dialog" aria-modal="true">
+      <div className="puzzle-modal" onClick={(e) => e.stopPropagation()}>
+        <h3 className="puzzle-modal-title">{title}</h3>
+        {intro && <p className="puzzle-modal-body">{intro}</p>}
         {Array.isArray(bullets) && bullets.length > 0 && (
-          <ul className="ls-modal-list">
+          <ul className="puzzle-modal-list">
             {bullets.map((b, i) => (
               <li key={i}>{b}</li>
             ))}
           </ul>
         )}
-        {body && <p className="ls-modal-body">{body}</p>}
-        <button className="validate-button" onClick={handleClose} autoFocus>
+        {body && <p className="puzzle-modal-body">{body}</p>}
+        <button className="puzzle-button puzzle-button-block" onClick={handleClose} autoFocus>
           {ctaLabel}
         </button>
       </div>

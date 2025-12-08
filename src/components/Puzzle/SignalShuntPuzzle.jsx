@@ -470,8 +470,9 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
   }, [setScriptContext, scriptApi]);
 
   return (
-    <div className="datastream-puzzle">
-      <header className="datastream-header">
+    <div className="puzzle-shell puzzle-signal puzzle-container datastream-puzzle">
+      <h2 className="puzzle-title">[ Signal Rerouter ]</h2>
+      <header className="datastream-header puzzle-header">
         <div className="datastream-title">
           <span className="datastream-icon">◈</span>
           Signal Rerouter
@@ -502,7 +503,7 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
       </div>
 
       <div className="datastream-board">
-        <div className="datastream-panel">
+        <div className="datastream-panel puzzle-panel">
           <div className="panel-title">Packet Pool</div>
           <div className="packet-grid">
             {unassignedPackets.map((p) => (
@@ -527,7 +528,7 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
           return (
             <div
               key={bin.id}
-              className={`bin-dropzone ${isSelectedDrop ? 'bin-ready' : ''}`}
+              className={`bin-dropzone puzzle-panel ${isSelectedDrop ? 'bin-ready' : ''}`}
               onClick={() => selectedPacket && handleAssign(selectedPacket, bin.id)}
               onDragOver={onDragOver}
               onDrop={onDrop(bin.id)}
@@ -565,10 +566,10 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
       </div>
 
       <div className="datastream-actions">
-        <button className="datastream-submit" onClick={handleSubmit} disabled={solved}>
+        <button className="datastream-submit puzzle-button" onClick={handleSubmit} disabled={solved}>
           Submit Routing
         </button>
-        <button className="datastream-reset" onClick={handleReset}>
+        <button className="datastream-reset puzzle-button" onClick={handleReset}>
           {solved ? 'PLAY AGAIN' : 'RESET'}
         </button>
         {solved && <div className="solved-text">Bus stabilized. ICE rerouted.</div>}

@@ -1,14 +1,14 @@
-/* Existing styles ... */
-
 .logic-puzzle {
-  padding: 20px;
-  background: #0a0e15;
-  color: #ffffff;
+  padding: 12px 0;
+  background: var(--puzzle-surface);
+  color: var(--puzzle-text);
   min-height: 100vh;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--puzzle-font);
+  border: 1px solid var(--puzzle-border);
+  border-radius: var(--puzzle-radius);
+  box-shadow: var(--puzzle-shadow);
 }
 
-/* Spinner container for resetting state */
 .resetting-container {
   display: flex;
   flex-direction: column;
@@ -17,48 +17,26 @@
   min-height: 60vh;
 }
 
-/* Simple spinner styling */
-.spinner {
-  border: 4px solid #2a4e6c;
-  border-top: 4px solid #ffffff;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Other styles remain unchanged */
-
 .process-card {
-  border: 1px solid #2a4e6c;
+  border: 1px solid var(--puzzle-border-strong);
   padding: 15px;
   margin: 20px 0;
-  border-radius: 8px;
-  background: #0a0a0a;
-  box-shadow: 0 0 8px #00ff9d;
+  border-radius: 10px;
+  background: var(--puzzle-surface-2);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--puzzle-primary) 40%, transparent);
 }
 
 .process-title {
   font-size: 1.4em;
   margin-bottom: 10px;
-  color: #0aff0a;
+  color: var(--puzzle-primary);
 }
 
 .statement {
   font-style: italic;
   margin-bottom: 10px;
   font-family: monospace;
-  color: #ffffff;
+  color: var(--puzzle-text);
 }
 
 .button-choice-container {
@@ -68,147 +46,61 @@
   margin-top: 15px;
 }
 
-/* Common base styles for choice buttons */
 .choice-button {
   flex: 1;
   padding: 12px 20px;
   font-size: 1.2em;
-  border: 2px solid #2a4e6c;
-  border-radius: 8px;
+  border: 2px solid var(--puzzle-border-strong);
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s, border-color 0.3s;
+  transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+  background: var(--puzzle-surface-3);
+  color: var(--puzzle-text);
 }
 
-/* Harmless/Trusted version (green-ish) */
 .choice-button.harmless-button {
-  background-color: #122738; /* or a dark shade if you'd like */
-  color: #ffffff;
-  border-color: #2a4e6c;
+  background-color: var(--puzzle-surface-2);
+  color: var(--puzzle-text);
+  border-color: var(--puzzle-border-strong);
 }
 
 .choice-button.harmless-button:hover {
-  background-color: #0aff0a11;
+  background-color: color-mix(in srgb, var(--puzzle-primary) 12%, transparent);
 }
 
 .choice-button.harmless-button.selected {
-  border-color: #0aff0a;
-  background-color: #0aff0a33;
+  border-color: var(--puzzle-primary);
+  background-color: color-mix(in srgb, var(--puzzle-primary) 25%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--puzzle-primary) 38%, transparent);
 }
 
 .choice-button.rogue-button {
-  background-color: #122738;
-  color: #ffffff;
-  border-color: #2a4e6c;
+  background-color: var(--puzzle-surface-2);
+  color: var(--puzzle-text);
+  border-color: var(--puzzle-border-strong);
 }
 
 .choice-button.rogue-button:hover {
-  background-color: #ff465522;
+  background-color: color-mix(in srgb, var(--puzzle-danger) 18%, transparent);
 }
 
 .choice-button.rogue-button.selected {
-  border-color: #ff4655;
-  background-color: #ff465533;
-}
-
-.validate-button {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  font-size: 1.2em;
-  margin: 20px 0;
-  background-color: #1a4d6b;
-  border: 2px solid #0aff0a;
-  color: #ffffff;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.validate-button:hover {
-  background-color: #2a6e9a;
+  border-color: var(--puzzle-danger);
+  background-color: color-mix(in srgb, var(--puzzle-danger) 26%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--puzzle-danger) 36%, transparent);
 }
 
 .feedback {
-  color: #ff4655;
+  color: var(--puzzle-danger);
   margin-top: 10px;
   font-size: 1.1em;
   text-align: center;
 }
 
 .statement.ok {
-  color: #0aff0a; /* neon green */
+  color: var(--puzzle-success);
 }
 .statement.contradiction {
-  color: #ff4655; /* alert red */
-  text-shadow: 0 0 6px #ff4655;
-}
-
-.ls-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(2, 6, 12, 0.75);
-  display: grid;
-  place-items: center;
-  z-index: 999;
-}
-
-.ls-modal-card {
-  width: min(640px, 92vw);
-  background: #0a0a0a;
-  border: 1px solid #2a4e6c;
-  border-radius: 10px;
-  padding: 18px;
-  box-shadow: 0 0 16px #00ff9d55;
-  color: #00ff9d;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.ls-modal-title {
-  margin: 0 0 8px;
-  color: #0aff0a;
-  font-size: 1.3rem;
-  text-shadow: 0 0 6px #0aff0a55;
-}
-
-.ls-modal-body {
-  margin: 0 0 10px;
-}
-
-.ls-modal-list {
-  margin: 0 0 14px 1rem;
-  padding: 0;
-}
-
-.statement.ok {
-  color: #0aff0a;
-}
-.statement.contradiction {
-  color: #ff4655;
-  text-shadow: 0 0 6px #ff4655;
-}
-
-/* Shake animation */
-@keyframes shake {
-  0% {
-    transform: translateX(0);
-  }
-  20% {
-    transform: translateX(-8px);
-  }
-  40% {
-    transform: translateX(8px);
-  }
-  60% {
-    transform: translateX(-8px);
-  }
-  80% {
-    transform: translateX(8px);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-.error-shake {
-  animation: shake 0.5s ease;
+  color: var(--puzzle-danger);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--puzzle-danger) 70%, transparent);
 }

@@ -227,8 +227,8 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
   const currentTarget = sequence[progressIndex] || '';
 
   return (
-    <div className="sequence-puzzle-container">
-      <h2>Sequence Puzzle</h2>
+    <div className="puzzle-shell puzzle-sequence puzzle-container puzzle-centered sequence-puzzle">
+      <h2 className="puzzle-title">[ Sequencer ]</h2>
 
       <div className="progress-row">
         {sequence.map((symbol, idx) => (
@@ -237,24 +237,22 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
       </div>
       <div className="progress-row" style={{ marginTop: '6px' }}>
         {Array.from({ length: allowedMistakes }).map((_, idx) => (
-          <div
-            key={idx}
-            className={`progress-box ${idx < mistakesUsed ? 'filled mistake' : ''}`}
-            style={{ borderColor: '#f87171' }}
-          />
+          <div key={idx} className={`progress-box mistake-counter ${idx < mistakesUsed ? 'filled mistake' : ''}`} />
         ))}
       </div>
-      <p>{`Completed ${progressIndex} / ${sequence.length}`}</p>
+      <p style={{ margin: 0 }}>{`Completed ${progressIndex} / ${sequence.length}`}</p>
 
       <div className="current-target">
-        <span className="digital-symbol">{currentTarget}</span>
+        <span style={{ margin: 0 }} className="digital-symbol">
+          {currentTarget}
+        </span>
       </div>
 
       <div className="choices-row">
         {currentChoices.map((char, idx) => (
           <button
             key={idx}
-            className="puzzle-button"
+            className="puzzle-button sequence-button"
             onClick={() => handleChoiceClick(char)}
             style={
               hintActive && char === currentTarget ? { boxShadow: '0 0 10px 3px #0ff', borderColor: '#0ff' } : undefined

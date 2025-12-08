@@ -267,7 +267,9 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   };
 
   return (
-    <div className="freq-shell">
+    <div className="puzzle-shell puzzle-frequency puzzle-container freq-shell">
+      <h2 className="puzzle-title">[ Frequency Tuner ]</h2>
+
       {showTutorial && (
         <TutorialModal
           isOpen={showTutorial}
@@ -279,10 +281,9 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
               console.warn('Unable to persist tutorial flag', e);
             }
           }}
-          title="Frequency Tuning // Quick Briefing"
+          title="Frequency Tuner // Quick Briefing"
           intro="Align your outgoing waveform to the incoming carrier. Keep drift below tolerance until the lock turns solid red."
           bullets={[
-            'Wave 01 is always present. Wave 02 only appears on max difficulty.',
             'Adjust sliders; watch the drift and meter charge toward 100%.',
             'Once locked, the puzzle auto-completes.',
           ]}
@@ -290,20 +291,20 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
         />
       )}
 
-      <div className="freq-panel">
-        <header className="freq-header">
+      <div className="freq-panel puzzle-panel">
+        <header className="freq-header puzzle-header">
           <div className="freq-titleblock">
-            <p className="freq-eyebrow">Red Channel // Frequency Tuning</p>
+            <p className="freq-eyebrow puzzle-eyebrow">Red Channel // Frequency Tuning</p>
           </div>
           <div className="freq-actions">
-            <div className="freq-lock-card">
+            <div className="freq-lock-card puzzle-card">
               <div className="freq-lock-row">
                 <span className={`freq-lock-dot ${lockClass}`} />
                 <span className="freq-lock-label">{lockLabel}</span>
                 <span className="freq-lock-percent">{Math.round(lockStrength * 100)}%</span>
               </div>
-              <div className="freq-meter">
-                <div className="freq-meter-fill" style={{ width: `${Math.round(lockStrength * 100)}%` }} />
+              <div className="puzzle-meter">
+                <div className="puzzle-meter-fill" style={{ width: `${Math.round(lockStrength * 100)}%` }} />
               </div>
               <div className="freq-lock-stats">
                 <span>drift {rmse.toFixed(3)}</span>
@@ -314,7 +315,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
         </header>
 
         <div className="freq-oscilloscope-wrap">
-          <div className="freq-oscilloscope">
+          <div className="freq-oscilloscope puzzle-panel">
             <div className="freq-oscilloscope-glow" />
             <div className="freq-chart">
               <Line data={chartData} options={chartOptions} />
@@ -334,10 +335,16 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
 
         {difficulty === 5 && (
           <div className="freq-tabs">
-            <button className={`freq-tab-btn ${activeWave === 1 ? 'active' : ''}`} onClick={() => setActiveWave(1)}>
+            <button
+              className={`freq-tab-btn puzzle-tab ${activeWave === 1 ? 'active' : ''}`}
+              onClick={() => setActiveWave(1)}
+            >
               Wave 01
             </button>
-            <button className={`freq-tab-btn ${activeWave === 2 ? 'active' : ''}`} onClick={() => setActiveWave(2)}>
+            <button
+              className={`freq-tab-btn puzzle-tab ${activeWave === 2 ? 'active' : ''}`}
+              onClick={() => setActiveWave(2)}
+            >
               Wave 02
             </button>
           </div>
@@ -345,7 +352,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
 
         <div className="freq-grid">
           {(activeWave === 1 || difficulty < 5) && (
-            <div className="freq-card">
+            <div className="freq-card puzzle-card">
               <div className="freq-card-head">
                 <span className="freq-badge">Wave 01</span>
                 <span className="freq-card-meta">Primary carrier</span>
@@ -363,7 +370,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   step="0.01"
                   value={userFreq1}
                   onChange={(e) => setUserFreq1(parseFloat(e.target.value))}
-                  className="freq-range"
+                  className="freq-range puzzle-range"
                 />
               </div>
 
@@ -380,7 +387,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                     step="0.01"
                     value={userAmp1}
                     onChange={(e) => setUserAmp1(parseFloat(e.target.value))}
-                    className="freq-range"
+                    className="freq-range puzzle-range"
                   />
                 </div>
               )}
@@ -398,7 +405,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                     step="0.01"
                     value={userPhase1}
                     onChange={(e) => setUserPhase1(parseFloat(e.target.value))}
-                    className="freq-range"
+                    className="freq-range puzzle-range"
                   />
                 </div>
               )}
@@ -416,7 +423,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                     step="0.01"
                     value={userOffset1}
                     onChange={(e) => setUserOffset1(parseFloat(e.target.value))}
-                    className="freq-range"
+                    className="freq-range puzzle-range"
                   />
                 </div>
               )}
@@ -424,7 +431,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
           )}
 
           {difficulty === 5 && activeWave === 2 && (
-            <div className="freq-card">
+            <div className="freq-card puzzle-card">
               <div className="freq-card-head">
                 <span className="freq-badge">Wave 02</span>
                 <span className="freq-card-meta">Interference layer</span>
@@ -442,7 +449,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   step="0.01"
                   value={userFreq2}
                   onChange={(e) => setUserFreq2(parseFloat(e.target.value))}
-                  className="freq-range"
+                  className="freq-range puzzle-range"
                 />
               </div>
 
@@ -458,7 +465,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   step="0.01"
                   value={userAmp2}
                   onChange={(e) => setUserAmp2(parseFloat(e.target.value))}
-                  className="freq-range"
+                  className="freq-range puzzle-range"
                 />
               </div>
 
@@ -474,7 +481,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   step="0.01"
                   value={userPhase2}
                   onChange={(e) => setUserPhase2(parseFloat(e.target.value))}
-                  className="freq-range"
+                  className="freq-range puzzle-range"
                 />
               </div>
             </div>

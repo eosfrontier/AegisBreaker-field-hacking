@@ -1,22 +1,15 @@
 .masterlock-container {
   text-align: center;
-  color: #fff;
-  background: #0a0e15;
-  padding: 1rem;
-  border: 1px solid #444;
-  border-radius: 8px;
-  max-width: 500px;
-  margin: 0 auto;
-  overflow: hidden;
-  font-family: 'Orbitron', sans-serif;
+  width: 100%;
+  max-width: 760px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
   align-items: center;
-  justify-content: flex-start;
 }
 
 .masterlock-container h2 {
-  color: #ff00ff; /* electric purple as primary accent color */
+  color: var(--puzzle-primary); /* electric purple as primary accent color */
   margin-bottom: 0.5rem;
   text-align: center;
   font-weight: 700;
@@ -33,10 +26,10 @@
   position: relative;
   width: 100%;
   padding-top: 100%; /* keep it square */
-  background: #0a0a0a; /* subtle variation */
-  border: 2px solid #ff00ff; /* neon accent */
-  border-radius: 8px;
-  box-shadow: 0 0 10px #ff00ff;
+  background: var(--puzzle-surface-2); /* subtle variation */
+  border: 2px solid var(--puzzle-primary); /* neon accent */
+  border-radius: 12px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--puzzle-primary) 50%, transparent);
   overflow: hidden;
   margin-bottom: 1rem;
 }
@@ -56,7 +49,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr; /* 2 columns */
   gap: 1rem;
-  max-width: 500px; /* optional, so it doesn't stretch too wide */
+  max-width: 520px; /* optional, so it doesn't stretch too wide */
   margin: 0 auto;
   margin-top: 1rem;
 }
@@ -64,12 +57,12 @@
 .control-row {
   display: flex;
   align-items: center;
-  background: #122738; /* or any accent if you wish */
-  border: 2px solid #ff00ff;
+  background: var(--puzzle-surface-2); /* or any accent if you wish */
+  border: 2px solid var(--puzzle-primary);
   gap: 1rem;
   border-radius: 8px;
   padding: 0.5rem;
-  box-shadow: 0 0 4px #ff00ff33;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--puzzle-primary) 25%, transparent);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
@@ -77,19 +70,19 @@
   flex: 0 0 auto;
   padding: 0.6rem 1rem;
   font-size: 1rem;
-  font-family: 'Orbitron', sans-serif;
-  border: 2px solid #ff00ff;
-  background: #122738;
-  color: #ffffff;
+  font-family: var(--puzzle-font);
+  border: 2px solid var(--puzzle-primary);
+  background: var(--puzzle-surface-2);
+  color: var(--puzzle-text);
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 0 4px #ff00ff33;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--puzzle-primary) 25%, transparent);
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .press-hold-button:hover {
-  background-color: #ff00ff22;
-  box-shadow: 0 0 10px #ff00ffa0;
+  background-color: color-mix(in srgb, var(--puzzle-primary) 20%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--puzzle-primary) 50%, transparent);
 }
 
 /* The locked overlay that appears on puzzle complete */
@@ -117,25 +110,25 @@
 }
 
 .locked-message {
-  color: #ff00ff;
+  color: var(--puzzle-primary);
   text-align: center;
-  background: #0a0a0aee;
+  background: color-mix(in srgb, var(--puzzle-surface-2) 90%, rgba(0, 0, 0, 0.8) 10%);
   padding: 1rem 2rem;
-  border: 2px solid #ff00ff;
-  box-shadow: 0 0 10px #ff00ffcc;
-  border-radius: 8px;
+  border: 2px solid var(--puzzle-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--puzzle-primary) 60%, transparent);
+  border-radius: 10px;
 }
 
 /* The final solved screen */
 .masterlock-solved-screen {
-  background: #0a0e15;
-  color: #ff00ff; /* accent color for the success state */
+  background: var(--puzzle-surface);
+  color: var(--puzzle-primary); /* accent color for the success state */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--puzzle-font);
 }
 
 .masterlock-solved-screen h2 {
@@ -145,28 +138,5 @@
 
 .masterlock-solved-screen p {
   font-size: 1.2rem;
-  color: #ffffff;
-}
-
-/* Optional: spinner or other styling from your original snippet 
-   if you want a spinner for loading or reset states. Below is an example: 
-*/
-
-.spinner {
-  border: 4px solid #2a4e6c;
-  border-top: 4px solid #ffffff;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  color: var(--puzzle-text);
 }

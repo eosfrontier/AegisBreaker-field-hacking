@@ -310,8 +310,8 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
   };
 
   return (
-    <div className="masterlock-container">
-      <h2>[Datalink Splicing]</h2>
+    <div className="puzzle-shell puzzle-masterlock puzzle-container masterlock-container">
+      <h2 className="puzzle-title">[ Datalink Splicing ]</h2>
       <div className="masterlock-stage">
         {Array.from({ length: ringCount }).map((_, i) => {
           // i => physical ring index (0 = largest, 1 = next, etc.)
@@ -329,7 +329,7 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
                   cy="50"
                   r={radius}
                   fill="none"
-                  stroke="#BF00FF"
+                  stroke="var(--puzzle-primary)"
                   strokeWidth="6"
                   strokeDasharray={dashPattern}
                 />

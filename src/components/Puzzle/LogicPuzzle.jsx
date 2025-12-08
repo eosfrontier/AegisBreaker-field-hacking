@@ -171,7 +171,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
   const allChosen = guesses.every((g) => g !== null);
 
   return (
-    <div className={`logic-puzzle ${shake ? 'error-shake' : ''}`}>
+    <div className={`puzzle-shell puzzle-logic puzzle-container logic-puzzle ${shake ? 'puzzle-error-shake' : ''}`}>
       {showTutorial && (
         <TutorialModal
           isOpen={showTutorial}
@@ -188,7 +188,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
         />
       )}
 
-      <h2>Logic Sifter (Difficulty {effectiveDifficulty})</h2>
+      <h2 className="puzzle-title">[ Logic Sifter ]</h2>
 
       {rules?.exactSecurity != null && (
         <div className="clues">
@@ -241,7 +241,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
       ))}
 
       <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr' }}>
-        <button className="validate-button" onClick={handleValidate} disabled={!allChosen}>
+        <button className="puzzle-button puzzle-button-block" onClick={handleValidate} disabled={!allChosen}>
           Validate Identities
         </button>
       </div>

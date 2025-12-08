@@ -61,11 +61,13 @@ function HexGrid({ layers, sessionId, variant }) {
   };
 
   const puzzleTypeColorMap = {
-    sequence: '#04d9ee',
-    frequencyTuning: '#ff0000',
-    logic: '#0aff0a',
-    masterLock: '#BF00ff',
-    signalShunt: '#ff9f0a',
+    sequence: 'var(--puzzle-color-sequence)',
+    frequencyTuning: 'var(--puzzle-color-frequency)',
+    logic: 'var(--puzzle-color-logic)',
+    masterLock: 'var(--puzzle-color-masterlock)',
+    signalShunt: 'var(--puzzle-color-signal)',
+    byteStream: 'var(--puzzle-color-bytestream)',
+    gridcipher: 'var(--puzzle-color-gridcipher)',
   };
 
   return (
