@@ -7,6 +7,7 @@ import { DIFFICULTY_LABELS, PUZZLE_TOOLS } from './puzzleOptions';
 export default function QuickHackScreen() {
   const [selectedTool, setSelectedTool] = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+  const [step, setStep] = useState(0); // 0=tool, 1=difficulty
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -33,71 +34,71 @@ export default function QuickHackScreen() {
           Back
         </button>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-        {/* Left: Tools */}
-        <div style={{ marginRight: '1rem' }}>
-          <h2 style={{ minHeight: '72px' }}>Select Tool</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', float: 'left' }}>
-            {PUZZLE_TOOLS.map((tool) => (
-              <button
-                key={tool.type}
-                onClick={() => setSelectedTool(tool.type)}
-                className="qh-btn"
-                style={{
-                  display: 'block',
-                  margin: '0.5rem 0',
-                  padding: '0.5rem 1rem',
-                  background: selectedTool === tool.type ? '#4d5356' : 'var(--surface-2)',
-                  border: '1px solid var(--card-border)',
-                }}
-              >
-                {tool.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Difficulty */}
-        <div style={{ textAlign: 'right' }}>
-          <h2>Select Defense Quality</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', float: 'right' }}>
-            {Object.entries(DIFFICULTY_LABELS).map(([num, label]) => (
-              <button
-                key={num}
-                onClick={() => setSelectedDifficulty(num)}
-                className="qh-btn"
-                style={{
-                  display: 'block',
-                  margin: '0.5rem 0',
-                  padding: '0.5rem 1rem',
-                  background: String(selectedDifficulty) === num ? '#4d5356' : 'var(--surface-2)',
-                  border: '1px solid var(--card-border)',
-                  width: '140px',
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="qh-stepper">
+        <span className={step === 0 ? 'active' : ''}>Tool</span>
+        <span className={step === 1 ? 'active' : ''}>Difficulty</span>
       </div>
 
-      {/* Start */}
-      <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-        <h2>Run Program</h2>
-        <button
-          className="qh-btn"
-          disabled={!selectedTool || !selectedDifficulty}
-          onClick={handleStartPuzzle}
-          style={{
-            padding: '1rem 2rem',
-            background: !selectedTool || !selectedDifficulty ? 'var(--btn-disabled)' : 'var(--btn-bg)',
-            border: 'none',
-            maxWidth: '200px',
-          }}
-        >
-          Engage
-        </button>
+      <div className="qh-slider-viewport">
+        <div className="qh-slider" style={{ transform: `translateX(-${step * 50}%)` }}>
+          {/* Step 0: Tool selection */}
+          <div className="qh-slide">
+            <h2>Select Tool</h2>
+            <div className="qh-tile-grid">
+              {PUZZLE_TOOLS.map((tool) => (
+                <button
+                  key={tool.type}
+                  onClick={() => setSelectedTool(tool.type)}
+                  className={`qh-btn hud-btn ${selectedTool === tool.type ? 'selected' : ''}`}
+                >
+                  <span className="hud-btn-label">{tool.label}</span>
+                </button>
+              ))}
+            </div>
+            <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                className="qh-btn hud-btn"
+                disabled={!selectedTool}
+                onClick={() => setStep(1)}
+                style={{ minWidth: '160px' }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          {/* Step 1: Difficulty */}
+          <div className="qh-slide">
+            <h2>Select Defense Quality</h2>
+            <p style={{ marginTop: '-4px', opacity: 0.8 }}>
+              Tool: <strong>{PUZZLE_TOOLS.find((t) => t.type === selectedTool)?.label || 'None'}</strong>
+            </p>
+            <div className="qh-tile-grid">
+              {Object.entries(DIFFICULTY_LABELS).map(([num, label]) => (
+                <button
+                  key={num}
+                  onClick={() => setSelectedDifficulty(num)}
+                  className={`qh-btn hud-btn ${String(selectedDifficulty) === num ? 'selected' : ''}`}
+                >
+                  <span className="hud-btn-label">{label}</span>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+              <button className="qh-btn hud-btn secondary" onClick={() => setStep(0)}>
+                Back
+              </button>
+              <button
+                className="qh-btn hud-btn"
+                disabled={!selectedTool || !selectedDifficulty}
+                onClick={handleStartPuzzle}
+                style={{ minWidth: '160px' }}
+              >
+                Engage
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
