@@ -6,8 +6,8 @@ import SequencePuzzle from '../Puzzle/SequencePuzzle';
 import FrequencyPuzzle from '../Puzzle/FrequencyPuzzle';
 import LogicPuzzle from '../Puzzle/LogicPuzzle';
 import MasterLockPuzzle from '../Puzzle/MasterLockPuzzle';
-import ByteStream from '../Puzzle/ByteStream';
-import GridCipher from '../Puzzle/GridCipher';
+// import ByteStream from '../Puzzle/ByteStream';
+// import GridCipher from '../Puzzle/GridCipher';
 import SignalShuntPuzzle from '../Puzzle/SignalShuntPuzzle';
 import { db } from '../../firebaseConfig';
 
@@ -337,26 +337,26 @@ export default function PuzzleHost({
         />
       );
       break;
-    case 'byteStream':
-      content = (
-        <ByteStream
-          sessionId={sessionId}
-          layerId={layerId}
-          layerData={layerData}
-          onLocalPuzzleComplete={handleLocalSolved}
-        />
-      );
-      break;
-    case 'gridcipher':
-      content = (
-        <GridCipher
-          sessionId={sessionId}
-          layerId={layerId}
-          layerData={layerData}
-          onLocalPuzzleComplete={handleLocalSolved}
-        />
-      );
-      break;
+    // case 'byteStream':
+    //   content = (
+    //     <ByteStream
+    //       sessionId={sessionId}
+    //       layerId={layerId}
+    //       layerData={layerData}
+    //       onLocalPuzzleComplete={handleLocalSolved}
+    //     />
+    //   );
+    //   break;
+    // case 'gridcipher':
+    //   content = (
+    //     <GridCipher
+    //       sessionId={sessionId}
+    //       layerId={layerId}
+    //       layerData={layerData}
+    //       onLocalPuzzleComplete={handleLocalSolved}
+    //     />
+    //   );
+    //   break;
     case 'signalShunt':
       content = (
         <SignalShuntPuzzle

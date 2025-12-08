@@ -1,12 +1,55 @@
-/* Re-usable button & input look, matching QuickHack palette */
-.qh-btn {
-  padding: 0.6rem 1rem;
-  background: #222426;
-  color: #fff;
-  border: 1px solid #999;
+.home-nav-btn {
+  position: relative;
+  width: 240px;
+  max-width: 90vw;
+  text-align: center;
+  padding: 0.85rem 1.4rem;
+  border: none;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), var(--accent-2));
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  font-size: calc(0.95rem * var(--faction-font-scale));
+  cursor: pointer;
+  outline: none;
+  border-radius: 8px;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-2) 55%, transparent);
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
-.qh-btn:hover {
-  background: #4d5356;
+.home-nav-btn::before,
+.home-nav-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  border: 2px solid var(--accent-2);
+  pointer-events: none;
+}
+.home-nav-btn::before {
+  clip-path: polygon(4% 0, 96% 0, 100% 16%, 100% 84%, 96% 100%, 4% 100%, 0 84%, 0 16%);
+}
+.home-nav-btn::after {
+  inset: -3px;
+  opacity: 0.55;
+  border-color: color-mix(in srgb, var(--accent-2) 45%, transparent);
+  filter: blur(1px);
+}
+.home-nav-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent-2) 65%, transparent),
+    0 0 26px color-mix(in srgb, var(--accent-2) 35%, transparent);
+}
+.home-nav-btn:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-2) 55%, transparent);
+}
+.home-nav-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .qh-input {

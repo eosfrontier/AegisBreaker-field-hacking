@@ -192,13 +192,13 @@ export default function HomePage() {
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Aegis Breaker - Field hacking</h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
-        <button className="qh-btn" onClick={() => navigate('/quickhack')}>
+        <button className="qh-btn home-nav-btn" onClick={() => navigate('/quickhack')}>
           QuickHack
         </button>
-        <button className="qh-btn" onClick={() => navigate('/qr-scanner')}>
+        <button className="qh-btn home-nav-btn" onClick={() => navigate('/qr-scanner')}>
           QR Scanner
         </button>
-        <button className="qh-btn" onClick={() => navigate('/scripts-store')}>
+        <button className="qh-btn home-nav-btn" onClick={() => navigate('/scripts-store')}>
           Scripts Store
         </button>
         {info?.role === 'admin' && (
@@ -207,13 +207,13 @@ export default function HomePage() {
               <span style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Admin</span>
               <div style={{ flex: 1, height: '1px', background: 'var(--card-border)' }} />
             </div>
-            <button className="qh-btn" onClick={() => navigate('/gm-qr')}>
+            <button className="qh-btn home-nav-btn" onClick={() => navigate('/gm-qr')}>
               Generate Puzzle QR
             </button>
-            <button className="qh-btn" onClick={() => navigate('/admin')}>
+            <button className="qh-btn home-nav-btn" onClick={() => navigate('/admin')}>
               Admin Panel
             </button>
-            <button className="qh-btn" onClick={() => navigate('/admin/feedback')}>
+            <button className="qh-btn home-nav-btn" onClick={() => navigate('/admin/feedback')}>
               Feedback Dashboard
             </button>
           </div>
