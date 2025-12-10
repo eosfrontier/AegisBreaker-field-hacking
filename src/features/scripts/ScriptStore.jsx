@@ -2,6 +2,7 @@
 import { getScriptCharges, grantScript } from './scriptsStore';
 import { getScriptDefinition } from './registry';
 import { useNavigate } from 'react-router-dom';
+import './ScriptStore.css';
 
 const SCRIPT_STORE_ITEMS = [
   { id: 'scan', name: 'Scan', price: 50, reqSkill: 'scan', minLevel: 1 },
@@ -34,7 +35,7 @@ const ensureCredits = () => {
 export default function ScriptStore() {
   const navigate = useNavigate();
   const [credits, setCredits] = useState(() => ensureCredits());
-  const [version, setVersion] = useState(0);
+  const [, setVersion] = useState(0);
   const [character] = useState(() => {
     try {
       const raw = localStorage.getItem('characterInfo');
@@ -53,17 +54,22 @@ export default function ScriptStore() {
   const isAdmin = character?.role === 'admin';
 
   const items = useMemo(() => {
-    return SCRIPT_STORE_ITEMS.map((item) => {
+    return SCRIPT_STORE_ITEMS.reduce((acc, item) => {
       const def = getScriptDefinition(item.id);
+      const contexts = def?.contexts || {};
+      const hasRunnable = Object.values(contexts).some((ctx) => typeof ctx?.run === 'function');
+      if (!def || !hasRunnable) return acc; // hide undefined/unimplemented scripts
+
       const unlocked = isAdmin || (level >= item.minLevel && skills.includes(item.reqSkill));
-      return {
+      acc.push({
         ...item,
-        description: def?.description,
+        description: def.description,
         unlocked,
         charges: getScriptCharges(undefined, item.id),
-      };
-    });
-  }, [isAdmin, level, skills, credits, version]);
+      });
+      return acc;
+    }, []);
+  }, [isAdmin, level, skills]);
 
   const handleBuy = (id, price) => {
     if (isAdmin) {
@@ -78,48 +84,52 @@ export default function ScriptStore() {
   };
 
   return (
-    <div className="main" style={{ padding: '1rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Scripts Store</h2>
-        <button
-          className="qh-btn"
-          onClick={() =>
-            navigate('/', {
-              state: { transition: { direction: 'from-bottom' } },
-            })
-          }
-        >
+    <div className="main script-store">
+      <div className="script-store__header">
+        <div>
+          <p className="eyebrow">Black ICE Emporium</p>
+          <h2>Scripts Store</h2>
+        </div>
+        <div className="credits-chip">
+          <span className="label">Credits</span>
+          <strong>{isAdmin ? '∞' : credits}</strong>
+        </div>
+        <button className="home-nav-btn" onClick={() => navigate('/', { state: { transition: 'fade' } })}>
           Back
         </button>
       </div>
-      <p style={{ marginTop: 4 }}>Sonuren: {isAdmin ? '∞' : credits}</p>
-      <div style={{ display: 'grid', gap: '12px', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+
+      <div className="script-grid">
         {items.map((item) => (
-          <div key={item.id} className="qh-card" style={{ padding: '12px', border: '1px solid var(--card-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <article key={item.id} className="script-card">
+            <div className="script-card__top">
               <div>
-                <div style={{ fontWeight: 700 }}>{item.name}</div>
-                <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>{item.description || 'Script module'}</div>
+                <div className="script-name">{item.name}</div>
               </div>
-              <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>Charges: {item.charges}</div>
+              <div className="badge">Charges: {item.charges}</div>
             </div>
-            <div style={{ marginTop: 8, fontSize: '0.85rem', opacity: 0.85 }}>
-              Requires level {item.minLevel} & skill: {item.reqSkill}
+            <div className="script-desc">{item.description || 'Script module'}</div>
+
+            <div className="script-meta">
+              <span>Req. Lv {item.minLevel}</span>
+              <span className="divider">•</span>
+              <span>Skill: {item.reqSkill}</span>
             </div>
-            {!item.unlocked && !isAdmin && (
-              <div style={{ marginTop: 6, color: '#f87171', fontSize: '0.9rem' }}>Locked</div>
-            )}
-            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>Price: {item.price} cr</div>
+
+            {!item.unlocked && !isAdmin && <div className="locked">Locked</div>}
+
+            <div className="script-card__actions">
+              <div className="price">Price: {item.price} cr</div>
               <button
-                className="qh-btn"
+                className="home-nav-btn small"
+                style={{ minWidth: 50, width: '110px' }}
                 disabled={(!item.unlocked && !isAdmin) || (!isAdmin && credits < item.price)}
                 onClick={() => handleBuy(item.id, item.price)}
               >
                 {isAdmin ? 'Grant' : credits < item.price ? 'Insufficient' : 'Buy'}
               </button>
             </div>
-          </div>
+          </article>
         ))}
       </div>
     </div>

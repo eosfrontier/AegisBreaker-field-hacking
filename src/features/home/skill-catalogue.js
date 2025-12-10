@@ -15,22 +15,22 @@ export const SKILL_TIERS = {
     { id: 'script_snoop', label: 'Script - Snoop' },
   ],
   '5-6': [
-    { id: 'hack_security', label: 'Hack Security Devices (cams, turrets)' },
-    { id: 'sabotage_basic', label: 'Sabotage (Basic)' },
+    { id: 'hack_security', label: 'Hack Security Devices' },
+    { id: 'sabotage_basic', label: 'Sabotage' },
     { id: 'script_override', label: 'Script - Override' },
   ],
   '7-8': [
-    { id: 'hack_it', label: 'Hack IT Infrastructure (routers, modems)' },
-    { id: 'improvise', label: 'Improvise (GM adjudication)' },
+    { id: 'hack_it', label: 'Hack IT Infrastructure' },
+    { id: 'improvise', label: 'Improvise' },
     { id: 'script_worm', label: 'Script - Worm' },
-    { id: 'sabotage_adv', label: 'Sabotage (Advanced)' },
+    { id: 'sabotage_adv', label: 'Sabotage' },
   ],
   '9-10': [
     { id: 'system_takeover', label: 'System Takeover' },
     { id: 'realtime_ctrl', label: 'Real-time Control' },
-    { id: 'script_zeroday', label: 'Script - Zero Day (instant solve)' },
-    { id: 'script_shield', label: 'Script - Shield (immune this puzzle)' },
-    { id: 'sabotage_crit', label: 'Sabotage (Critical)' },
+    { id: 'script_zeroday', label: 'Script - Zero Day' },
+    { id: 'script_shield', label: 'Script - Shield ' },
+    { id: 'sabotage_crit', label: 'Sabotage' },
   ],
 };
 
