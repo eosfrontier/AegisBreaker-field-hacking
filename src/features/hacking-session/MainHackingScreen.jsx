@@ -1,25 +1,35 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { doc, collection, query, where, onSnapshot, updateDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebaseConfig';
 import './MainHackingScreen.css';
 import HexGrid from './HexGrid';
+import { QRCodeCanvas } from 'qrcode.react';
 import aquilaLogo from '../../assets/Aquila/logo.png';
 import dugoLogo from '../../assets/Dugo/logo.png';
 import pendzalLogo from '../../assets/Pendzal/logo.png';
+import ekaneshLogo from '../../assets/Ekanesh/logo.png';
+import sonaLogo from '../../assets/Sona/logo.png';
+import aliensLogo from '../../assets/Aliens/logo.png';
+import iccLogo from '../../assets/ICC/logo.png';
 
 // import DefenseGrid from './DefenseGrid';
 import { useScriptContext } from '../scripts/ScriptProvider';
 
 const THEME_LOGOS = {
+  ICC: iccLogo,
   Aquila: aquilaLogo,
   Dugo: dugoLogo,
   Pendzal: pendzalLogo,
+  Ekanesh: ekaneshLogo,
+  Sona: sonaLogo,
+  Aliens: aliensLogo,
 };
 
 function MainHackingScreen() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Session data, including theme, status, parentSessionId, etc.
   const [sessionData, setSessionData] = useState(null);
@@ -32,6 +42,12 @@ function MainHackingScreen() {
 
   // Layers for this session
   const [layers, setLayers] = useState([]);
+
+  const [profile, setProfile] = useState(null);
+  const [startModalOpen, setStartModalOpen] = useState(false);
+
+  // Device guard: phone-sized screens should not view the live console post-start
+  const [isMobile, setIsMobile] = useState(false);
 
   // Local time left in seconds
   const [timeLeft, setTimeLeft] = useState(0);
@@ -314,7 +330,14 @@ function MainHackingScreen() {
   const themeValue = sessionData?.theme;
   const normalizedTheme = themeValue ? themeValue.toLowerCase() : null;
   const themeClass = themeValue ? `theme-${themeValue}` : 'theme-default';
+  const playerFaction = profile?.faction || 'neutral';
+  const sessionTheme = normalizedTheme || 'neutral';
   const showTimerBar = sessionData?.timeLimit && sessionData.timeLimit < 9999;
+  const baseSessionPath = sessionId ? `/session/${sessionId}` : '';
+  const startRequested =
+    location.pathname.endsWith('/start') || new URLSearchParams(location.search || '').get('start') === '1';
+  const startUrl =
+    typeof window !== 'undefined' && sessionId ? `${window.location.origin}${baseSessionPath}/start` : '';
 
   const formatTime = (seconds) => {
     const safe = Math.max(0, seconds || 0);
@@ -331,9 +354,27 @@ function MainHackingScreen() {
   };
 
   useEffect(() => {
-    const faction = normalizedTheme || 'neutral';
+    const faction = playerFaction || 'neutral';
     document.documentElement.setAttribute('data-faction', faction);
-  }, [normalizedTheme]);
+  }, [playerFaction]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('characterInfo');
+      if (stored) setProfile(JSON.parse(stored));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mq = window.matchMedia('(max-width: 820px)');
+    const update = (e) => setIsMobile(e.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     if (hackPhase === 'INIT') {
@@ -348,6 +389,47 @@ function MainHackingScreen() {
     }
     return () => setScriptContext({ id: null, api: {} });
   }, [hackPhase, setScriptContext]);
+
+  useEffect(() => {
+    if (startRequested && hackPhase === 'INIT') {
+      setStartModalOpen(true);
+    }
+  }, [startRequested, hackPhase]);
+
+  const requiredSkills = useMemo(() => {
+    const base = new Set(['initialize']);
+    if (Array.isArray(sessionData?.requiredSkills)) {
+      sessionData.requiredSkills.forEach((s) => base.add(s));
+    }
+    if (sessionData?.requiredDeviceSkill) {
+      base.add(sessionData.requiredDeviceSkill);
+    }
+    return base;
+  }, [sessionData]);
+
+  const eligibility = useMemo(() => {
+    const reasons = [];
+    if (!profile) {
+      reasons.push('Profile required. Set up your operative on the Home screen.');
+    } else {
+      if (profile.role !== 'operative') reasons.push('Must be an operative profile.');
+      if (!profile.name) reasons.push('Name is required.');
+      if (!profile.faction) reasons.push('Faction is required.');
+      const skillsList = Array.isArray(profile.skills) ? profile.skills : [];
+      requiredSkills.forEach((req) => {
+        if (!skillsList.includes(req)) {
+          reasons.push(`Requires skill: ${req}`);
+        }
+      });
+    }
+    return { ok: reasons.length === 0, reasons };
+  }, [profile, requiredSkills]);
+
+  const handleConfirmStart = async () => {
+    if (!eligibility.ok) return;
+    await handleInitializeHack();
+    setStartModalOpen(false);
+  };
 
   // If session locked by parent
   if (isLocked) {
@@ -373,134 +455,204 @@ function MainHackingScreen() {
     );
   }
 
-  // ============== RENDER ==============
-  return (
-    <div className={`main-hacking-screen ${themeClass}`}>
-      <div className="main-container">
-        {/* LEFT: Parent Session */}
-        <div className="parent-sessions-column">
-          {themeLogoSrc && (
-            <img
-              className="theme-logo"
-              src={themeLogoSrc}
-              alt={`${sessionData?.theme || 'Theme'} logo`}
-            />
-          )}
-          {parentSessionData && (
-            <button className="parent-session-button" onClick={handleGoToParent}>
-              {parentSessionData.playerName}
+  const sessionStarted = hackPhase === 'ACTIVE' || hackPhase === 'SUCCESS' || hackPhase === 'FAILURE';
+
+  // On phones/tablets, block the live console once started
+  if (isMobile && sessionStarted) {
+    return (
+      <div className={`main-hacking-screen ${themeClass}`}>
+        <div className="mobile-block">
+          <h1>Console Unavailable</h1>
+          <p>
+            The hacking console must be viewed on a larger display. This session is active; switch to the main screen or
+            return home.
+          </p>
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button className="qh-btn" onClick={() => navigate('/')}>
+              Return Home
             </button>
-          )}
-        </div>
-
-        {/* CENTER: Layers or final states */}
-        <div className="layers-column">
-          {/* INIT PHASE */}
-          {hackPhase === 'INIT' && (
-            <div className="init-phase">
-              <div className="header-box">
-                <h1>{sessionData.playerName}</h1>
-              </div>
-              <p>Time Limit: {sessionData.timeLimit || 60} seconds</p>
-              {reconRevealed && nextGroup != null && (
-                <p style={{ color: 'var(--accent-2)' }}>Recon: upcoming group appears to be {nextGroup}.</p>
-              )}
-              <button className="initialize-btn" onClick={handleInitializeHack}>
-                Initialize Hack
-              </button>
-            </div>
-          )}
-          {/* ACTIVE PHASE */}
-          {hackPhase === 'ACTIVE' && (
-            <div className="active-phase">
-              <div className="header-box">
-                <h1>{sessionData.playerName}</h1>
-              </div>
-              {showTimerBar && (
-                <div className="timer-bar">
-                  <div className="timer-bar-track">
-                    <div
-                      className="timer-bar-fill"
-                      style={{
-                        width: sessionData.timeLimit
-                          ? `${Math.max(0, Math.min(100, (timeLeft / sessionData.timeLimit) * 100))}%`
-                          : '0%',
-                      }}
-                    />
-                    <div className="timer-bar-text">{formatTime(timeLeft)}</div>
-                  </div>
-                </div>
-              )}
-
-              {/* CURRENT GROUP (active) */}
-              {currentGroup != null && (
-                <div id={`group-${currentGroup}`} className="group-section unlocked">
-                  <h3>Group {currentGroup}</h3>
-                  <HexGrid
-                    layers={groupedLayers[currentGroup]}
-                    sessionId={sessionId}
-                    variant="active" // active group shows full codes
-                  />
-                </div>
-              )}
-
-              {/* NEXT GROUP (preview) */}
-              {nextGroup != null && (
-                <div id={`group-${nextGroup}`} className="group-section upcoming">
-                  <h3>Upcoming Group {nextGroup}</h3>
-                  <HexGrid
-                    layers={groupedLayers[nextGroup]}
-                    sessionId={sessionId}
-                    variant="preview" // preview group stays locked/low emphasis
-                  />
-                </div>
-              )}
-
-              {/* If currentGroup === null -> all solved? or waiting on success? */}
-              {currentGroup == null && <h2>All groups solved or none found.</h2>}
-            </div>
-          )}
-
-          {/* If all groups are solved => no currentGroup => success check might happen soon */}
-          {hackPhase === 'ACTIVE' && currentGroup == null && (
-            <div className="active-phase">
-              <h2>All groups solved? Waiting for status update...</h2>
-            </div>
-          )}
-
-          {/* SUCCESS / FAILURE */}
-          {hackPhase === 'SUCCESS' && (
-            <div className="success-phase">
-              {sessionData?.completionContent && (
-                <div
-                  className="completion-content"
-                  dangerouslySetInnerHTML={{ __html: sessionData.completionContent }}
-                />
-              )}
-            </div>
-          )}
-          {hackPhase === 'FAILURE' && (
-            <div className="failure-phase">
-              <h1>Hack Failed!</h1>
-              <p>Some layers remained unsolved when time ran out.</p>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT: Child Sessions if success */}
-        <div className="child-sessions-column">
-          {sessionData.status === 'SUCCESS' && childSessions.length > 0 && (
-            <div className="child-session-list">
-              <h3>Child Sessions</h3>
-              {childSessions.map((child) => (
-                <button key={child.id} onClick={() => handleGoToChild(child.id)} className="child-session-button">
-                  {child.playerName}
-                </button>
-              ))}
-            </div>
-          )}
+            <button className="qh-btn secondary" onClick={() => navigate('/qr-scanner')}>
+              Open Scanner
+            </button>
+          </div>
         </div>
       </div>
+    );
+  }
+
+  // ============== RENDER ==============
+  return (
+    <div className={`main-hacking-screen ${themeClass}`} data-player-faction={playerFaction}>
+      <div className="session-skin" data-session-theme={sessionTheme}>
+        <div className="main-container">
+          {/* LEFT: Parent Session */}
+          <div className="parent-sessions-column">
+            {themeLogoSrc && (
+              <img className="theme-logo" src={themeLogoSrc} alt={`${sessionData?.theme || 'Theme'} logo`} />
+            )}
+            {parentSessionData && (
+              <button className="parent-session-button" onClick={handleGoToParent}>
+                {parentSessionData.playerName}
+              </button>
+            )}
+          </div>
+
+          {/* CENTER: Layers or final states */}
+          <div className="layers-column">
+            {/* INIT PHASE */}
+            {hackPhase === 'INIT' && (
+              <div className="init-phase">
+                <div className="header-box">
+                  <h1>{sessionData.playerName}</h1>
+                </div>
+                <p>Time Limit: {sessionData.timeLimit || 60} seconds</p>
+                {reconRevealed && nextGroup != null && (
+                  <p style={{ color: 'var(--accent-2)' }}>Recon: upcoming group appears to be {nextGroup}.</p>
+                )}
+                <div className="init-actions">
+                  {startUrl && (
+                    <div className="start-qr-card">
+                      <QRCodeCanvas value={startUrl} size={168} bgColor="#0a0c0f" fgColor="#e5e7eb" level="M" />
+                      <p className="start-qr-caption">
+                        Scan to start hack. <br /> Requires Initialize Hack skill.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* ACTIVE PHASE */}
+            {hackPhase === 'ACTIVE' && (
+              <div className="active-phase">
+                <div className="header-box">
+                  <h1>{sessionData.playerName}</h1>
+                </div>
+                {showTimerBar && (
+                  <div className="timer-bar">
+                    <div className="timer-bar-track">
+                      <div
+                        className="timer-bar-fill"
+                        style={{
+                          width: sessionData.timeLimit
+                            ? `${Math.max(0, Math.min(100, (timeLeft / sessionData.timeLimit) * 100))}%`
+                            : '0%',
+                        }}
+                      />
+                      <div className="timer-bar-text">{formatTime(timeLeft)}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* CURRENT GROUP (active) */}
+                {currentGroup != null && (
+                  <div id={`group-${currentGroup}`} className="group-section unlocked">
+                    <h3>Group {currentGroup}</h3>
+                    <HexGrid
+                      layers={groupedLayers[currentGroup]}
+                      sessionId={sessionId}
+                      variant="active" // active group shows full codes
+                    />
+                  </div>
+                )}
+
+                {/* NEXT GROUP (preview) */}
+                {nextGroup != null && (
+                  <div id={`group-${nextGroup}`} className="group-section upcoming">
+                    <h3>Upcoming Group {nextGroup}</h3>
+                    <HexGrid
+                      layers={groupedLayers[nextGroup]}
+                      sessionId={sessionId}
+                      variant="preview" // preview group stays locked/low emphasis
+                    />
+                  </div>
+                )}
+
+                {/* If currentGroup === null -> all solved? or waiting on success? */}
+                {currentGroup == null && <h2>All groups solved or none found.</h2>}
+              </div>
+            )}
+
+            {/* If all groups are solved => no currentGroup => success check might happen soon */}
+            {hackPhase === 'ACTIVE' && currentGroup == null && (
+              <div className="active-phase">
+                <h2>All groups solved? Waiting for status update...</h2>
+              </div>
+            )}
+
+            {/* SUCCESS / FAILURE */}
+            {hackPhase === 'SUCCESS' && (
+              <div className="success-phase">
+                {sessionData?.completionContent && (
+                  <div
+                    className="completion-content"
+                    dangerouslySetInnerHTML={{ __html: sessionData.completionContent }}
+                  />
+                )}
+              </div>
+            )}
+            {hackPhase === 'FAILURE' && (
+              <div className="failure-phase">
+                <h1>Hack Failed!</h1>
+                <p>Some layers remained unsolved when time ran out.</p>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: Child Sessions if success */}
+          <div className="child-sessions-column">
+            {sessionData.status === 'SUCCESS' && childSessions.length > 0 && (
+              <div className="child-session-list">
+                <h3>Child Sessions</h3>
+                {childSessions.map((child) => (
+                  <button key={child.id} onClick={() => handleGoToChild(child.id)} className="child-session-button">
+                    {child.playerName}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {startModalOpen && hackPhase === 'INIT' && (
+        <div className="start-modal-overlay" role="dialog" aria-modal="true">
+          <div className="start-modal">
+            <h2>Start Hack</h2>
+            {!eligibility.ok ? (
+              <>
+                <p className="start-modal-subtext">
+                  You need to complete your profile and required skills before starting.
+                </p>
+                <ul className="start-requirements">
+                  {eligibility.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+                <div className="start-modal-actions">
+                  <button className="qh-btn" onClick={() => navigate('/')}>
+                    Go to Home
+                  </button>
+                  <button className="qh-btn secondary" onClick={() => setStartModalOpen(false)}>
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="start-modal-subtext">Ready to initialize this hack?</p>
+                <div className="start-modal-actions">
+                  <button className="qh-btn secondary" onClick={() => setStartModalOpen(false)}>
+                    Cancel
+                  </button>
+                  <button className="qh-btn" onClick={handleConfirmStart}>
+                    Confirm &amp; Start
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

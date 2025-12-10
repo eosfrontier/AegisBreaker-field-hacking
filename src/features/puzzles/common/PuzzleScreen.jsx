@@ -75,14 +75,6 @@ export default function PuzzleScreen() {
     }
   }, [hasSessionParams, loading, layerData, sessionId, layerId]);
 
-  if (hasSessionParams && (sessionData?.status === 'FAILURE' || sessionData?.status === 'SUCCESS')) {
-    return (
-      <div className="main" style={{ padding: '1rem' }}>
-        The session has ended!
-      </div>
-    );
-  }
-
   const resolvedLayerData = useMemo(() => {
     if (hasSessionParams) return layerData;
     if (layerData) return layerData;
@@ -100,6 +92,14 @@ export default function PuzzleScreen() {
     return (
       <div className="main" style={{ padding: '1rem' }}>
         Missing puzzle parameters. Start from Quick Hack or a session link.
+      </div>
+    );
+  }
+
+  if (hasSessionParams && (sessionData?.status === 'FAILURE' || sessionData?.status === 'SUCCESS')) {
+    return (
+      <div className="main" style={{ padding: '1rem' }}>
+        The session has ended!
       </div>
     );
   }
