@@ -62,6 +62,7 @@ const AnimatedRoutes = () => {
 
           {/* Main Hacking Screen */}
           <Route path="/session/:sessionId" element={<SessionScreen />} />
+          <Route path="/session/:sessionId/start" element={<SessionScreen />} />
 
           {/* Puzzles */}
           <Route path="/puzzle" element={<PuzzleScreen />} />

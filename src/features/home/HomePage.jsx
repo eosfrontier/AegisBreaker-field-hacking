@@ -1,8 +1,9 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAvailableSkills, getLabelById } from './skill-catalogue';
-import { AiOutlineSetting } from 'react-icons/ai';
+import { AiOutlineUser } from 'react-icons/ai';
 import BootSplash from '../../components/common/BootSplash';
+import { motion, AnimatePresence } from 'motion/react';
 
 import './HomePage.css';
 
@@ -33,7 +34,20 @@ export default function HomePage() {
     }
   });
 
+  const hasChosenRole = useMemo(() => {
+    try {
+      return Boolean(info?.role || localStorage.getItem('ab:user-type'));
+    } catch {
+      return Boolean(info?.role);
+    }
+  }, [info?.role]);
+
   const openProfileModal = () => {
+    // toggle if already open
+    if (showModal) {
+      closeModal();
+      return;
+    }
     if (info) {
       setName(info.name ?? '');
       const lv = info.level ?? 1;
@@ -42,9 +56,9 @@ export default function HomePage() {
       setSkills(info.skills ?? []);
       setRole(info.role ?? null);
       setFaction(info.faction ?? '');
-      setStep(info.role === 'operative' ? 1 : 0);
+      setStep(1);
     } else {
-      setStep(0);
+      setStep(hasChosenRole ? 1 : 0);
     }
     setShowModal(true);
   };
@@ -153,6 +167,11 @@ export default function HomePage() {
 
   const handleRespec = () => {
     localStorage.removeItem('characterInfo');
+    try {
+      localStorage.removeItem('ab:user-type');
+    } catch {
+      /* ignore */
+    }
     setInfo(null);
     setName('');
     setLevel(1);
@@ -186,9 +205,16 @@ export default function HomePage() {
           ]}
         />
       )}
-      <button className="qh-profile-btn" onClick={openProfileModal} aria-label="Edit profile">
-        <AiOutlineSetting size={24} />
-      </button>
+      <motion.button
+        className="qh-profile-btn"
+        onClick={openProfileModal}
+        aria-label="Edit profile"
+        whileTap={{ scale: 0.92, rotate: -6 }}
+        whileHover={{ scale: 1.06 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+      >
+        <AiOutlineUser size={24} />
+      </motion.button>
       <h2 style={{ textAlign: 'center', marginBottom: '1rem', fontWeight: '700', fontFamily: 'var(--faction-font)' }}>
         [ Aegis Breaker ]
       </h2>
@@ -244,169 +270,210 @@ export default function HomePage() {
       </div>
 
       {info?.role === 'operative' && (
-        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
-          Logged in as <strong>{info.name}</strong> (Lv {info.level})<br />
-          Skills: {info.skills.map(getLabelById).join(', ')}
+        <div className="profile-chip">
+          <div className="profile-chip-header">
+            <span className="profile-chip-label">Operative</span>
+            <span className="profile-chip-name">{info.name}</span>
+          </div>
+          <div className="profile-chip-meta">
+            <span className="profile-chip-level">LV {info.level}</span>
+            <span className="profile-chip-divider" aria-hidden="true">
+              •
+            </span>
+            <span className="profile-chip-skills">
+              {info.skills.map(getLabelById).join(', ') || 'No skills selected'}
+            </span>
+          </div>
         </div>
       )}
 
-      {showModal && (
-        <div className="qh-modal-overlay" onClick={closeModal} aria-hidden="true">
-          <div
-            className="qh-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modalTitle"
-            onClick={(e) => e.stopPropagation()}
-            ref={modalRef}
+      <AnimatePresence initial={false} mode="wait">
+        {showModal && (
+          <motion.div
+            className="qh-modal-overlay"
+            onClick={closeModal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-              <h3 id="modalTitle" style={{ margin: 0, textAlign: 'center', flex: 1 }}>
-                {step === 0 ? 'Identify Role' : 'Operative Profile'}
-              </h3>
-              <button
-                className="qh-btn"
-                style={{ background: '#b91c1c' }}
-                onClick={handleRespec}
-                aria-label="Respec / reset profile"
-              >
-                Reset
-              </button>
-            </div>
-            <div style={{ maxHeight: '70vh', overflowX: 'hidden', paddingRight: '20px' }}>
-              {step === 0 && (
-                <>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-                    <button
-                      className="qh-btn"
-                      onClick={() => {
-                        setRole('operative');
-                        setStep(1);
+            <motion.div
+              className="qh-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modalTitle"
+              onClick={(e) => e.stopPropagation()}
+              ref={modalRef}
+              initial={{ y: 24, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 20, opacity: 0, scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                <h3 id="modalTitle" style={{ margin: 0, textAlign: 'center', flex: 1 }}>
+                  {step === 0 ? 'Identify Role' : 'Operative Profile'}
+                </h3>
+                <button
+                  className="qh-btn"
+                  style={{ background: '#b91c1c' }}
+                  onClick={handleRespec}
+                  aria-label="Respec / reset profile"
+                >
+                  Reset
+                </button>
+              </div>
+              <div style={{ maxHeight: '70vh', overflowX: 'hidden', paddingRight: '20px' }}>
+                {step === 0 && (
+                  <>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        marginTop: '1rem',
                       }}
                     >
-                      Operative (Player)
-                    </button>
-                    <button
-                      className="qh-btn"
-                      onClick={() => {
-                        const data = { role: 'admin' };
-                        localStorage.setItem('characterInfo', JSON.stringify(data));
-                        setInfo(data);
-                        closeModal();
-                      }}
-                    >
-                      Administrator (GM)
-                    </button>
-                  </div>
-                </>
-              )}
+                      <button
+                        className="qh-btn home-nav-btn"
+                        onClick={() => {
+                          try {
+                            localStorage.setItem('ab:user-type', 'operative');
+                          } catch {
+                            /* ignore */
+                          }
+                          setRole('operative');
+                          setStep(1);
+                        }}
+                      >
+                        Operative (Player)
+                      </button>
+                      <button
+                        className="qh-btn home-nav-btn"
+                        onClick={() => {
+                          const data = { role: 'admin' };
+                          try {
+                            localStorage.setItem('ab:user-type', 'admin');
+                          } catch {
+                            /* ignore */
+                          }
+                          localStorage.setItem('characterInfo', JSON.stringify(data));
+                          setInfo(data);
+                          closeModal();
+                        }}
+                      >
+                        Administrator (GM)
+                      </button>
+                    </div>
+                  </>
+                )}
 
-              {step === 1 && (
-                <>
-                  <label className="qh-label">
-                    Name <span style={{ color: '#f87171' }}>*</span>
-                    <input
-                      className="qh-input"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      aria-required="true"
-                    />
-                  </label>
-                  <label className="qh-label">
-                    Level (1-10) <span style={{ color: '#f87171' }}>*</span>
-                    <input
-                      className="qh-input"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={levelInput}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, '');
-                        if (!digits) {
-                          setLevelInput('');
-                          return;
-                        }
-                        const normalized = digits.startsWith('10') ? '10' : digits.slice(-1);
-                        const num = Number(normalized);
-                        if (!Number.isFinite(num) || num < 1) return;
-                        const clamped = Math.min(10, num);
-                        setLevel(clamped);
-                        setLevelInput(String(clamped));
-                      }}
-                      onBlur={() => setLevelInput(String(level))}
-                      aria-required="true"
-                    />
-                  </label>
+                {step === 1 && (
+                  <>
+                    <label className="qh-label">
+                      Name <span style={{ color: '#f87171' }}>*</span>
+                      <input
+                        className="qh-input"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        aria-required="true"
+                      />
+                    </label>
+                    <label className="qh-label">
+                      Level (1-10) <span style={{ color: '#f87171' }}>*</span>
+                      <input
+                        className="qh-input"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={levelInput}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, '');
+                          if (!digits) {
+                            setLevelInput('');
+                            return;
+                          }
+                          const normalized = digits.startsWith('10') ? '10' : digits.slice(-1);
+                          const num = Number(normalized);
+                          if (!Number.isFinite(num) || num < 1) return;
+                          const clamped = Math.min(10, num);
+                          setLevel(clamped);
+                          setLevelInput(String(clamped));
+                        }}
+                        onBlur={() => setLevelInput(String(level))}
+                        aria-required="true"
+                      />
+                    </label>
 
-                  <div style={{ marginTop: '1rem' }}>
-                    <h4 style={{ margin: 0, marginBottom: '.5rem' }}>
-                      Faction <span style={{ color: '#f87171' }}>*</span>
-                    </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
-                      {FACTIONS.map((f) => {
-                        const label = f.charAt(0).toUpperCase() + f.slice(1);
-                        const isActive = faction === f;
-                        return (
+                    <div style={{ marginTop: '1rem' }}>
+                      <h4 style={{ margin: 0, marginBottom: '.5rem' }}>
+                        Faction <span style={{ color: '#f87171' }}>*</span>
+                      </h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
+                        {FACTIONS.map((f) => {
+                          const label = f.charAt(0).toUpperCase() + f.slice(1);
+                          const isActive = faction === f;
+                          return (
+                            <button
+                              key={f}
+                              type="button"
+                              className="qh-card qh-btn secondary qh-focus"
+                              onClick={() => setFaction(f)}
+                              aria-pressed={isActive}
+                              style={{
+                                padding: '.75rem',
+                                borderColor: isActive ? 'var(--accent-2)' : 'var(--card-border)',
+                              }}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                      <p style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>
+                        Select skills ({pointsRemaining} pts left)
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {availableSkills.map(({ id, label }) => (
                           <button
-                            key={f}
-                            type="button"
-                            className="qh-card qh-btn secondary qh-focus"
-                            onClick={() => setFaction(f)}
-                            aria-pressed={isActive}
+                            key={id}
+                            onClick={() => toggleSkill(id)}
+                            className="qh-skill-btn"
                             style={{
-                              padding: '.75rem',
-                              borderColor: isActive ? 'var(--accent-2)' : 'var(--card-border)',
+                              backgroundColor: skills.includes(id) ? '#4d5356' : '#222426',
+                              cursor: pointsRemaining > 0 || skills.includes(id) ? 'pointer' : 'not-allowed',
+                              opacity: pointsRemaining > 0 || skills.includes(id) ? 1 : 0.5,
                             }}
                           >
                             {label}
                           </button>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div style={{ marginTop: '1rem' }}>
-                    <p style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>
-                      Select skills ({pointsRemaining} pts left)
-                    </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      {availableSkills.map(({ id, label }) => (
-                        <button
-                          key={id}
-                          onClick={() => toggleSkill(id)}
-                          className="qh-skill-btn"
-                          style={{
-                            backgroundColor: skills.includes(id) ? '#4d5356' : '#222426',
-                            cursor: pointsRemaining > 0 || skills.includes(id) ? 'pointer' : 'not-allowed',
-                            opacity: pointsRemaining > 0 || skills.includes(id) ? 1 : 0.5,
-                          }}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
+                      <button className="qh-btn" onClick={closeModal}>
+                        Close
+                      </button>
+                      <button
+                        className="qh-btn"
+                        disabled={!name || !faction}
+                        style={{ backgroundColor: !name ? '#666' : '#00aa00' }}
+                        onClick={saveOperative}
+                      >
+                        Save&nbsp;Profile
+                      </button>
                     </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
-                    <button className="qh-btn" onClick={closeModal}>
-                      Close
-                    </button>
-                    <button
-                      className="qh-btn"
-                      disabled={!name || !faction}
-                      style={{ backgroundColor: !name ? '#666' : '#00aa00' }}
-                      onClick={saveOperative}
-                    >
-                      Save&nbsp;Profile
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

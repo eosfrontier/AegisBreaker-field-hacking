@@ -40,7 +40,8 @@
 }
 
 /* ===== Aquila: regimented navy/steel ===== */
-[data-faction='aquila'] {
+[data-faction='aquila'],
+[data-session-theme='aquila'] {
   --bg: #0a1222;
   --bg-alt: #0c162a;
   --surface: #101a2b;
@@ -58,7 +59,8 @@
 }
 
 /* ===== Dugo: crimson + gold, premium sheen ===== */
-[data-faction='dugo'] {
+[data-faction='dugo'],
+[data-session-theme='dugo'] {
   --bg: #311111;
   --bg-alt: #520000;
   --surface: #2a1111;
@@ -76,7 +78,8 @@
 }
 
 /* ===== Ekanesh: deep teal + sand/gold, ecclesiastic motifs ===== */
-[data-faction='ekanesh'] {
+[data-faction='ekanesh'],
+[data-session-theme='ekanesh'] {
   --bg: #0f1a19;
   --bg-alt: #12201f;
   --surface: #142321;
@@ -94,7 +97,8 @@
 }
 
 /* ===== Pendzal: retro CRT (phosphor green) ===== */
-[data-faction='pendzal'] {
+[data-faction='pendzal'],
+[data-session-theme='pendzal'] {
   --bg: #0a0d0a;
   --bg-alt: #0c110c;
   --surface: #0f130f;
@@ -110,7 +114,8 @@
 
   --faction-font: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
 }
-[data-faction='pendzal'] .main::after {
+[data-faction='pendzal'] .main::after,
+.session-skin[data-session-theme='pendzal']::after {
   /* faint scanlines overlay for CRT feel (zero interaction cost) */
   content: '';
   position: absolute;
@@ -122,14 +127,15 @@
 }
 
 /* ===== Sona: cyan/indigo with bright white trims ===== */
-[data-faction='sona'] {
+[data-faction='sona'],
+[data-session-theme='sona'] {
   --bg: #041019;
   --bg-alt: #071a26;
   --surface: #0a2435;
   --surface-2: #0f334a;
 
   --accent: #4ec6db; /* primary cyan-blue */
-  --accent-2: #0f6e94; /* deep navy highlight */
+  --accent-2: #6afaff; /* deep navy highlight */
   --ring: rgba(78, 198, 219, 0.45);
   --card-border: #0f4c63;
 
@@ -140,7 +146,8 @@
 }
 
 /* ===== Aliens: blood-red and black, ominous tech ===== */
-[data-faction='aliens'] {
+[data-faction='aliens'],
+[data-session-theme='aliens'] {
   --bg: #0b0508;
   --bg-alt: #12070c;
   --surface: #190a10;
@@ -241,6 +248,88 @@ button:focus-visible {
   background: var(--surface-2);
   color: var(--text);
   border: 1px solid var(--card-border);
+}
+
+/* Shared nav/hud buttons */
+.home-nav-btn {
+  position: relative;
+  width: 240px;
+  max-width: 90vw;
+  min-width: 180px;
+  text-align: center;
+  padding: 0.85rem 1.4rem;
+  border: none;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), var(--accent-2));
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  font-size: calc(0.95rem * var(--faction-font-scale));
+  cursor: pointer;
+  outline: none;
+  border-radius: 8px;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-2) 55%, transparent);
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+.home-nav-btn::before,
+.home-nav-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  border: 2px solid var(--accent-2);
+  pointer-events: none;
+}
+.home-nav-btn::before {
+  clip-path: polygon(4% 0, 96% 0, 100% 16%, 100% 84%, 96% 100%, 4% 100%, 0 84%, 0 16%);
+}
+.home-nav-btn::after {
+  inset: -3px;
+  opacity: 0.55;
+  border-color: color-mix(in srgb, var(--accent-2) 45%, transparent);
+  filter: blur(1px);
+}
+.home-nav-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent-2) 65%, transparent),
+    0 0 26px color-mix(in srgb, var(--accent-2) 35%, transparent);
+}
+.home-nav-btn:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-2) 55%, transparent);
+}
+.home-nav-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.home-nav-btn.small {
+  width: auto;
+  min-width: 140px;
+  padding: 0.65rem 1rem;
+}
+
+.qh-label {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.qh-input {
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--surface-2);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  margin-top: 4px;
+  border-radius: 8px;
+}
+.qh-input:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 /* Small “cards” (role tiles, faction tiles) */

@@ -9,9 +9,6 @@
   gap: 1rem;
   flex: 1;
   padding: 1rem;
-  background: var(--hexbackground);
-  background-size: 32px;
-  background-color: var(--bg);
   color: var(--text);
 }
 
@@ -21,6 +18,16 @@
   flex-direction: column;
   min-height: 100vh;
   transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
+}
+
+.session-skin {
+  min-height: 100vh;
+  background: var(--hexbackground);
+  background-size: 32px;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--faction-font);
+  position: relative;
 }
 
 /* Left Column: Parent Sessions */
@@ -58,17 +65,29 @@
 }
 
 .initialize-btn {
-  padding: 0.75rem 1.5rem;
-  font-size: 1.25rem;
+  padding: 0.85rem 1.5rem;
+  font-size: 1.05rem;
   cursor: pointer;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), var(--accent-2));
+  color: var(--text);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent-2) 45%, transparent);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
 .initialize-btn:hover {
-  background-color: #0056b3;
+  filter: brightness(1.06);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent-2) 65%, transparent),
+    0 0 26px color-mix(in srgb, var(--accent-2) 35%, transparent);
+}
+
+.initialize-btn:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-2) 40%, transparent);
 }
 
 /* Active Phase: Layer Grid */
@@ -174,6 +193,28 @@
   justify-content: center;
 }
 
+.init-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.start-qr-card {
+  background: var(--surface);
+  padding: 0.85rem;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.start-qr-caption {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-align: center;
+}
+
 .timer-bar {
   width: 100%;
   max-width: 760px;
@@ -224,306 +265,70 @@
   margin-right: 10rem;
 }
 
-/* =========================
-   Theme Classes
-   ========================= */
-
-/* ICC Theme */
-.theme-ICC {
-  /* Background Styles */
-  background-color: #1c1c1c;
-  /* background-image: url('/themes/ICC/background.jpg'); */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-
-  /* Font Styles */
-  color: #ffffff; /* Font color */
-  font-family: 'ICCFont', sans-serif; /* Placeholder font */
-
-  /* Button Backgrounds */
-  .initialize-btn {
-    background-color: #ff5733; /* ICC-specific button color */
-  }
-
-  .initialize-btn:hover {
-    background-color: #c70039;
-  }
-
-  .parent-session-button,
-  .child-session-button {
-    background-color: #ff5733;
-  }
-
-  .parent-session-button:hover,
-  .child-session-button:hover {
-    background-color: #c70039;
-  }
-
-  /* Layer Card Backgrounds */
-  .layer-item {
-    background-color: #333333;
-  }
+.start-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
 }
 
-/* Aliens Theme */
-.theme-Aliens {
-  /* Background Styles */
-  background-color: #001900;
-  /* background-image: url('/themes/Aliens/background.jpg'); */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-
-  /* Font Styles */
-  color: #ff2020;
-  font-family: 'Orbitron', sans-serif;
-
-  /* Button Backgrounds */
-  .initialize-btn {
-    background-color: #00ff99; /* Aliens-specific button color */
-  }
-
-  .initialize-btn:hover {
-    background-color: #00cc77;
-  }
-
-  .parent-session-button,
-  .child-session-button {
-    background-color: #00ff99;
-  }
-
-  .parent-session-button:hover,
-  .child-session-button:hover {
-    background-color: #00cc77;
-  }
-
-  /* Layer Card Backgrounds */
-  .layer-item {
-    background-color: #001408;
-  }
+.start-modal {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
-/* Aquila Theme */
-.theme-Aquila {
-  /* Background Styles */
-  background-color: #1c1c1c;
-  /* background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/AquilaWallpaper.jpg'); */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-
-  /* Font Styles */
-  color: #c7d2e4;
-  font-family: 'AquilaEthnocentric', monospace;
-
-  /* Button Backgrounds */
-  .initialize-btn {
-    background-color: #3498db; /* Aquila-specific button color */
-  }
-
-  .initialize-btn:hover {
-    background-color: #2980b9;
-  }
-
-  .parent-session-button,
-  .child-session-button {
-    background-color: #3498db;
-  }
-
-  .parent-session-button:hover,
-  .child-session-button:hover {
-    background-color: #2980b9;
-  }
-
-  /* Layer Card Backgrounds */
-  .layer-item {
-    background-color: #2c3e50;
-  }
+.start-modal h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.06em;
 }
 
-/* Dugo Theme */
-.theme-Dugo {
-  /* Background Styles */
-  background-color: #242424;
-  /* background-image: url('https://www.eosfrontier.space/images/Facties/Wallpapers/DugoWallpaper.jpg');  */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-
-  /* Font Styles */
-  color: #ff2020;
-  font-family: 'DugoMadeInChina', sans-serif;
-
-  /* Button Backgrounds */
-  .initialize-btn {
-    background-color: #e74c3c; /* Dugo-specific button color */
-  }
-
-  .initialize-btn:hover {
-    background-color: #c0392b;
-  }
-
-  .parent-session-button,
-  .child-session-button {
-    background-color: #e74c3c;
-  }
-
-  .parent-session-button:hover,
-  .child-session-button:hover {
-    background-color: #c0392b;
-  }
-
-  /* Layer Card Backgrounds */
-  .layer-item {
-    background-color: #4b1414;
-  }
+.start-modal-subtext {
+  color: var(--muted);
+  margin-top: 0;
+  margin-bottom: 0.75rem;
 }
 
-/* Pendzal Theme */
-.theme-Pendzal {
-  /* Background Styles */
-  background-color: #f0f8ff; /* Placeholder */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-
-  /* Font Styles */
-  color: #333333; /* Placeholder font color */
-  font-family: 'PendzalFont', serif; /* Placeholder font */
-
-  /* Button Backgrounds */
-  .initialize-btn {
-    background-color: #0a0d0a; /* Pendzal-specific button color */
-  }
-
-  .initialize-btn:hover {
-    background-color: #0c110c;
-  }
-
-  .parent-session-button,
-  .child-session-button {
-    background-color: #0a0d0a;
-  }
-
-  .parent-session-button:hover,
-  .child-session-button:hover {
-    background-color: #0c110c;
-  }
-
-  /* Layer Card Backgrounds */
-  .layer-item {
-    background-color: #ffb000;
-  }
+.start-requirements {
+  padding-left: 1.25rem;
+  color: #fca5a5;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
 }
 
-/* Sona Theme */
-.theme-Sona {
-  /* Background Styles */
-  background-color: #f5f5dc; /* Placeholder */
-  /* background-image: url('/themes/Sona/background.jpg'); */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-
-  /* Font Styles */
-  color: #2c3e50; /* Placeholder font color */
-  font-family: 'SonaFont', sans-serif; /* Placeholder font */
-
-  /* Button Backgrounds */
-  .initialize-btn {
-    background-color: #16a085; /* Sona-specific button color */
-  }
-
-  .initialize-btn:hover {
-    background-color: #138d75;
-  }
-
-  .parent-session-button,
-  .child-session-button {
-    background-color: #16a085;
-  }
-
-  .parent-session-button:hover,
-  .child-session-button:hover {
-    background-color: #138d75;
-  }
-
-  /* Layer Card Backgrounds */
-  .layer-item {
-    background-color: #1abc9c;
-  }
+.start-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
-/* Ekanesh Theme */
-.theme-Ekanesh {
-  /* Background Styles */
-  background-color: #2f4f4f; /* Placeholder */
-  /* background-image: url('/themes/Ekanesh/background.jpg'); */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
-
-  /* Font Styles */
-  color: #ecf0f1; /* Placeholder font color */
-  font-family: 'EkaneshFont', sans-serif; /* Placeholder font */
-
-  /* Button Backgrounds */
-  .initialize-btn {
-    background-color: #e67e22; /* Ekanesh-specific button color */
-  }
-
-  .initialize-btn:hover {
-    background-color: #d35400;
-  }
-
-  .parent-session-button,
-  .child-session-button {
-    background-color: #e67e22;
-  }
-
-  .parent-session-button:hover,
-  .child-session-button:hover {
-    background-color: #d35400;
-  }
-
-  /* Layer Card Backgrounds */
-  .layer-item {
-    background-color: #d35400;
-  }
+.mobile-block {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  background: var(--hexbackground);
+  background-size: 32px;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
-/* Theme Default */
-.theme-default {
-  background-color: #000;
-  color: #fff;
-}
-
-.theme-default .main-container {
-  background-color: transparent; /* Let main-hacking-screen show */
-}
-
-/* =========================
-   Additional Styles
-   ========================= */
-
-/* Success and Failure Phases */
-.success-phase,
-.failure-phase {
-  /* Customize per theme if needed */
-  /* Example for theme-ICC:
-  .theme-ICC .success-phase {
-    background-color: #28a745;
-    color: #fff;
-  }
-  */
+.mobile-block p {
+  color: var(--muted);
 }
 
 /* Locked Session Message */
@@ -546,14 +351,6 @@
 .layer-item.in-progress {
   animation: blinkOpacity 1.5s infinite;
 }
-
-/**
- * If a layer is SOLVED, we keep it in the grid (occupies space),
- * but remove its visible contents.
- * 
- * Option A: Use visibility: hidden;
- * Option B: Hide the child elements while keeping dimension.
- */
 
 /* Approach A: Entire card invisible but occupies space */
 .layer-item.solved {
