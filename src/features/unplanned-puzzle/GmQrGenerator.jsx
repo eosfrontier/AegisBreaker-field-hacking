@@ -119,9 +119,9 @@ export default function GmQrGenerator() {
       </div>
 
       {showModal && qrValue && (
-        <div className="qh-modal-overlay" onClick={handleCloseModal} aria-hidden="true">
+        <div className="qh-modal-overlay-qr" onClick={handleCloseModal} aria-hidden="true">
           <div
-            className="qh-modal"
+            className="qh-modal-qr"
             role="dialog"
             aria-modal="true"
             aria-label="Generated puzzle QR"

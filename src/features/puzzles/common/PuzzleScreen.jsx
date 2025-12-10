@@ -98,8 +98,13 @@ export default function PuzzleScreen() {
 
   if (hasSessionParams && (sessionData?.status === 'FAILURE' || sessionData?.status === 'SUCCESS')) {
     return (
-      <div className="main" style={{ padding: '1rem' }}>
-        The session has ended!
+      <div className="main" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ marginBottom: '1rem', fontSize: '1.2rem' }}>The session has ended!</p>
+          <button className="home-nav-btn small" onClick={() => navigate('/')}>
+            Return Home
+          </button>
+        </div>
       </div>
     );
   }
