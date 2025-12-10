@@ -324,7 +324,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   };
 
   return (
-    <div className="puzzle-shell puzzle-frequency puzzle-container freq-shell">
+    <div className="puzzle-frame puzzle-frequency freq-shell">
       <h2 className="puzzle-title">[ Frequency Tuner ]</h2>
 
       {showTutorial && (

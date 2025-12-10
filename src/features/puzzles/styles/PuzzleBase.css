@@ -49,6 +49,7 @@
   --puzzle-primary: var(--puzzle-color-gridcipher);
 }
 
+.puzzle-frame,
 .puzzle-shell {
   position: relative;
   padding: 16px;
@@ -62,8 +63,12 @@
   border-radius: var(--puzzle-radius);
   box-shadow: var(--puzzle-shadow);
   backdrop-filter: blur(6px);
-  min-height: 100vh;
+  min-height: 80vh;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 1040px;
 }
 
 .puzzle-container {

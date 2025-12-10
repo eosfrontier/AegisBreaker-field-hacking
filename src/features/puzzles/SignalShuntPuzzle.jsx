@@ -567,7 +567,7 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
   }, [setScriptContext, scriptApi]);
 
   return (
-    <div className="puzzle-shell puzzle-signal puzzle-container datastream-puzzle">
+    <div className="puzzle-frame puzzle-signal datastream-puzzle">
       <h2 className="puzzle-title">[ Signal Rerouter ]</h2>
       <header className="datastream-header puzzle-header">
         <div className="datastream-stats">

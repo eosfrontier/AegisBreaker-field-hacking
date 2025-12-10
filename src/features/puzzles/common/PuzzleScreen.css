@@ -405,3 +405,32 @@
   color: var(--accent-2, #67e8f9);
   font-weight: 600;
 }
+
+/* Boot-to-puzzle transition
+.puzzle-host-shell {
+  position: relative;
+}
+
+.puzzle-host-content {
+  opacity: 1;
+  transition: opacity 280ms ease, filter 280ms ease;
+}
+
+.puzzle-host-content.is-covered {
+  opacity: 0;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.puzzle-host-content .puzzle-frame,
+.puzzle-host-content .puzzle-shell {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.puzzle-host-content.is-covered .puzzle-frame,
+.puzzle-host-content.is-covered .puzzle-shell {
+  opacity: 0;
+  transform: translateY(10px);
+} */

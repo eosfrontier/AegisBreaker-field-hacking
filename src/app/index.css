@@ -215,14 +215,14 @@ button:focus-visible {
   margin: 0 auto;
   background-size: 32px;
   color: var(--text);
-  padding-bottom: 96px;
+  padding-bottom: 80px;
 }
 
 /* Puzzle containers ensure space at bottom for floating UI */
 .Quickhack-main,
 .logic-puzzle,
 .sequence-puzzle-container {
-  padding-bottom: 96px;
+  padding-bottom: 80px;
 }
 
 /* Buttons that previously used #00aa00: */

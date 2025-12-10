@@ -1,5 +1,5 @@
 .logic-puzzle {
-  padding: 12px 0;
+  padding: 12px;
   background: var(--puzzle-surface);
   color: var(--puzzle-text);
   min-height: 100vh;
@@ -20,7 +20,7 @@
 .process-card {
   border: 1px solid var(--puzzle-border-strong);
   padding: 15px;
-  margin: 20px 0;
+  margin: 10px 0;
   border-radius: 10px;
   background: var(--puzzle-surface-2);
   box-shadow: 0 0 12px color-mix(in srgb, var(--puzzle-primary) 40%, transparent);
@@ -28,7 +28,7 @@
 
 .process-title {
   font-size: 1.4em;
-  margin-bottom: 10px;
+  margin: 10px 0;
   color: var(--puzzle-primary);
 }
 

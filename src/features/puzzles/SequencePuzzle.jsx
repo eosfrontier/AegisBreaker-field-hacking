@@ -227,7 +227,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
   const currentTarget = sequence[progressIndex] || '';
 
   return (
-    <div className="puzzle-shell puzzle-sequence puzzle-container puzzle-centered sequence-puzzle">
+    <div className="puzzle-frame puzzle-sequence puzzle-centered sequence-puzzle">
       <h2 className="puzzle-title">[ Sequencer ]</h2>
 
       <div className="progress-row">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { motion } from 'motion/react';
 
 import BootSplash from '../../../components/common/BootSplash';
 import SequencePuzzle from '../SequencePuzzle';
@@ -137,6 +138,19 @@ export default function PuzzleHost({
   };
 
   const isSolved = useMemo(() => localSolved || layerData?.status === 'SOLVED', [localSolved, layerData]);
+
+  const showBootOverlay = loading || showBoot;
+  const [puzzleVisible, setPuzzleVisible] = useState(!showBootOverlay);
+  const puzzleKey = useMemo(
+    () => `${puzzleType || 'unknown'}-${layerId || 'local'}-${sessionId || 'local'}`,
+    [puzzleType, layerId, sessionId],
+  );
+
+  useEffect(() => {
+    if (!showBootOverlay) {
+      setPuzzleVisible(true);
+    }
+  }, [showBootOverlay]);
 
   useEffect(() => {
     if (!isSolved || solveSequenceStartedRef.current) return undefined;
@@ -287,14 +301,6 @@ export default function PuzzleHost({
     return showSolveSequence ? <SolvedSequenceOverlay stepIndex={solveSequenceStep} /> : solvedBody;
   }
 
-  if (loading || showBoot) {
-    return (
-      <div className="main" style={{ minHeight: '60vh' }}>
-        {bootOverlay}
-      </div>
-    );
-  }
-
   let content = null;
   switch (puzzleType) {
     case 'sequence':
@@ -337,26 +343,6 @@ export default function PuzzleHost({
         />
       );
       break;
-    // case 'byteStream':
-    //   content = (
-    //     <ByteStream
-    //       sessionId={sessionId}
-    //       layerId={layerId}
-    //       layerData={layerData}
-    //       onLocalPuzzleComplete={handleLocalSolved}
-    //     />
-    //   );
-    //   break;
-    // case 'gridcipher':
-    //   content = (
-    //     <GridCipher
-    //       sessionId={sessionId}
-    //       layerId={layerId}
-    //       layerData={layerData}
-    //       onLocalPuzzleComplete={handleLocalSolved}
-    //     />
-    //   );
-    //   break;
     case 'signalShunt':
       content = (
         <SignalShuntPuzzle
@@ -372,9 +358,29 @@ export default function PuzzleHost({
   }
 
   return (
-    <div className="main">
-      {bootOverlay}
-      {content}
+    <div className="main puzzle-host-shell">
+      {showBootOverlay && (
+        <motion.div
+          key="boot"
+          className="puzzle-host-content"
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.03 }}
+          transition={{ duration: 0.28, ease: 'easeInOut' }}
+        >
+          {bootOverlay}
+        </motion.div>
+      )}
+
+      <motion.div
+        key={puzzleKey}
+        className="puzzle-host-content"
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={puzzleVisible ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 8, scale: 0.99 }}
+        transition={{ duration: 0.32, ease: 'easeOut' }}
+      >
+        {content}
+      </motion.div>
     </div>
   );
 }

@@ -1,16 +1,17 @@
 // AnimatedRoutes.jsx
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
+import { lazy } from 'react';
 
-import AdminPanelLayout from '../../features/admin/AdminPanelLayout';
-import SessionScreen from '../../features/hacking-session/MainHackingScreen';
-import PuzzleScreen from '../../features/puzzles/common/PuzzleScreen';
-import QuickHackScreen from '../../features/unplanned-puzzle/QuickHackScreen';
-import GmQrGenerator from '../../features/unplanned-puzzle/GmQrGenerator';
-import HomePage from '../../features/home/HomePage';
-import QrScannerPage from '../../features/scanner/QrScannerPage';
-import ScriptStore from '../../features/scripts/ScriptStore';
-import FeedbackDashboard from '../../features/admin/FeedbackDashboard';
+const AdminPanelLayout = lazy(() => import('../../features/admin/AdminPanelLayout'));
+const SessionScreen = lazy(() => import('../../features/hacking-session/MainHackingScreen'));
+const PuzzleScreen = lazy(() => import('../../features/puzzles/common/PuzzleScreen'));
+const QuickHackScreen = lazy(() => import('../../features/unplanned-puzzle/QuickHackScreen'));
+const GmQrGenerator = lazy(() => import('../../features/unplanned-puzzle/GmQrGenerator'));
+const HomePage = lazy(() => import('../../features/home/HomePage'));
+const QrScannerPage = lazy(() => import('../../features/scanner/QrScannerPage'));
+const ScriptStore = lazy(() => import('../../features/scripts/ScriptStore'));
+const FeedbackDashboard = lazy(() => import('../../features/admin/FeedbackDashboard'));
 
 const AnimatedRoutes = () => {
   const location = useLocation();

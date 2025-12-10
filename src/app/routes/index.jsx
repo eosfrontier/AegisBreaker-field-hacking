@@ -5,8 +5,6 @@ import AnimatedRoutes from './AnimatedRoutes';
 
 const PrefetchRoutes = () => {
   useEffect(() => {
-    import('../../features/puzzles/common/PuzzleScreen');
-    import('../../features/hacking-session/MainHackingScreen');
     import('../../features/unplanned-puzzle/QuickHackScreen');
     import('../../features/scanner/QrScannerPage');
     import('../../features/scripts/ScriptStore');

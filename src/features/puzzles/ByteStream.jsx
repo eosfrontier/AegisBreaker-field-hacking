@@ -171,7 +171,7 @@ const ByteStreamPuzzle = ({ layerData, onLocalPuzzleComplete }) => {
   };
 
   return (
-    <div className="puzzle-shell puzzle-bytestream puzzle-container byte-shell">
+    <div className="puzzle-frame puzzle-bytestream byte-shell">
       <h2 className="puzzle-title">[ Bytestream Intercept ]</h2>
       <div className="byte-header">
         <div className="byte-round">

@@ -31,13 +31,13 @@ export default function QuickHackScreen() {
     <div className="main" style={{ padding: '16px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '0.5rem' }}>
         <button
-          className="qh-btn secondary"
+          className="home-nav-btn"
           onClick={() =>
             navigate('/', {
               state: { transition: { direction: 'from-left' } },
             })
           }
-          style={{ minWidth: '120px' }}
+          style={{ minWidth: '50px', width: '100px' }}
         >
           Back
         </button>

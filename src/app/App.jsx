@@ -3,7 +3,7 @@ import AppRoutes from './routes/index.jsx';
 
 function App() {
   return (
-    <div className="App" style={{ height: '100vh' }}>
+    <div className="App">
       <AppRoutes />
     </div>
   );

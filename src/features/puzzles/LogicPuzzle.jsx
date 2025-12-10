@@ -171,7 +171,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
   const allChosen = guesses.every((g) => g !== null);
 
   return (
-    <div className={`puzzle-shell puzzle-logic puzzle-container logic-puzzle ${shake ? 'puzzle-error-shake' : ''}`}>
+    <div className={`puzzle-frame puzzle-logic logic-puzzle ${shake ? 'puzzle-error-shake' : ''}`}>
       {showTutorial && (
         <TutorialModal
           isOpen={showTutorial}

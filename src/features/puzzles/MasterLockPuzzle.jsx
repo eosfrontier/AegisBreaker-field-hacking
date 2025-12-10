@@ -309,7 +309,7 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
   };
 
   return (
-    <div className="puzzle-shell puzzle-masterlock puzzle-container masterlock-container">
+    <div className="puzzle-frame puzzle-masterlock masterlock-container">
       <h2 className="puzzle-title">[ Datalink Splicing ]</h2>
       <div className="masterlock-stage">
         {Array.from({ length: ringCount }).map((_, i) => {
