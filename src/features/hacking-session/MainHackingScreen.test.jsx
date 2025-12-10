@@ -81,12 +81,13 @@ const emitChildren = (children) =>
     }),
   );
 
-const renderScreen = () =>
+const renderScreen = (initialEntry = '/session/session-1') =>
   render(
-    <MemoryRouter initialEntries={['/session/session-1']}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <ScriptProvider>
         <Routes>
           <Route path="/session/:sessionId" element={<MainHackingScreen />} />
+          <Route path="/session/:sessionId/start" element={<MainHackingScreen />} />
         </Routes>
       </ScriptProvider>
     </MemoryRouter>,
@@ -100,6 +101,7 @@ describe('MainHackingScreen', () => {
     mockUpdateDoc.mockClear();
     mockGetDoc.mockReset();
     mockGetDoc.mockResolvedValue({ exists: () => false });
+    localStorage.clear();
 
     // jsdom stubs for DOM APIs used in component effects
     Element.prototype.scrollIntoView = vi.fn();
@@ -234,5 +236,60 @@ describe('MainHackingScreen', () => {
 
     expect(await screen.findByRole('button', { name: 'Child One' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Child Two' })).toBeVisible();
+  });
+
+  it('auto-opens start modal on /start route and shows eligibility issues when no profile', async () => {
+    renderScreen('/session/session-1/start');
+
+    await waitFor(() => expect(sessionSubs.length).toBeGreaterThan(0));
+
+    await act(async () => {
+      emitSession({
+        status: 'INIT',
+        playerName: 'Hacker',
+        timeLimit: 60,
+      });
+    });
+
+    expect(await screen.findByText('Start Hack')).toBeVisible();
+    expect(screen.getByText(/Profile required/i)).toBeVisible();
+  });
+
+  it('allows starting via modal when profile meets requirements and triggers initialize', async () => {
+    localStorage.setItem(
+      'characterInfo',
+      JSON.stringify({
+        role: 'operative',
+        name: 'Player',
+        faction: 'dugo',
+        level: 3,
+        skills: ['initialize', 'hack_consumer'],
+      }),
+    );
+
+    renderScreen('/session/session-1/start');
+
+    await waitFor(() => expect(sessionSubs.length).toBeGreaterThan(0));
+
+    await act(async () => {
+      emitSession({
+        status: 'INIT',
+        playerName: 'Hacker',
+        timeLimit: 60,
+        requiredDeviceSkill: 'hack_consumer',
+      });
+    });
+
+    // Modal should be open
+    expect(await screen.findByText('Ready to initialize this hack?')).toBeVisible();
+
+    await act(async () => {
+      screen.getByRole('button', { name: /Confirm & Start/i }).click();
+    });
+
+    expect(mockUpdateDoc).toHaveBeenCalledWith(
+      { path: ['sessions', 'session-1'] },
+      expect.objectContaining({ status: 'ACTIVE', endTime: expect.any(Object) }),
+    );
   });
 });
