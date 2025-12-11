@@ -33,8 +33,6 @@ export default function PuzzleScreen() {
       puzzleType: localPuzzleType,
       difficulty: Number(localDifficulty) || 1,
       status: 'IN_PROGRESS',
-      completionTitle: completionTitleParam || undefined,
-      completionSubtitle: completionSubtitleParam || undefined,
     };
   });
   const [sessionData, setSessionData] = useState(null);
@@ -83,8 +81,6 @@ export default function PuzzleScreen() {
       puzzleType: localPuzzleType,
       difficulty: Number(localDifficulty) || 1,
       status: 'IN_PROGRESS',
-      completionTitle: completionTitleParam || undefined,
-      completionSubtitle: completionSubtitleParam || undefined,
     };
   }, [hasSessionParams, layerData, localPuzzleType, localDifficulty, completionTitleParam, completionSubtitleParam]);
 
@@ -122,8 +118,8 @@ export default function PuzzleScreen() {
       sessionId={hasSessionParams ? sessionId : null}
       layerId={hasSessionParams ? layerId : null}
       bootSteps={PUZZLE_BOOT_STEPS}
-      completionTitle={completionTitleParam || resolvedLayerData?.completionTitle}
-      completionSubtitle={completionSubtitleParam || resolvedLayerData?.completionSubtitle}
+      completionTitle={completionTitleParam || undefined}
+      completionSubtitle={completionSubtitleParam || undefined}
       onExit={handleExit}
     />
   );

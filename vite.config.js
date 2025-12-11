@@ -8,8 +8,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'My Field Hacking App',
-        short_name: 'HackingApp',
+        name: 'AegisBreaker App',
+        short_name: 'AegisBreaker',
         icons: [
           {
             src: '/icon-192.png',

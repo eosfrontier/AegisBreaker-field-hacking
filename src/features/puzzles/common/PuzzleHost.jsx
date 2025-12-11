@@ -27,6 +27,9 @@ const SOLVE_SEQUENCE_STEPS = [
 ];
 
 const SOLVE_SEQUENCE_TRAILING_MS = 260;
+const FEEDBACK_COOLDOWN_MS = 30 * 60 * 1000;
+const DEFAULT_COMPLETION_TITLE = 'Access granted';
+const DEFAULT_COMPLETION_SUBTITLE = 'ICE layer neutralized. Data channel is stable.';
 
 function SolvedBadge() {
   return (
@@ -42,11 +45,11 @@ function SolvedBadge() {
   );
 }
 
-function SolvedSequenceOverlay({ stepIndex }) {
+function SolvedSequenceOverlay({ stepIndex, completionTitle = DEFAULT_COMPLETION_TITLE }) {
   return (
     <div className="main solved-sequence-overlay">
       <div className="solved-sequence-card">
-        <div className="solved-sequence-title">Access granted</div>
+        <div className="solved-sequence-title">{completionTitle}</div>
         <div className="solved-sequence-steps">
           {SOLVE_SEQUENCE_STEPS.map((step, idx) => {
             const state = idx < stepIndex ? 'done' : idx === stepIndex ? 'active' : 'idle';
@@ -78,6 +81,8 @@ export default function PuzzleHost({
   bootSteps = DEFAULT_BOOT_STEPS,
   allowBootSkip = true,
   skipBootKey = 'ab:bootSkipOnce',
+  completionTitle,
+  completionSubtitle,
   onExit,
   onLocalPuzzleComplete,
 }) {
@@ -129,6 +134,33 @@ export default function PuzzleHost({
     }
   });
   const [feedbackError, setFeedbackError] = useState('');
+  const [typeFeedbackSubmitted, setTypeFeedbackSubmitted] = useState(() => {
+    if (!puzzleType) return false;
+    try {
+      return localStorage.getItem(`ab:feedback:type:${puzzleType}`) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [globalFeedbackCooldownUntil, setGlobalFeedbackCooldownUntil] = useState(() => {
+    try {
+      return Number(localStorage.getItem('ab:feedback:cooldownUntil')) || 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    if (!puzzleType) {
+      setTypeFeedbackSubmitted(false);
+      return;
+    }
+    try {
+      setTypeFeedbackSubmitted(localStorage.getItem(`ab:feedback:type:${puzzleType}`) === '1');
+    } catch {
+      setTypeFeedbackSubmitted(false);
+    }
+  }, [puzzleType]);
 
   const handleBootDone = () => setShowBoot(false);
 
@@ -136,6 +168,9 @@ export default function PuzzleHost({
     setLocalSolved(true);
     onLocalPuzzleComplete?.();
   };
+
+  const resolvedCompletionTitle = completionTitle ?? DEFAULT_COMPLETION_TITLE;
+  const resolvedCompletionSubtitle = completionSubtitle ?? DEFAULT_COMPLETION_SUBTITLE;
 
   const isSolved = useMemo(() => localSolved || layerData?.status === 'SOLVED', [localSolved, layerData]);
 
@@ -176,7 +211,8 @@ export default function PuzzleHost({
 
   if (isSolved) {
     const now = Date.now();
-    const shouldHideFeedback = feedbackSubmitted || feedbackDeferUntil > now;
+    const shouldHideFeedback =
+      typeFeedbackSubmitted || globalFeedbackCooldownUntil > now || feedbackSubmitted || feedbackDeferUntil > now;
 
     const submitFeedback = async () => {
       if (feedbackSubmitting) return;
@@ -201,11 +237,18 @@ export default function PuzzleHost({
           createdAt: serverTimestamp(),
         };
         await addDoc(collection(db, 'feedback'), payload);
+        const cooldownUntil = Date.now() + FEEDBACK_COOLDOWN_MS;
         try {
           localStorage.setItem(`ab:${feedbackKey}:submitted`, '1');
+          localStorage.setItem('ab:feedback:cooldownUntil', String(cooldownUntil));
+          if (puzzleType) {
+            localStorage.setItem(`ab:feedback:type:${puzzleType}`, '1');
+          }
         } catch {
           /* ignore */
         }
+        if (puzzleType) setTypeFeedbackSubmitted(true);
+        setGlobalFeedbackCooldownUntil(cooldownUntil);
         setFeedbackSubmitted(true);
       } catch (err) {
         console.error('Failed to send feedback', err);
@@ -216,7 +259,7 @@ export default function PuzzleHost({
     };
 
     const remindLater = () => {
-      const later = Date.now() + 30 * 60 * 1000; // 30 minutes
+      const later = Date.now() + FEEDBACK_COOLDOWN_MS;
       try {
         localStorage.setItem(`ab:${feedbackKey}:deferUntil`, String(later));
       } catch {
@@ -231,8 +274,8 @@ export default function PuzzleHost({
           <SolvedBadge />
           <div className="solved-copy">
             <p className="solved-eyebrow">Layer bypassed</p>
-            <h3>Access granted</h3>
-            <p className="solved-subtitle">ICE layer neutralized. Data channel is stable.</p>
+            <h3>{resolvedCompletionTitle}</h3>
+            <p className="solved-subtitle">{resolvedCompletionSubtitle}</p>
           </div>
         </div>
         {onExit && (
@@ -298,7 +341,11 @@ export default function PuzzleHost({
       </div>
     );
 
-    return showSolveSequence ? <SolvedSequenceOverlay stepIndex={solveSequenceStep} /> : solvedBody;
+    return showSolveSequence ? (
+      <SolvedSequenceOverlay stepIndex={solveSequenceStep} completionTitle={resolvedCompletionTitle} />
+    ) : (
+      solvedBody
+    );
   }
 
   let content = null;

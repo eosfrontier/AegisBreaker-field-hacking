@@ -424,7 +424,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   type="range"
                   min="2"
                   max="10"
-                  step="0.01"
+                  step="0.001"
                   value={userFreq1}
                   onChange={(e) => setUserFreq1(parseFloat(e.target.value))}
                   className="freq-range puzzle-range"
@@ -441,7 +441,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                     type="range"
                     min="0.8"
                     max="3"
-                    step="0.01"
+                    step="0.001"
                     value={userAmp1}
                     onChange={(e) => setUserAmp1(parseFloat(e.target.value))}
                     className="freq-range puzzle-range"
@@ -459,7 +459,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                     type="range"
                     min={-Math.PI}
                     max={Math.PI}
-                    step="0.01"
+                    step="0.001"
                     value={userPhase1}
                     onChange={(e) => setUserPhase1(parseFloat(e.target.value))}
                     className="freq-range puzzle-range"
@@ -477,7 +477,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                     type="range"
                     min={-2}
                     max={2}
-                    step="0.01"
+                    step="0.001"
                     value={userOffset1}
                     onChange={(e) => setUserOffset1(parseFloat(e.target.value))}
                     className="freq-range puzzle-range"
@@ -503,7 +503,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   type="range"
                   min="2"
                   max="10"
-                  step="0.01"
+                  step="0.001"
                   value={userFreq2}
                   onChange={(e) => setUserFreq2(parseFloat(e.target.value))}
                   className="freq-range puzzle-range"
@@ -519,7 +519,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   type="range"
                   min="0.8"
                   max="3"
-                  step="0.01"
+                  step="0.001"
                   value={userAmp2}
                   onChange={(e) => setUserAmp2(parseFloat(e.target.value))}
                   className="freq-range puzzle-range"
@@ -535,7 +535,7 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
                   type="range"
                   min={-Math.PI}
                   max={Math.PI}
-                  step="0.01"
+                  step="0.001"
                   value={userPhase2}
                   onChange={(e) => setUserPhase2(parseFloat(e.target.value))}
                   className="freq-range puzzle-range"

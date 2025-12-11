@@ -8,8 +8,6 @@ export const SKILL_TIERS = {
   '3-4': [
     { id: 'hack_industrial', label: 'Hack Industrial Electronics' },
     { id: 'restart_device', label: 'Restart Device' },
-
-    // “scripts” (1× / session consumables)
     { id: 'script_mask', label: 'Script - Mask' },
     { id: 'script_weaken_ice', label: 'Script - Weaken ICE' },
     { id: 'script_snoop', label: 'Script - Snoop' },

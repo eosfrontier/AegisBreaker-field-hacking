@@ -75,6 +75,7 @@
   height: 100%;
   margin: 0 auto;
   transform: rotate(0deg); /* Overridden inline by random rotation */
+  background-color: var(--accent-2);
 }
 
 /* QR CODE Container in the center of the hex */
