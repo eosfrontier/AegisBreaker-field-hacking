@@ -107,7 +107,7 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
   const handleSaveSession = async () => {
     try {
       const sessionDocRef = doc(db, 'sessions', sessionId);
-      await updateDoc(sessionDocRef, {
+      const payload = {
         name,
         gmName,
         playerName,
@@ -116,7 +116,14 @@ function SessionEditor({ sessionId, onSessionUpdated, sessions }) {
         completionContent,
         theme,
         parentSessionId,
-      });
+      };
+
+      // Reset any previous timer when moving a session back to INIT.
+      if (status === 'INIT') {
+        payload.endTime = null;
+      }
+
+      await updateDoc(sessionDocRef, payload);
       setDirty(false);
       onSessionUpdated({
         id: sessionId,

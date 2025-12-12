@@ -172,6 +172,29 @@ function MainHackingScreen() {
     };
   }, [sessionId]);
 
+  // Reset the terminal flag when a session is restarted or switched.
+  useEffect(() => {
+    if (!sessionData) return;
+    if (sessionData.status === 'INIT' || sessionData.status === 'ACTIVE') {
+      successOrFailRef.current = false;
+    }
+  }, [sessionData?.status, sessionId]);
+
+  // If someone manually set the session back to ACTIVE but the timer was cleared,
+  // regenerate an endTime so the countdown runs again.
+  useEffect(() => {
+    if (!sessionData) return;
+    if (sessionData.status !== 'ACTIVE') return;
+    if (sessionData.endTime) return;
+    if (!sessionData.timeLimit) return;
+
+    const freshEndTime = Timestamp.fromMillis(Date.now() + sessionData.timeLimit * 1000);
+    updateDoc(doc(db, 'sessions', sessionId), { endTime: freshEndTime }).catch((err) =>
+      console.error('Error restoring endTime for ACTIVE session:', err),
+    );
+    setTimeLeft(sessionData.timeLimit);
+  }, [sessionData?.status, sessionData?.endTime, sessionData?.timeLimit, sessionId]);
+
   /**
    * Initialize Hack: set status=ACTIVE and endTime in Firestore
    */
@@ -181,6 +204,7 @@ function MainHackingScreen() {
     const newEndTime = Timestamp.fromMillis(futureTime);
 
     try {
+      successOrFailRef.current = false; // allow fresh success/failure detection
       await updateDoc(doc(db, 'sessions', sessionId), {
         status: 'ACTIVE',
         endTime: newEndTime,
@@ -202,6 +226,8 @@ function MainHackingScreen() {
     const allSolved = layers.length > 0 && layers.every((layer) => layer.status === 'SOLVED');
 
     if (sessionData.status === 'ACTIVE') {
+      if (!sessionData.endTime) return; // avoid instant failure if timer was never set
+
       if (allSolved) {
         try {
           await updateDoc(doc(db, 'sessions', sessionId), {
