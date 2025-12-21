@@ -17,6 +17,18 @@ const COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'cyan'];
 const SHAPES = ['circle', 'square', 'triangle', 'diamond', 'hexagon', 'star'];
 const NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+const ALL_COMBOS = (() => {
+  const combos = [];
+  for (const color of COLORS) {
+    for (const shape of SHAPES) {
+      for (const number of NUMBERS) {
+        combos.push({ color, shape, number });
+      }
+    }
+  }
+  return combos;
+})();
+
 const SHAPE_MASKS = {
   circle: sciCircle,
   square: sciHashtag,
@@ -246,18 +258,66 @@ function generatePackets(count, rules, bins, seed) {
   const rng = seededRandom(seed + 1000);
   const packets = [];
 
-  for (let i = 0; i < count; i++) {
-    const packet = {
-      id: `packet-${i}`,
-      color: COLORS[Math.floor(rng() * COLORS.length)],
-      shape: SHAPES[Math.floor(rng() * SHAPES.length)],
-      number: NUMBERS[Math.floor(rng() * NUMBERS.length)],
-    };
-    const eligibleBins = rules.map((rule, idx) => (rule(packet) ? idx : -1)).filter((idx) => idx >= 0);
+  // Precompute only packet combos that satisfy at least one rule.
+  const validCombos = [];
+  const combosByBin = bins.map(() => []);
+  for (const combo of ALL_COMBOS) {
+    const eligibleBins = rules.map((rule, idx) => (rule(combo) ? idx : -1)).filter((idx) => idx >= 0);
+    if (eligibleBins.length > 0) {
+      const entry = { color: combo.color, shape: combo.shape, number: combo.number, eligible: eligibleBins };
+      validCombos.push(entry);
+      eligibleBins.forEach((binId) => combosByBin[binId].push(entry));
+    }
+  }
 
-    // pick a canonical "correct" for capacity calculation (first match)
-    packet.eligible = eligibleBins.length > 0 ? eligibleBins : [rules.length - 1];
-    packets.push(packet);
+  if (validCombos.length > 0) {
+    const usedCombos = new Set();
+    const binOrder = combosByBin
+      .map((list, idx) => ({ idx, options: list.length }))
+      .sort((a, b) => a.options - b.options);
+
+    for (const { idx } of binOrder) {
+      if (packets.length >= count) break;
+      const options = combosByBin[idx];
+      if (!options.length) continue;
+      const singletons = options.filter((combo) => combo.eligible.length === 1);
+      const pickFrom = singletons.length ? singletons : options;
+      const unused = pickFrom.filter((combo) => !usedCombos.has(combo));
+      const pool = unused.length ? unused : pickFrom;
+      const pick = pool[Math.floor(rng() * pool.length)];
+      usedCombos.add(pick);
+      packets.push({
+        id: `packet-${packets.length}`,
+        color: pick.color,
+        shape: pick.shape,
+        number: pick.number,
+        eligible: [...pick.eligible],
+      });
+    }
+
+    for (let i = packets.length; i < count; i++) {
+      const pick = validCombos[Math.floor(rng() * validCombos.length)];
+      packets.push({
+        id: `packet-${i}`,
+        color: pick.color,
+        shape: pick.shape,
+        number: pick.number,
+        eligible: [...pick.eligible],
+      });
+    }
+  } else {
+    // Fallback: should never happen unless rules are impossible.
+    for (let i = 0; i < count; i++) {
+      const packet = {
+        id: `packet-${i}`,
+        color: COLORS[Math.floor(rng() * COLORS.length)],
+        shape: SHAPES[Math.floor(rng() * SHAPES.length)],
+        number: NUMBERS[Math.floor(rng() * NUMBERS.length)],
+      };
+      const eligibleBins = rules.map((rule, idx) => (rule(packet) ? idx : -1)).filter((idx) => idx >= 0);
+      packet.eligible = eligibleBins.length > 0 ? eligibleBins : [0];
+      packets.push(packet);
+    }
   }
 
   const shuffled = shuffleArray(packets, rng);
@@ -313,9 +373,38 @@ function balanceAssignments(packets, bins) {
   const desiredCounts = bins.map((_, idx) => desiredBase + (idx < remainder ? 1 : 0));
   const counts = bins.map(() => 0);
 
-  const byFlex = [...packets].sort((a, b) => a.eligible.length - b.eligible.length);
+  const remaining = [...packets];
   const result = [];
 
+  const binsByOptions = bins
+    .map((_, idx) => ({
+      idx,
+      options: remaining.filter((packet) => packet.eligible.includes(idx)).length,
+    }))
+    .sort((a, b) => a.options - b.options);
+
+  for (const { idx } of binsByOptions) {
+    if (!remaining.length) break;
+    if (counts[idx] >= desiredCounts[idx]) continue;
+    let bestIndex = -1;
+    let bestFlex = Infinity;
+    for (let i = 0; i < remaining.length; i++) {
+      const packet = remaining[i];
+      if (!packet.eligible.includes(idx)) continue;
+      const flex = packet.eligible.length;
+      if (flex < bestFlex) {
+        bestFlex = flex;
+        bestIndex = i;
+        if (flex === 1) break;
+      }
+    }
+    if (bestIndex === -1) continue;
+    const [packet] = remaining.splice(bestIndex, 1);
+    counts[idx] += 1;
+    result.push({ packet, binId: idx });
+  }
+
+  const byFlex = remaining.sort((a, b) => a.eligible.length - b.eligible.length);
   for (const packet of byFlex) {
     const elig = packet.eligible && packet.eligible.length ? packet.eligible : [bins.length - 1];
     const candidates = elig.filter((b) => counts[b] < desiredCounts[b]);
@@ -426,23 +515,6 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
     return Object.values(map).filter((v) => v === binId).length;
   }, []);
 
-  const checkSolved = useCallback(
-    (nextAssignments) => {
-      const allAssigned = Object.keys(nextAssignments).length === packets.length;
-      if (!allAssigned) return false;
-      for (const packet of packets) {
-        const binId = nextAssignments[packet.id];
-        if (binId == null) return false;
-        if (!rules[binId](packet)) return false;
-      }
-      for (const bin of bins) {
-        if (currentBinCount(nextAssignments, bin.id) !== requiredCounts[bin.id]) return false;
-      }
-      return true;
-    },
-    [packets, rules, bins, requiredCounts, currentBinCount],
-  );
-
   const handleAssign = useCallback(
     (packetId, binId) => {
       const packet = packets.find((p) => p.id === packetId);
@@ -453,9 +525,8 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
       next[packetId] = binId;
       setAssignments(next);
       setSelectedPacket(null);
-      if (checkSolved(next)) setSolved(true);
     },
-    [assignments, packets, checkSolved],
+    [assignments, packets],
   );
 
   const handleUnassign = useCallback(
@@ -498,7 +569,13 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
   }, [assignments, bins, packets]);
 
   const handleReset = () => {
-    setRunSeed(Date.now());
+    setAssignments({});
+    setSelectedPacket(null);
+    setSolved(false);
+    solvedReportedRef.current = false;
+    setBinFeedback({});
+    setAttemptsLeft(getAttemptLimit(difficulty));
+    setStatusMessage('');
   };
 
   const handleSubmit = () => {
@@ -662,8 +739,8 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
         <button className="datastream-submit puzzle-button" onClick={handleSubmit} disabled={solved}>
           Submit Routing
         </button>
-        <button className="datastream-reset puzzle-button" onClick={handleReset}>
-          {solved ? 'PLAY AGAIN' : 'RESET'}
+        <button className="datastream-reset puzzle-button" onClick={handleReset} disabled={solved}>
+          RESET
         </button>
         {solved && <div className="solved-text">Bus stabilized. ICE rerouted.</div>}
         {statusMessage && !solved && <div className="status-text">{statusMessage}</div>}

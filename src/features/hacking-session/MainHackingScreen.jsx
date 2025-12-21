@@ -647,7 +647,7 @@ function MainHackingScreen() {
             {!eligibility.ok ? (
               <>
                 <p className="start-modal-subtext">
-                  You need to complete your profile and required skills before starting.
+                  You need to complete your profile and required skills before starting. Please complete your profile and rescan.
                 </p>
                 <ul className="start-requirements">
                   {eligibility.reasons.map((r) => (
