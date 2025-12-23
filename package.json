@@ -1,14 +1,18 @@
 {
-  "name": "aegisbreaer-field-hacking",
+  "name": "aegisbreaker-field-hacking",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:prod": "vite --mode production",
     "build": "vite build",
-    "lint": "eslint .",
+    "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "lint": "eslint .",
+    "check": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
     "@yudiel/react-qr-scanner": "^2.4.1",

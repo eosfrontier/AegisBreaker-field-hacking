@@ -13,7 +13,6 @@ import sonaLogo from '../../assets/Sona/logo.png';
 import aliensLogo from '../../assets/Aliens/logo.png';
 import iccLogo from '../../assets/ICC/logo.png';
 
-// import DefenseGrid from './DefenseGrid';
 import { useScriptContext } from '../scripts/ScriptProvider';
 
 const THEME_LOGOS = {
