@@ -1,7 +1,6 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebaseConfig';
 import { useScriptContext } from '../scripts/ScriptProvider';
+import { usePuzzleCompletion } from './common/usePuzzleCompletion';
 import './styles/SequencePuzzle.css';
 
 const VALID_CHARS = [
@@ -118,6 +117,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
   const [mistakesUsed, setMistakesUsed] = useState(0);
 
   const { setScriptContext } = useScriptContext();
+  const { markSolved } = usePuzzleCompletion({ sessionId, layerId, onLocalPuzzleComplete });
 
   const difficulty = Number(effectiveDifficulty || 1);
   const allowedMistakes = Math.max(0, difficulty - 1);
@@ -171,16 +171,7 @@ const SequencePuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }
       setNarrowBandSteps((s) => (s > 0 ? s - 1 : 0));
 
       if (nextIndex === sequence.length) {
-        if (sessionId && layerId) {
-          try {
-            const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
-            await updateDoc(layerRef, { status: 'SOLVED' });
-          } catch (err) {
-            console.error('Error updating puzzle status:', err);
-          }
-        } else if (typeof onLocalPuzzleComplete === 'function') {
-          onLocalPuzzleComplete();
-        }
+        await markSolved();
       }
     } else {
       const nextMistakes = mistakesUsed + 1;

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebaseConfig';
 import { useScriptContext } from '../scripts/ScriptProvider';
+import { usePuzzleCompletion } from './common/usePuzzleCompletion';
 import './styles/SignalShuntPuzzle.css';
 import sciCircle from '../../assets/sci-fi-vector-circle.svg';
 import sciHashtag from '../../assets/sci-fi-vector-hashtag.svg';
@@ -445,7 +444,7 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
   const difficulty = layerData?.difficulty || 5;
   const baseSeedRef = useRef(layerData?.seed ?? (sessionId ? hashCode(sessionId + layerId) : Date.now()));
   const { setScriptContext } = useScriptContext();
-  const solvedReportedRef = useRef(false);
+  const { markSolved } = usePuzzleCompletion({ sessionId, layerId, onLocalPuzzleComplete });
   const [runSeed, setRunSeed] = useState(baseSeedRef.current);
 
   const packetCount = (() => {
@@ -493,7 +492,6 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
     setAssignments({});
     setSelectedPacket(null);
     setSolved(false);
-    solvedReportedRef.current = false;
     setBinFeedback({});
     setAttemptsLeft(getAttemptLimit(difficulty));
     setStatusMessage('');
@@ -501,15 +499,9 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
 
   // solved sync
   useEffect(() => {
-    if (!solved || solvedReportedRef.current) return;
-    solvedReportedRef.current = true;
-    if (sessionId && layerId) {
-      const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
-      updateDoc(layerRef, { status: 'SOLVED' }).catch((err) => console.error('Failed to update layer status', err));
-    } else if (onLocalPuzzleComplete) {
-      onLocalPuzzleComplete();
-    }
-  }, [solved, sessionId, layerId, onLocalPuzzleComplete]);
+    if (!solved) return;
+    void markSolved();
+  }, [solved, markSolved]);
 
   const currentBinCount = useCallback((map, binId) => {
     return Object.values(map).filter((v) => v === binId).length;
@@ -572,7 +564,6 @@ export default function SignalShuntPuzzle({ sessionId, layerId, layerData, onLoc
     setAssignments({});
     setSelectedPacket(null);
     setSolved(false);
-    solvedReportedRef.current = false;
     setBinFeedback({});
     setAttemptsLeft(getAttemptLimit(difficulty));
     setStatusMessage('');

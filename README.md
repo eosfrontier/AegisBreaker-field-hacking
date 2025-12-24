@@ -63,6 +63,17 @@ VITE_FIREBASE_APP_ID="..."
 /admin/feedback  Feedback dashboard
 ```
 
+## Adding puzzles
+- Start from `src/features/puzzles/PuzzleTemplate.jsx`.
+- Call `markSolved()` from `usePuzzleCompletion()` when the puzzle is complete.
+- Register the new puzzle type in:
+  - `src/features/puzzles/common/PuzzleHost.jsx`
+  - `src/features/unplanned-puzzle/puzzleOptions.js`
+  - `src/features/admin/SessionEditor.jsx`
+  - `src/features/hacking-session/DefenseGrid.jsx`
+  - `src/features/hacking-session/HexGrid.jsx`
+  - `src/features/puzzles/styles/PuzzleBase.css` (color variables + class, if needed)
+
 ## Deployment
 This project is configured for Firebase Hosting.
 

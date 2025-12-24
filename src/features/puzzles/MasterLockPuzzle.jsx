@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebaseConfig';
 import PressHoldButton from '../../lib/PressHoldButton';
 import { useScriptContext } from '../scripts/ScriptProvider';
+import { usePuzzleCompletion } from './common/usePuzzleCompletion';
 
 import './styles/MasterLockPuzzle.css';
 
@@ -147,6 +146,7 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
   // A new state to track "solved" so we can freeze rings
   const [isSolved, setIsSolved] = useState(false);
   const { setScriptContext } = useScriptContext();
+  const { markSolved } = usePuzzleCompletion({ sessionId, layerId, onLocalPuzzleComplete });
 
   // On mount, randomize puzzle
   useEffect(() => {
@@ -200,21 +200,10 @@ const MasterLockPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete
 
     if (allAligned) {
       setIsSolved(true);
-      // Firestore / local callback (immediately hand off to PuzzleHost solved flow)
-      (async () => {
-        if (sessionId && layerId) {
-          try {
-            const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
-            await updateDoc(layerRef, { status: 'SOLVED' });
-          } catch (err) {
-            console.error('Error marking solved:', err);
-          }
-        } else if (onLocalPuzzleComplete) {
-          onLocalPuzzleComplete();
-        }
-      })();
+      // Hand off to PuzzleHost solved flow.
+      void markSolved();
     }
-  }, [rawAngles, isSolved, sessionId, layerId, onLocalPuzzleComplete]);
+  }, [rawAngles, isSolved, markSolved]);
 
   // rotate a physical ring => puzzle index => BFS
   const rotateRing = (i, delta) => {

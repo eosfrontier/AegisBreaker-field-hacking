@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebaseConfig';
 
 import { generatePuzzleEnsuringUnique } from './logic/generator';
 import { parseStatement } from './logic/parser';
@@ -8,6 +6,7 @@ import { evaluateAST } from './logic/evaluator';
 import { getFlag } from '../prefs/prefsStore';
 import TutorialModal from './TutorialModal';
 import { useScriptContext } from '../scripts/ScriptProvider';
+import { usePuzzleCompletion } from './common/usePuzzleCompletion';
 
 import './styles/LogicPuzzle.css';
 
@@ -31,6 +30,7 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
   const [showTutorial, setShowTutorial] = useState(false);
 
   const { setScriptContext } = useScriptContext();
+  const { markSolved } = usePuzzleCompletion({ sessionId, layerId, onLocalPuzzleComplete });
 
   useEffect(() => {
     const p = generatePuzzleEnsuringUnique(effectiveDifficulty);
@@ -46,13 +46,8 @@ const LogicPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete }) =
 
   useEffect(() => {
     if (!puzzleSolved) return;
-    if (sessionId && layerId) {
-      const layerRef = doc(db, 'sessions', sessionId, 'layers', layerId);
-      updateDoc(layerRef, { status: 'SOLVED' }).catch(console.error);
-    } else if (onLocalPuzzleComplete) {
-      onLocalPuzzleComplete();
-    }
-  }, [puzzleSolved, sessionId, layerId, onLocalPuzzleComplete]);
+    void markSolved();
+  }, [puzzleSolved, markSolved]);
 
   const handleGuessChange = (index, value) => {
     const next = [...guesses];

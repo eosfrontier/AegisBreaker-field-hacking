@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -12,10 +11,10 @@ import {
   Legend,
 } from 'chart.js';
 
-import { db } from '../../lib/firebaseConfig';
 import './styles/FrequencyPuzzle.css';
 import TutorialModal from './TutorialModal';
 import { useScriptContext } from '../scripts/ScriptProvider';
+import { usePuzzleCompletion } from './common/usePuzzleCompletion';
 
 // Register chart components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -38,9 +37,11 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   const difficulty = Number(layerData?.difficulty ?? 1);
   const TUTORIAL_KEY = 'freq_tutorial_seen_v1';
 
-  // If sessionId/layerId exist, we want to update Firestore. Otherwise, it's local puzzle.
-  const isFirestorePuzzle = sessionId && layerId;
-  const puzzleDocRef = isFirestorePuzzle ? doc(db, 'sessions', sessionId, 'layers', layerId) : null;
+  const { isSessionPuzzle, markSolved, solvedRef } = usePuzzleCompletion({
+    sessionId,
+    layerId,
+    onLocalPuzzleComplete,
+  });
 
   // --- TARGET WAVES ---
   const [target1, setTarget1] = useState(null);
@@ -59,7 +60,6 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   const [userOffset2, setUserOffset2] = useState(0);
 
   const stableMatchTimer = useRef(null);
-  const solvedRef = useRef(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [activeWave, setActiveWave] = useState(1);
   const { setScriptContext } = useScriptContext();
@@ -210,24 +210,16 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
   // One-shot solver guard
   const finalizePuzzle = useCallback(() => {
     if (solvedRef.current) return;
-    solvedRef.current = true;
     clearTimeout(stableMatchTimer.current);
-
-    if (isFirestorePuzzle) {
-      updateDoc(puzzleDocRef, { status: 'SOLVED' }).catch((err) =>
-        console.error('Error setting puzzle to SOLVED:', err),
-      );
-    } else if (onLocalPuzzleComplete) {
-      onLocalPuzzleComplete();
-    }
-  }, [isFirestorePuzzle, puzzleDocRef, onLocalPuzzleComplete]);
+    void markSolved();
+  }, [markSolved, solvedRef]);
 
   // Checking puzzle status => if under threshold for 2s => solved.
   // Also: if the lock meter actually hits 100%, solve immediately.
   useEffect(() => {
     if (!target1) return;
 
-    const puzzleIsInProgress = (isFirestorePuzzle && layerData?.status === 'IN_PROGRESS') || !isFirestorePuzzle;
+    const puzzleIsInProgress = (isSessionPuzzle && layerData?.status === 'IN_PROGRESS') || !isSessionPuzzle;
     if (!puzzleIsInProgress) return;
 
     if (lockStrength >= 0.999) {
@@ -248,10 +240,8 @@ const FrequencyPuzzle = ({ sessionId, layerId, layerData, onLocalPuzzleComplete 
     rmse,
     matchThreshold,
     target1,
-    puzzleDocRef,
-    isFirestorePuzzle,
+    isSessionPuzzle,
     layerData?.status,
-    onLocalPuzzleComplete,
     finalizePuzzle,
     lockStrength,
   ]);
