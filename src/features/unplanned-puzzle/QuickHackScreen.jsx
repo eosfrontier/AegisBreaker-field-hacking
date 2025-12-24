@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import './QuickHackScreen.css';
-import { DIFFICULTY_LABELS, PUZZLE_TOOLS } from './puzzleOptions';
+import { DIFFICULTY_LABELS, PUZZLE_TOOLS } from '../puzzles/common/puzzleRegistry';
 
 export default function QuickHackScreen() {
   const [selectedTool, setSelectedTool] = useState(null);

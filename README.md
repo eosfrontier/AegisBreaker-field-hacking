@@ -66,13 +66,9 @@ VITE_FIREBASE_APP_ID="..."
 ## Adding puzzles
 - Start from `src/features/puzzles/PuzzleTemplate.jsx`.
 - Call `markSolved()` from `usePuzzleCompletion()` when the puzzle is complete.
-- Register the new puzzle type in:
-  - `src/features/puzzles/common/PuzzleHost.jsx`
-  - `src/features/unplanned-puzzle/puzzleOptions.js`
-  - `src/features/admin/SessionEditor.jsx`
-  - `src/features/hacking-session/DefenseGrid.jsx`
-  - `src/features/hacking-session/HexGrid.jsx`
-  - `src/features/puzzles/styles/PuzzleBase.css` (color variables + class, if needed)
+- Register the new puzzle metadata in `src/features/puzzles/common/puzzleRegistry.js`.
+- Add the puzzle component to `src/features/puzzles/common/PuzzleHost.jsx`.
+- Add color variables/classes in `src/features/puzzles/styles/PuzzleBase.css` if needed.
 
 ## Deployment
 This project is configured for Firebase Hosting.

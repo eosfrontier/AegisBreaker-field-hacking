@@ -11,6 +11,7 @@ import MasterLockPuzzle from '../MasterLockPuzzle';
 // import GridCipher from '../Puzzle/GridCipher';
 import SignalShuntPuzzle from '../SignalShuntPuzzle';
 import { db } from '../../../lib/firebaseConfig';
+import { PUZZLE_COMPONENT_TYPES } from './puzzleRegistry';
 
 const DEFAULT_BOOT_STEPS = [
   { label: 'Establishing secure connection...', ms: 420 },
@@ -30,6 +31,13 @@ const SOLVE_SEQUENCE_TRAILING_MS = 260;
 const FEEDBACK_COOLDOWN_MS = 30 * 60 * 1000;
 const DEFAULT_COMPLETION_TITLE = 'Access granted';
 const DEFAULT_COMPLETION_SUBTITLE = 'ICE layer neutralized. Data channel is stable.';
+const PUZZLE_COMPONENTS = {
+  sequence: SequencePuzzle,
+  frequencyTuning: FrequencyPuzzle,
+  logic: LogicPuzzle,
+  masterLock: MasterLockPuzzle,
+  signalShunt: SignalShuntPuzzle,
+};
 
 function SolvedBadge() {
   return (
@@ -348,61 +356,20 @@ export default function PuzzleHost({
     );
   }
 
-  let content = null;
-  switch (puzzleType) {
-    case 'sequence':
-      content = (
-        <SequencePuzzle
-          sessionId={sessionId}
-          layerId={layerId}
-          layerData={layerData}
-          onLocalPuzzleComplete={handleLocalSolved}
-        />
-      );
-      break;
-    case 'frequencyTuning':
-      content = (
-        <FrequencyPuzzle
-          sessionId={sessionId}
-          layerId={layerId}
-          layerData={layerData}
-          onLocalPuzzleComplete={handleLocalSolved}
-        />
-      );
-      break;
-    case 'logic':
-      content = (
-        <LogicPuzzle
-          sessionId={sessionId}
-          layerId={layerId}
-          layerData={layerData}
-          onLocalPuzzleComplete={handleLocalSolved}
-        />
-      );
-      break;
-    case 'masterLock':
-      content = (
-        <MasterLockPuzzle
-          sessionId={sessionId}
-          layerId={layerId}
-          layerData={layerData}
-          onLocalPuzzleComplete={handleLocalSolved}
-        />
-      );
-      break;
-    case 'signalShunt':
-      content = (
-        <SignalShuntPuzzle
-          sessionId={sessionId}
-          layerId={layerId}
-          layerData={layerData}
-          onLocalPuzzleComplete={handleLocalSolved}
-        />
-      );
-      break;
-    default:
-      content = <div style={{ padding: '1rem' }}>Unknown puzzle type!</div>;
-  }
+  const resolvedPuzzleType = PUZZLE_COMPONENT_TYPES[puzzleType] || puzzleType;
+  const PuzzleComponent = resolvedPuzzleType ? PUZZLE_COMPONENTS[resolvedPuzzleType] : null;
+  const puzzleProps = {
+    sessionId,
+    layerId,
+    layerData,
+    onLocalPuzzleComplete: handleLocalSolved,
+  };
+
+  const content = PuzzleComponent ? (
+    <PuzzleComponent {...puzzleProps} />
+  ) : (
+    <div style={{ padding: '1rem' }}>Unknown puzzle type!</div>
+  );
 
   return (
     <div className="main puzzle-host-shell">

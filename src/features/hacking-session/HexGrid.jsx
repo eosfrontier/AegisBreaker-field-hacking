@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { getPuzzleColor } from '../puzzles/common/puzzleRegistry';
 import './HexGrid.css';
 import circuitBoardImg from '../../assets/circuitBoard.png';
 
@@ -61,16 +62,6 @@ function HexGrid({ layers, sessionId, variant }) {
     return rotations[sum % rotations.length];
   };
 
-  const puzzleTypeColorMap = {
-    sequence: 'var(--puzzle-color-sequence)',
-    frequencyTuning: 'var(--puzzle-color-frequency)',
-    logic: 'var(--puzzle-color-logic)',
-    masterLock: 'var(--puzzle-color-masterlock)',
-    signalShunt: 'var(--puzzle-color-signal)',
-    byteStream: 'var(--puzzle-color-bytestream)',
-    gridcipher: 'var(--puzzle-color-gridcipher)',
-  };
-
   return (
     <ul id="hexGrid">
       {layers.map((layer) => {
@@ -108,7 +99,7 @@ function HexGrid({ layers, sessionId, variant }) {
         const qrValue = `${window.location.origin}/puzzle/${sessionId}/${layer.id}`;
 
         const difficulty = Number(layer.difficulty) || 1;
-        const pipColor = puzzleTypeColorMap[layer.puzzleType] || '#ffffff';
+        const pipColor = getPuzzleColor(layer.puzzleType);
 
         return (
           <li className={`hex ${statusClass} ${variantClass}`} key={layer.id}>

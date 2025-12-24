@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import './QuickHackScreen.css';
-import { DIFFICULTY_LABELS, PUZZLE_TOOLS } from './puzzleOptions';
+import { DIFFICULTY_LABELS, PUZZLE_TOOLS } from '../puzzles/common/puzzleRegistry';
 
 const DEFAULT_SOLVED_TITLE = 'Access granted';
 const DEFAULT_SOLVED_SUBTITLE = 'ICE layer neutralized. Data channel is stable.';

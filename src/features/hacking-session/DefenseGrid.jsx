@@ -1,16 +1,7 @@
 import { useMemo } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { getPuzzleMeta } from '../puzzles/common/puzzleRegistry';
 import './DefenseGrid.css';
-
-const PUZZLE_TYPE_META = {
-  sequence: { label: 'Sequence', badge: 'SEQ' },
-  frequencyTuning: { label: 'Frequency', badge: 'FQ' },
-  logic: { label: 'Logic', badge: 'LOG' },
-  masterLock: { label: 'Circle Lock', badge: 'CLK' },
-  datastream: { label: 'Data Stream', badge: 'DST' },
-  dataStream: { label: 'Data Stream', badge: 'DST' },
-  signalShunt: { label: 'Signal Rerouter', badge: 'SIG' },
-};
 
 const STATUS_COPY = {
   IN_PROGRESS: 'In progress',
@@ -24,14 +15,18 @@ function DefenseGrid({ layers, sessionId, variant = 'active' }) {
   const preparedLayers = useMemo(
     () =>
       layers.map((layer) => {
-        const meta = PUZZLE_TYPE_META[layer.puzzleType] || { label: 'Unknown', badge: 'UNK' };
+        const meta = getPuzzleMeta(layer.puzzleType);
+        const resolvedMeta = {
+          label: meta.shortLabel || meta.label,
+          badge: meta.badge || 'UNK',
+        };
         const difficulty = Math.max(1, Math.min(Number(layer.difficulty) || 1, 5));
         const status = isPreview ? 'LOCKED' : layer.status || 'IDLE';
         const name = layer.shortId || (layer.id ? layer.id.slice(0, 4).toUpperCase() : 'NODE');
         const qrValue = `${window.location.origin}/puzzle/${sessionId}/${layer.id}`;
         return {
           ...layer,
-          meta,
+          meta: resolvedMeta,
           difficulty,
           status,
           name,

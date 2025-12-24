@@ -7,23 +7,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { quillModules, quillFormats } from '../../lib/quillConfig';
 import CustomToolbar from '../../lib/quillCustomToolbar';
-
-// Puzzle types & difficulty labels from previous examples
-const PUZZLE_TYPES = [
-  { value: 'sequence', label: 'Sequence' },
-  { value: 'frequencyTuning', label: 'Frequency Tuning' },
-  { value: 'logic', label: 'Logic Puzzle' },
-  { value: 'masterLock', label: 'Circle Lock' },
-  { value: 'signalShunt', label: 'Signal Rerouter' },
-];
-
-const DIFFICULTY_LABELS = {
-  1: 'Basic',
-  2: 'Intermediate',
-  3: 'Complex',
-  4: 'Intricate',
-  5: 'Inscrutable',
-};
+import { DIFFICULTY_LABELS, PUZZLE_TYPES } from '../puzzles/common/puzzleRegistry';
 
 const THEMES = ['ICC', 'Aliens', 'Aquila', 'Dugo', 'Pendzal', 'Sona', 'Ekanesh'];
 
