@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { lazy } from 'react';
 
 const AdminPanelLayout = lazy(() => import('../../features/admin/AdminPanelLayout'));
+const JoomlaAdminGate = lazy(() => import('../../features/admin/AdminGate'));
 const SessionScreen = lazy(() => import('../../features/hacking-session/MainHackingScreen'));
 const PuzzleScreen = lazy(() => import('../../features/puzzles/common/PuzzleScreen'));
 const QuickHackScreen = lazy(() => import('../../features/unplanned-puzzle/QuickHackScreen'));
@@ -57,8 +58,22 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<HomePage />} />
 
           {/* Admin Panel */}
-          <Route path="/admin" element={<AdminPanelLayout />} />
-          <Route path="/admin/feedback" element={<FeedbackDashboard />} />
+          <Route
+            path="/admin"
+            element={
+              <JoomlaAdminGate>
+                <AdminPanelLayout />
+              </JoomlaAdminGate>
+            }
+          />
+          <Route
+            path="/admin/feedback"
+            element={
+              <JoomlaAdminGate>
+                <FeedbackDashboard />
+              </JoomlaAdminGate>
+            }
+          />
 
           {/* Main Hacking Screen */}
           <Route path="/session/:sessionId" element={<SessionScreen />} />
