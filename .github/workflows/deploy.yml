@@ -1,0 +1,40 @@
+name: Deploy (SSH)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write # required for GitHub OIDC to AWS
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: true
+
+    
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:        
+      - name: Run multiple remote commands via SSH
+        # ⭐ FIX 4: Swapping to the reliable appleboy/ssh-action
+        uses: appleboy/ssh-action@v1          
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: ${{ secrets.SFTP_PORT }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          # Use 'key' for the appleboy action and the same secret as the SCP step
+          key: ${{ secrets.SSH_KEY_2 }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          script: |
+            export NVM_DIR="~/.nvm"
+            source "/home/ubuntu/.nvm/nvm.sh" # This sources nvm
+            source "/home/ubuntu/.bashrc" # This sources bashrc
+            cd /var/eos_apps/AegisBreaker-field-hacking/
+            git checkout main
+            git pull
+            nvm use lts/jod
+            npm install
+            npm run build
