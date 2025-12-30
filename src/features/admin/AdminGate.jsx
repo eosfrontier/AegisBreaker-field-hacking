@@ -5,6 +5,8 @@ const ADMIN_GROUPS = (import.meta.env.VITE_JOOMLA_ADMIN_GROUPS || "30,36,8,31")
   .map((s) => s.trim())
   .filter(Boolean);
 
+const AUTH_MODE = String(import.meta.env.VITE_AUTH_MODE || "joomla").toLowerCase();
+
 export default function JoomlaAdminGate({ children }) {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -19,28 +21,38 @@ export default function JoomlaAdminGate({ children }) {
       try {
         setLoading(true);
 
-        const mockRaw = import.meta.env.VITE_JOOMLA_MOCK_USER;
-
-        // Debug once (you can remove later)
-        console.log("[JoomlaAdminGate] DEV:", import.meta.env.DEV, "mock present:", !!mockRaw);
-
-        let data;
-
-        if (import.meta.env.DEV && mockRaw) {
-          data = JSON.parse(mockRaw);
-        } else {
-          const res = await fetch("/assets/idandgroups.php", {
-            credentials: "include",
-            cache: "no-store",
-          });
-
-          // Better error message when you accidentally get HTML/PHP
-          const text = await res.text();
-          try {
-            data = JSON.parse(text);
-          } catch {
-            throw new Error(`Expected JSON from /assets/idandgroups.php but got: ${text.slice(0, 80)}`);
+        if (AUTH_MODE === "none") {
+          if (!cancelled) {
+            setUserData({ id: "0", groups: ADMIN_GROUPS }); // treat as admin
+            setError(null);
+            setLoading(false);
           }
+          return;
+        }
+
+        if (AUTH_MODE === "mock") {
+          const raw = import.meta.env.VITE_JOOMLA_MOCK_USER;
+          if (!raw) throw new Error("VITE_AUTH_MODE=mock but VITE_JOOMLA_MOCK_USER is missing");
+          const data = JSON.parse(raw);
+          if (!cancelled) {
+            setUserData(data);
+            setError(null);
+          }
+          return;
+        }
+
+        // default: joomla
+        const res = await fetch("/assets/idandgroups.php", {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(`Expected JSON from /assets/idandgroups.php but got: ${text.slice(0, 80)}`);
         }
 
         if (!cancelled) {
@@ -62,22 +74,19 @@ export default function JoomlaAdminGate({ children }) {
     };
   }, []);
 
-  if (loading) return <div style={{ padding: 16 }}>Checking Joomla session…</div>;
+  if (loading) return <div style={{ padding: 16 }}>Checking admin access…</div>;
 
   const id = String(userData?.id ?? "");
   const groups = Array.isArray(userData?.groups) ? userData.groups.map(String) : [];
-
-  // Not logged in (Joomla usually uses id 0 for guests)
   const isGuest = !id || id === "0";
 
   if (!userData || isGuest) {
     return (
       <div style={{ padding: 16 }}>
         <h2>Admin login required</h2>
-        <p>You must be logged in on eosfrontier.space to access the admin panel.</p>
+         <p>You must be logged in on eosfrontier.space to access the admin panel.</p>
         <p style={{ opacity: 0.8 }}>
-          After logging in, refresh this page. If it still fails, the endpoint may not be
-          available on this domain yet.
+          After logging in, refresh this page.
         </p>
         <div style={{ marginTop: 12 }}>
           <a href="https://eosfrontier.space/" target="_blank" rel="noreferrer">
@@ -94,16 +103,13 @@ export default function JoomlaAdminGate({ children }) {
   }
 
   const isAdmin = groups.some((g) => adminSet.has(g));
-
   if (!isAdmin) {
     return (
       <div style={{ padding: 16 }}>
         <h2>Not authorized</h2>
-        <p>
-          Logged in as Joomla user <b>{id}</b>, but your account is not in an allowed admin group.
-        </p>
+        <p>Logged in as Joomla user <b>{id}</b>, but you are not in an allowed group.</p>
         <p style={{ opacity: 0.8 }}>
-          Your groups: {groups.join(", ") || "(none)"} <br />
+          Your groups: {groups.join(", ") || "(none)"}<br />
           Allowed admin groups: {ADMIN_GROUPS.join(", ")}
         </p>
       </div>
