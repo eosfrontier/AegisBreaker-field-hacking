@@ -35,5 +35,6 @@ jobs:
             cd /var/eos_apps/AegisBreaker-field-hacking/
             git checkout main
             git pull
+            nvm use lts/jod
             npm install
             npm run build
