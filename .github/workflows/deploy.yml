@@ -30,8 +30,8 @@ jobs:
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           script: |
             export NVM_DIR="~/.nvm"
-            . "$NVM_DIR/nvm.sh" # This sources nvm
-            . ~/.bashrc # This sources bashrc
+            source "/home/ubuntu/.nvm/nvm.sh" # This sources nvm
+            source "~/.bashrc" # This sources bashrc
             cd /var/eos_apps/AegisBreaker-field-hacking/
             git checkout main
             git pull
