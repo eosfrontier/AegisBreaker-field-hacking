@@ -37,8 +37,7 @@ jobs:
             git reset --hard origin/main
             git clean -fd
             git checkout main
-            git pull
             nvm install 20.11.1
             nvm use 20.11.1
-            npm install
+            npm ci
             npm run build
