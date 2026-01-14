@@ -14,7 +14,7 @@ describe('HomePage profile modal flow', () => {
   beforeEach(() => {
     previousAuthMode = import.meta.env.VITE_AUTH_MODE;
     try {
-      import.meta.env.VITE_AUTH_MODE = 'none';
+      import.meta.env.VITE_AUTH_MODE = 'mock';
     } catch {
       // ignore if the test runner locks env writes
     }
@@ -52,7 +52,7 @@ describe('HomePage profile modal flow', () => {
     await ensureModalOpen();
     expect(await screen.findByText(/Identify Role/i)).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: /Operative/i })).toBeVisible();
-    expect(screen.getByRole('button', { name: /Administrator/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Login to Joomla/i })).toBeVisible();
   });
 
   it('skips role selection when a role was stored', () => {

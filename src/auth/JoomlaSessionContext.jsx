@@ -5,7 +5,6 @@ const JoomlaSessionContext = createContext(null);
 const DEFAULT_ADMIN_GROUPS = '30,36,8,31';
 const JOOMLA_RETURN_PATH = '/return-to-aegis-breaker';
 const JOOMLA_RETURN_ORIGIN = 'https://www.eosfrontier.space';
-const JOOMLA_APP_HOST = 'aegis.eosfrontier.space';
 
 const normalizeAuthMode = (mode) => {
   const normalized = String(mode || 'joomla').toLowerCase();
@@ -28,7 +27,7 @@ export const getReturnUrl = () => {
     return fallback;
   }
   const authMode = getAuthMode();
-  if (authMode === 'joomla' && window.location.hostname === JOOMLA_APP_HOST) {
+  if (authMode === 'joomla') {
     return fallback;
   }
   return `${window.location.origin}${JOOMLA_RETURN_PATH}`;

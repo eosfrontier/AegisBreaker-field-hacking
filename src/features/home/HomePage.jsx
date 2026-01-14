@@ -17,6 +17,7 @@ export default function HomePage() {
   const returnUrl = getReturnUrl();
   const modalRef = useRef(null);
   const lastFocusRef = useRef(null);
+  const initRef = useRef(false);
 
   const [info, setInfo] = useState(null); // {role,name,level,skills}
   const [showModal, setShowModal] = useState(false);
@@ -40,9 +41,10 @@ export default function HomePage() {
 
   const hasChosenRole = useMemo(() => {
     try {
-      return Boolean(info?.role || localStorage.getItem('ab:user-type'));
+      const storedRole = localStorage.getItem('ab:user-type');
+      return info?.role === 'operative' || storedRole === 'operative';
     } catch {
-      return Boolean(info?.role);
+      return info?.role === 'operative';
     }
   }, [info?.role]);
 
@@ -52,7 +54,7 @@ export default function HomePage() {
       closeModal();
       return;
     }
-    if (info) {
+    if (info?.role === 'operative') {
       setName(info.name ?? '');
       const lv = info.level ?? 1;
       setLevel(lv);
@@ -68,15 +70,37 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    if (initRef.current) return;
+    if (status === 'loading' || status === 'idle') return;
+
     const stored = localStorage.getItem('characterInfo');
     if (stored) {
       const parsed = JSON.parse(stored);
       setInfo(parsed);
       if (parsed.faction) setFaction(parsed.faction);
-    } else {
-      setShowModal(true);
+      initRef.current = true;
+      return;
     }
-  }, []);
+
+    if (authMode === 'joomla' && isLoggedIn) {
+      const role = isAdmin ? 'admin' : 'operative';
+      try {
+        localStorage.setItem('ab:user-type', role);
+      } catch {
+        /* ignore */
+      }
+      if (isAdmin) {
+        const data = { role: 'admin' };
+        localStorage.setItem('characterInfo', JSON.stringify(data));
+        setInfo(data);
+      }
+      initRef.current = true;
+      return;
+    }
+
+    setShowModal(true);
+    initRef.current = true;
+  }, [authMode, isLoggedIn, isAdmin, status]);
 
   useEffect(() => {
     if (showModal) {
@@ -135,10 +159,25 @@ export default function HomePage() {
 
   const availableSkills = useMemo(() => getAvailableSkills(level), [level]);
   const pointsRemaining = level - skills.length;
-  const isSessionReady = status !== 'loading' && status !== 'idle';
-  const showLoginButton =
-    isSessionReady &&
-    ((authMode === 'joomla' && !isLoggedIn && returnUrl) || (authMode === 'mock' && !isAdmin));
+
+  const handleJoomlaLogin = () => {
+    if (authMode === 'mock') {
+      grantMockAdmin?.();
+      const data = { role: 'admin' };
+      try {
+        localStorage.setItem('ab:user-type', 'admin');
+        localStorage.setItem('characterInfo', JSON.stringify(data));
+      } catch {
+        /* ignore */
+      }
+      setInfo(data);
+      setShowModal(false);
+      return;
+    }
+    if (returnUrl) {
+      window.location.assign(returnUrl);
+    }
+  };
 
   useEffect(() => {
     const allowedIds = new Set(availableSkills.map((s) => s.id));
@@ -258,22 +297,6 @@ export default function HomePage() {
         >
           Scripts Store
         </button>
-        {showLoginButton && (
-          <button
-            className="qh-btn home-nav-btn"
-            onClick={() => {
-              if (authMode === 'mock') {
-                grantMockAdmin?.();
-                return;
-              }
-              if (returnUrl) {
-                window.location.assign(returnUrl);
-              }
-            }}
-          >
-            Login as SL
-          </button>
-        )}
         {isAdmin && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', maxWidth: '260px' }}>
@@ -371,22 +394,11 @@ export default function HomePage() {
                       >
                         Operative (Player)
                       </button>
-                      <button
-                        className="qh-btn home-nav-btn"
-                        onClick={() => {
-                          const data = { role: 'admin' };
-                          try {
-                            localStorage.setItem('ab:user-type', 'admin');
-                          } catch {
-                            /* ignore */
-                          }
-                          localStorage.setItem('characterInfo', JSON.stringify(data));
-                          setInfo(data);
-                          closeModal();
-                        }}
-                      >
-                        Administrator (GM)
-                      </button>
+                      {(authMode === 'joomla' || authMode === 'mock') && !isLoggedIn && (
+                        <button className="qh-btn home-nav-btn" onClick={handleJoomlaLogin}>
+                          Login to Joomla
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
