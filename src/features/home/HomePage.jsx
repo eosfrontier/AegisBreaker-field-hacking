@@ -12,7 +12,7 @@ const FACTIONS = ['aquila', 'dugo', 'ekanesh', 'pendzal', 'sona'];
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAdmin, isLoggedIn, status } = useJoomlaSession();
+  const { isAdmin, isLoggedIn, status, grantMockAdmin } = useJoomlaSession();
   const authMode = getAuthMode();
   const returnUrl = getReturnUrl();
   const modalRef = useRef(null);
@@ -135,7 +135,10 @@ export default function HomePage() {
 
   const availableSkills = useMemo(() => getAvailableSkills(level), [level]);
   const pointsRemaining = level - skills.length;
-  const showLoginButton = authMode === 'joomla' && !isLoggedIn && status !== 'loading' && status !== 'idle' && returnUrl;
+  const isSessionReady = status !== 'loading' && status !== 'idle';
+  const showLoginButton =
+    isSessionReady &&
+    ((authMode === 'joomla' && !isLoggedIn && returnUrl) || (authMode === 'mock' && !isAdmin));
 
   useEffect(() => {
     const allowedIds = new Set(availableSkills.map((s) => s.id));
@@ -256,7 +259,18 @@ export default function HomePage() {
           Scripts Store
         </button>
         {showLoginButton && (
-          <button className="qh-btn home-nav-btn" onClick={() => window.location.assign(returnUrl)}>
+          <button
+            className="qh-btn home-nav-btn"
+            onClick={() => {
+              if (authMode === 'mock') {
+                grantMockAdmin?.();
+                return;
+              }
+              if (returnUrl) {
+                window.location.assign(returnUrl);
+              }
+            }}
+          >
             Login as SL
           </button>
         )}

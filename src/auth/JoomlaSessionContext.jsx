@@ -4,6 +4,8 @@ const JoomlaSessionContext = createContext(null);
 
 const DEFAULT_ADMIN_GROUPS = '30,36,8,31';
 const JOOMLA_RETURN_PATH = '/return-to-aegis-breaker';
+const JOOMLA_RETURN_ORIGIN = 'https://www.eosfrontier.space';
+const JOOMLA_APP_HOST = 'aegis.eosfrontier.space';
 
 const normalizeAuthMode = (mode) => {
   const normalized = String(mode || 'joomla').toLowerCase();
@@ -21,8 +23,13 @@ export const getAdminGroups = () => {
 };
 
 export const getReturnUrl = () => {
+  const fallback = `${JOOMLA_RETURN_ORIGIN}${JOOMLA_RETURN_PATH}`;
   if (typeof window === 'undefined' || !window.location?.origin) {
-    return `https://www.eosfrontier.space${JOOMLA_RETURN_PATH}`;
+    return fallback;
+  }
+  const authMode = getAuthMode();
+  if (authMode === 'joomla' && window.location.hostname === JOOMLA_APP_HOST) {
+    return fallback;
   }
   return `${window.location.origin}${JOOMLA_RETURN_PATH}`;
 };
@@ -34,6 +41,18 @@ const normalizeUser = (data) => {
   const id = data.id != null ? String(data.id) : '';
   const groups = Array.isArray(data.groups) ? data.groups.map((g) => String(g)) : [];
   return { id, groups };
+};
+
+const parseMockUser = () => {
+  const raw = import.meta.env.VITE_JOOMLA_MOCK_USER;
+  if (!raw) throw new Error('VITE_AUTH_MODE=mock but VITE_JOOMLA_MOCK_USER is missing');
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error('VITE_JOOMLA_MOCK_USER must be valid JSON');
+  }
+  return normalizeUser(parsed);
 };
 
 export function JoomlaSessionProvider({ children }) {
@@ -65,15 +84,7 @@ export function JoomlaSessionProvider({ children }) {
 
       if (authMode === 'mock') {
         // Firebase Hosting cannot execute PHP, so mock mode avoids /assets/idandgroups.php there.
-        const raw = import.meta.env.VITE_JOOMLA_MOCK_USER;
-        if (!raw) throw new Error('VITE_AUTH_MODE=mock but VITE_JOOMLA_MOCK_USER is missing');
-        let parsed;
-        try {
-          parsed = JSON.parse(raw);
-        } catch {
-          throw new Error('VITE_JOOMLA_MOCK_USER must be valid JSON');
-        }
-        finalize(normalizeUser(parsed), null);
+        finalize(normalizeUser({ id: '0', groups: [] }), null);
         return;
       }
 
@@ -94,6 +105,20 @@ export function JoomlaSessionProvider({ children }) {
       finalize(normalizeUser(parsed), null);
     } catch (err) {
       finalize(null, err instanceof Error ? err : new Error(String(err)));
+    }
+  }, []);
+
+  const grantMockAdmin = useCallback(() => {
+    if (getAuthMode() !== 'mock') return;
+    requestIdRef.current += 1;
+    try {
+      const mockUser = parseMockUser();
+      setUser(mockUser);
+      setError(null);
+      setStatus('ready');
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      setStatus('error');
     }
   }, []);
 
@@ -125,9 +150,10 @@ export function JoomlaSessionProvider({ children }) {
       groups,
       joomlaId,
       refresh: resolveSession,
+      grantMockAdmin,
       error,
     }),
-    [status, user, isLoggedIn, isAdmin, groups, joomlaId, resolveSession, error],
+    [status, user, isLoggedIn, isAdmin, groups, joomlaId, resolveSession, grantMockAdmin, error],
   );
 
   return <JoomlaSessionContext.Provider value={value}>{children}</JoomlaSessionContext.Provider>;
