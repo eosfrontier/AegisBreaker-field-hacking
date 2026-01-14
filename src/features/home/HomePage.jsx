@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineUser } from 'react-icons/ai';
 import BootSplash from '../../components/common/BootSplash';
+import { getAuthMode, getReturnUrl, useJoomlaSession } from '../../auth/JoomlaSessionContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 import './HomePage.css';
@@ -11,6 +12,9 @@ const FACTIONS = ['aquila', 'dugo', 'ekanesh', 'pendzal', 'sona'];
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { isAdmin, isLoggedIn, status } = useJoomlaSession();
+  const authMode = getAuthMode();
+  const returnUrl = getReturnUrl();
   const modalRef = useRef(null);
   const lastFocusRef = useRef(null);
 
@@ -131,6 +135,7 @@ export default function HomePage() {
 
   const availableSkills = useMemo(() => getAvailableSkills(level), [level]);
   const pointsRemaining = level - skills.length;
+  const showLoginButton = authMode === 'joomla' && !isLoggedIn && status !== 'loading' && status !== 'idle' && returnUrl;
 
   useEffect(() => {
     const allowedIds = new Set(availableSkills.map((s) => s.id));
@@ -250,7 +255,12 @@ export default function HomePage() {
         >
           Scripts Store
         </button>
-        {info?.role === 'admin' && (
+        {showLoginButton && (
+          <button className="qh-btn home-nav-btn" onClick={() => window.location.assign(returnUrl)}>
+            Login as SL
+          </button>
+        )}
+        {isAdmin && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', maxWidth: '260px' }}>
               <span style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Admin</span>

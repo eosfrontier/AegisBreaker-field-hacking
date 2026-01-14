@@ -4,6 +4,7 @@ import { collection, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { db } from '../../lib/firebaseConfig';
+import { useJoomlaSession } from '../../auth/JoomlaSessionContext';
 import './AdminPanelLayout.css';
 import './FeedbackDashboard.css';
 
@@ -16,16 +17,7 @@ export default function FeedbackDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState('');
-
-  const isAdmin = useMemo(() => {
-    try {
-      const stored = localStorage.getItem('characterInfo');
-      const parsed = stored ? JSON.parse(stored) : null;
-      return parsed?.role === 'admin';
-    } catch {
-      return false;
-    }
-  }, []);
+  const { isAdmin, status } = useJoomlaSession();
 
   useEffect(() => {
     const fetchFeedback = async () => {
@@ -108,6 +100,16 @@ export default function FeedbackDashboard() {
       setDeletingId('');
     }
   };
+
+  if (status === 'loading' || status === 'idle') {
+    return (
+      <div className="admin-main feedback-main">
+        <div className="feedback-card">
+          <p>Checking admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (

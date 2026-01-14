@@ -2,9 +2,9 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { lazy } from 'react';
+import RequireAdmin from '../../auth/RequireAdmin';
 
 const AdminPanelLayout = lazy(() => import('../../features/admin/AdminPanelLayout'));
-const JoomlaAdminGate = lazy(() => import('../../features/admin/AdminGate'));
 const SessionScreen = lazy(() => import('../../features/hacking-session/MainHackingScreen'));
 const PuzzleScreen = lazy(() => import('../../features/puzzles/common/PuzzleScreen'));
 const QuickHackScreen = lazy(() => import('../../features/unplanned-puzzle/QuickHackScreen'));
@@ -61,17 +61,17 @@ const AnimatedRoutes = () => {
           <Route
             path="/admin"
             element={
-              <JoomlaAdminGate>
+              <RequireAdmin>
                 <AdminPanelLayout />
-              </JoomlaAdminGate>
+              </RequireAdmin>
             }
           />
           <Route
             path="/admin/feedback"
             element={
-              <JoomlaAdminGate>
+              <RequireAdmin>
                 <FeedbackDashboard />
-              </JoomlaAdminGate>
+              </RequireAdmin>
             }
           />
 
@@ -85,7 +85,14 @@ const AnimatedRoutes = () => {
 
           {/* Unplanned Puzzle */}
           <Route path="/QuickHack" element={<QuickHackScreen />} />
-          <Route path="/gm-qr" element={<GmQrGenerator />} />
+          <Route
+            path="/gm-qr"
+            element={
+              <RequireAdmin>
+                <GmQrGenerator />
+              </RequireAdmin>
+            }
+          />
 
           {/* QR Scanner */}
           <Route path="/qr-scanner" element={<QrScannerPage />} />

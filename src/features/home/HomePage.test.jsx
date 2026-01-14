@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act, waitForElementToBeRemoved } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { JoomlaSessionProvider } from '../../auth/JoomlaSessionContext';
 import HomePage from './HomePage';
 
 vi.mock('react-icons/ai', () => ({
@@ -8,19 +9,34 @@ vi.mock('react-icons/ai', () => ({
 }));
 
 describe('HomePage profile modal flow', () => {
+  let previousAuthMode;
+
   beforeEach(() => {
+    previousAuthMode = import.meta.env.VITE_AUTH_MODE;
+    try {
+      import.meta.env.VITE_AUTH_MODE = 'none';
+    } catch {
+      // ignore if the test runner locks env writes
+    }
     localStorage.clear();
     localStorage.setItem('ab:once:boot', '1'); // skip BootSplash overlay
   });
 
   afterEach(() => {
+    try {
+      import.meta.env.VITE_AUTH_MODE = previousAuthMode;
+    } catch {
+      /* ignore */
+    }
     vi.clearAllMocks();
   });
 
   const renderHome = () =>
     render(
       <MemoryRouter>
-        <HomePage />
+        <JoomlaSessionProvider>
+          <HomePage />
+        </JoomlaSessionProvider>
       </MemoryRouter>,
     );
 
