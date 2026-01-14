@@ -29,16 +29,18 @@ jobs:
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           script: |
             set -euo pipefail
-            export NVM_DIR="~/.nvm"
-            source "/home/ubuntu/.nvm/nvm.sh" # This sources nvm
-            source "/home/ubuntu/.bashrc" # This sources bashrc
+
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+            source "$HOME/.bashrc" || true
+
             cd /var/eos_apps/AegisBreaker-field-hacking/
+
             git fetch origin
             git reset --hard origin/main
             git clean -fd
-            git checkout main
-            git pull
-            nvm install 20.11.1
-            nvm use 20.11.1
-            npm install
+
+            nvm use 20.11.1 || nvm install 20.11.1 --binary
+
+            npm ci
             npm run build
