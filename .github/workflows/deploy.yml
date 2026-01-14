@@ -13,14 +13,13 @@ concurrency:
   group: deploy-prod
   cancel-in-progress: true
 
-    
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:        
+    steps:
       - name: Run multiple remote commands via SSH
         # ⭐ FIX 4: Swapping to the reliable appleboy/ssh-action
-        uses: appleboy/ssh-action@v1          
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SFTP_HOST }}
           port: ${{ secrets.SFTP_PORT }}
@@ -29,10 +28,14 @@ jobs:
           key: ${{ secrets.SSH_KEY_2 }}
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           script: |
+            set -euo pipefail
             export NVM_DIR="~/.nvm"
             source "/home/ubuntu/.nvm/nvm.sh" # This sources nvm
             source "/home/ubuntu/.bashrc" # This sources bashrc
             cd /var/eos_apps/AegisBreaker-field-hacking/
+            git fetch origin
+            git reset --hard origin/main
+            git clean -fd
             git checkout main
             git pull
             nvm install lts/jod
