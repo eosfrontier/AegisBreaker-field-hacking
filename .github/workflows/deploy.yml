@@ -38,7 +38,7 @@ jobs:
             git clean -fd
             git checkout main
             git pull
-            nvm install lts/jod
-            nvm use lts/jod
+            nvm install 20.11.1
+            nvm use 20.11.1
             npm install
             npm run build
