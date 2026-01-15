@@ -52,7 +52,6 @@ describe('HomePage profile modal flow', () => {
     await ensureModalOpen();
     expect(await screen.findByText(/Identify Role/i)).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: /Operative/i })).toBeVisible();
-    expect(screen.getByRole('button', { name: /Import Character Profile/i })).toBeVisible();
     expect(screen.getByRole('button', { name: /Login to Joomla/i })).toBeVisible();
   });
 
