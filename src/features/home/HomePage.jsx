@@ -4,17 +4,39 @@ import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineUser } from 'react-icons/ai';
 import BootSplash from '../../components/common/BootSplash';
 import { getAuthMode, getReturnUrl, useJoomlaSession } from '../../auth/JoomlaSessionContext';
+import { useOrthancImport } from '../../hooks/useOrthancImport';
 import { motion, AnimatePresence } from 'motion/react';
 
 import './HomePage.css';
 
 const FACTIONS = ['aquila', 'dugo', 'ekanesh', 'pendzal', 'sona'];
 
+const readCharacterInfo = () => {
+  try {
+    const stored = localStorage.getItem('characterInfo');
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const mergeCloudProfile = (profile, cloud) => {
+  const base = profile && typeof profile === 'object' ? profile : {};
+  const next = { ...base, cloud };
+  if (!next.role) {
+    next.role = 'operative';
+  }
+  return next;
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAdmin, isLoggedIn, status, grantMockAdmin } = useJoomlaSession();
+  const { isAdmin, isLoggedIn, status, grantMockAdmin, joomlaId } = useJoomlaSession();
   const authMode = getAuthMode();
   const returnUrl = getReturnUrl();
+  const { importCharacter, loading: importLoading, error: importError, data: importData } = useOrthancImport();
   const modalRef = useRef(null);
   const lastFocusRef = useRef(null);
   const initRef = useRef(false);
@@ -73,11 +95,10 @@ export default function HomePage() {
     if (initRef.current) return;
     if (status === 'loading' || status === 'idle') return;
 
-    const stored = localStorage.getItem('characterInfo');
+    const stored = readCharacterInfo();
     if (stored) {
-      const parsed = JSON.parse(stored);
-      setInfo(parsed);
-      if (parsed.faction) setFaction(parsed.faction);
+      setInfo(stored);
+      if (stored.faction) setFaction(stored.faction);
       initRef.current = true;
       return;
     }
@@ -90,8 +111,12 @@ export default function HomePage() {
         /* ignore */
       }
       if (isAdmin) {
-        const data = { role: 'admin' };
-        localStorage.setItem('characterInfo', JSON.stringify(data));
+        const data = stored?.profile ? { role: 'admin', profile: stored.profile } : { role: 'admin' };
+        try {
+          localStorage.setItem('characterInfo', JSON.stringify(data));
+        } catch {
+          /* ignore */
+        }
         setInfo(data);
       }
       initRef.current = true;
@@ -159,11 +184,13 @@ export default function HomePage() {
 
   const availableSkills = useMemo(() => getAvailableSkills(level), [level]);
   const pointsRemaining = level - skills.length;
+  const canImportProfile = authMode === 'mock' || (authMode === 'joomla' && isLoggedIn);
 
   const handleJoomlaLogin = () => {
     if (authMode === 'mock') {
       grantMockAdmin?.();
-      const data = { role: 'admin' };
+      const stored = readCharacterInfo();
+      const data = stored?.profile ? { role: 'admin', profile: stored.profile } : { role: 'admin' };
       try {
         localStorage.setItem('ab:user-type', 'admin');
         localStorage.setItem('characterInfo', JSON.stringify(data));
@@ -195,14 +222,20 @@ export default function HomePage() {
 
   const saveOperative = () => {
     if (!name || !faction) return;
+    const stored = readCharacterInfo();
     const data = {
+      ...(stored ?? {}),
       role: 'operative',
       name,
       level,
       skills,
       faction,
     };
-    localStorage.setItem('characterInfo', JSON.stringify(data));
+    try {
+      localStorage.setItem('characterInfo', JSON.stringify(data));
+    } catch {
+      /* ignore */
+    }
     setInfo(data);
     setShowModal(false);
   };
@@ -229,6 +262,47 @@ export default function HomePage() {
     setShowModal(true);
     setFaction('');
   };
+
+  const handleImportProfile = async () => {
+    try {
+      const imported = await importCharacter();
+      const stored = readCharacterInfo() ?? {};
+      const cloud = {
+        accountId: joomlaId,
+        characterId: imported.characterId,
+        characterName: imported.characterName,
+        faction: imported.faction,
+        itLevel: imported.itLevel,
+        importedAt: Date.now(),
+      };
+      const next = {
+        ...stored,
+        profile: mergeCloudProfile(stored.profile, cloud),
+      };
+      try {
+        localStorage.setItem('characterInfo', JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      setInfo(next);
+    } catch {
+      /* import errors are handled in the hook state */
+    }
+  };
+
+  const importPanel = canImportProfile ? (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
+      <button className="qh-btn home-nav-btn" onClick={handleImportProfile} disabled={importLoading}>
+        {importLoading ? 'Importing...' : 'Import Character Profile'}
+      </button>
+      {importError && (
+        <p style={{ margin: 0, color: '#f87171', textAlign: 'center' }}>{importError.message}</p>
+      )}
+      {!importError && importData?.characterName && (
+        <p style={{ margin: 0, color: '#4ade80', textAlign: 'center' }}>Welcome, {importData.characterName}</p>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div className="main">
@@ -399,12 +473,14 @@ export default function HomePage() {
                           Login to Joomla
                         </button>
                       )}
+                      {importPanel}
                     </div>
                   </>
                 )}
 
                 {step === 1 && (
                   <>
+                    {importPanel}
                     <label className="qh-label">
                       Name <span style={{ color: '#f87171' }}>*</span>
                       <input
