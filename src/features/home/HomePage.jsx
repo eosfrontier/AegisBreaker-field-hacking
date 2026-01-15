@@ -4,6 +4,7 @@ import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineUser } from 'react-icons/ai';
 import BootSplash from '../../components/common/BootSplash';
 import { getAuthMode, getReturnUrl, useJoomlaSession } from '../../auth/JoomlaSessionContext';
+import { loadCloudProfile, useCharacterImport } from '../../auth/useCharacterImport';
 import { motion, AnimatePresence } from 'motion/react';
 
 import './HomePage.css';
@@ -20,6 +21,7 @@ export default function HomePage() {
   const initRef = useRef(false);
 
   const [info, setInfo] = useState(null); // {role,name,level,skills}
+  const [cloudProfile, setCloudProfile] = useState(() => loadCloudProfile());
   const [showModal, setShowModal] = useState(false);
 
   const [step, setStep] = useState(0); // 0=role  1=operative-form
@@ -30,6 +32,7 @@ export default function HomePage() {
   const [levelInput, setLevelInput] = useState('1');
   const [skills, setSkills] = useState([]);
   const [faction, setFaction] = useState('');
+  const { importProfile, status: importStatus, error: importError } = useCharacterImport();
 
   const [bootVisible, setBootVisible] = useState(() => {
     try {
@@ -98,9 +101,14 @@ export default function HomePage() {
       return;
     }
 
+    if (cloudProfile) {
+      initRef.current = true;
+      return;
+    }
+
     setShowModal(true);
     initRef.current = true;
-  }, [authMode, isLoggedIn, isAdmin, status]);
+  }, [authMode, isLoggedIn, isAdmin, status, cloudProfile]);
 
   useEffect(() => {
     if (showModal) {
@@ -178,6 +186,26 @@ export default function HomePage() {
       window.location.assign(returnUrl);
     }
   };
+
+  const handleImportProfile = async () => {
+    try {
+      const imported = await importProfile();
+      if (imported) {
+        setCloudProfile(imported);
+        setShowModal(false);
+      }
+    } catch {
+      /* handled by importError */
+    }
+  };
+
+  const isImporting = importStatus === 'loading';
+  const importMessage =
+    importError?.code === 'not_logged_in'
+      ? 'Please log into Joomla to import character.'
+      : importError
+        ? 'Unable to import character profile. Please try again.'
+        : '';
 
   useEffect(() => {
     const allowedIds = new Set(availableSkills.map((s) => s.id));
@@ -316,6 +344,22 @@ export default function HomePage() {
         )}
       </div>
 
+      {cloudProfile && (
+        <div className="profile-chip">
+          <div className="profile-chip-header">
+            <span className="profile-chip-label">Welcome</span>
+            <span className="profile-chip-name">{cloudProfile.displayName || cloudProfile.characterName}</span>
+          </div>
+          <div className="profile-chip-meta">
+            <span>Faction: {cloudProfile.faction || 'unknown'}</span>
+            <span className="profile-chip-divider" aria-hidden="true">
+              |
+            </span>
+            <span>IT: {Number.isFinite(cloudProfile.itLevel) ? cloudProfile.itLevel : 0}</span>
+          </div>
+        </div>
+      )}
+
       {info?.role === 'operative' && (
         <div className="profile-chip">
           <div className="profile-chip-header">
@@ -394,11 +438,19 @@ export default function HomePage() {
                       >
                         Operative (Player)
                       </button>
-                      {(authMode === 'joomla' || authMode === 'mock') && !isLoggedIn && (
+                      {(authMode === 'joomla' && isLoggedIn) || authMode === 'mock' ? (
+                        <button className="qh-btn home-nav-btn" onClick={handleImportProfile} disabled={isImporting}>
+                          {isImporting ? 'Importing...' : 'Import Character Profile'}
+                        </button>
+                      ) : null}
+                      {authMode !== 'none' && !isLoggedIn && (
                         <button className="qh-btn home-nav-btn" onClick={handleJoomlaLogin}>
                           Login to Joomla
                         </button>
                       )}
+                      {importMessage ? (
+                        <div style={{ fontSize: '0.9rem', color: '#fca5a5', textAlign: 'center' }}>{importMessage}</div>
+                      ) : null}
                     </div>
                   </>
                 )}
