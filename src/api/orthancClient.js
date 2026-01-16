@@ -20,11 +20,14 @@ const normalizeId = (id) => {
 };
 
 const fetchOrthanc = async (path, id) => {
+  console.log('[Orthanc] Request', `${ORTHANC_BASE_URL}${path}`, { id, tokenPresent: !!ORTHANC_TOKEN });
+
   const token = getToken();
   const res = await fetch(`${ORTHANC_BASE_URL}${path}`, {
     headers: {
       token,
       id: normalizeId(id),
+      accountID: normalizeId(id),
       Accept: 'application/json',
     },
   });
