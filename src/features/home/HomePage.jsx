@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 import './HomePage.css';
 
-const FACTIONS = ['aquila', 'dugo', 'ekanesh', 'pendzal', 'sona'];
+const FACTIONS = ['Aquila', 'Dugo', 'Ekanesh', 'Pendzal', 'Sona'];
 
 const readCharacterInfo = () => {
   try {
@@ -20,6 +20,19 @@ const readCharacterInfo = () => {
   } catch {
     return null;
   }
+};
+
+const normalizeFaction = (value) => {
+  const f = String(value ?? '')
+    .trim()
+    .toLowerCase();
+  return FACTIONS.includes(f) ? f : '';
+};
+
+const clampLevel = (value, min = 1, max = 10) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, n));
 };
 
 const mergeCloudProfile = (profile, cloud) => {
@@ -52,6 +65,9 @@ export default function HomePage() {
   const [levelInput, setLevelInput] = useState('1');
   const [skills, setSkills] = useState([]);
   const [faction, setFaction] = useState('');
+
+  const cloudProfile = info?.profile?.cloud ?? null;
+  const isCloudLinked = Boolean(cloudProfile?.characterId);
 
   const [bootVisible, setBootVisible] = useState(() => {
     try {
@@ -221,16 +237,24 @@ export default function HomePage() {
   };
 
   const saveOperative = () => {
-    if (!name || !faction) return;
-    const stored = readCharacterInfo();
+    const stored = readCharacterInfo() ?? {};
+    const cloud = stored?.profile?.cloud;
+
+    const effectiveName = cloud?.characterName ?? name;
+    const effectiveFaction = normalizeFaction(cloud?.faction ?? faction);
+    const effectiveLevel = clampLevel(cloud?.itLevel ?? level, 1, 10);
+
+    if (!effectiveName || !effectiveFaction) return;
+
     const data = {
-      ...(stored ?? {}),
+      ...stored,
       role: 'operative',
-      name,
-      level,
+      name: effectiveName,
+      level: effectiveLevel,
       skills,
-      faction,
+      faction: effectiveFaction,
     };
+
     try {
       localStorage.setItem('characterInfo', JSON.stringify(data));
     } catch {
@@ -267,6 +291,7 @@ export default function HomePage() {
     try {
       const imported = await importCharacter();
       const stored = readCharacterInfo() ?? {};
+
       const cloud = {
         accountId: joomlaId,
         characterId: imported.characterId,
@@ -275,29 +300,49 @@ export default function HomePage() {
         itLevel: imported.itLevel,
         importedAt: Date.now(),
       };
+
+      const nextRole = stored.role === 'admin' ? 'admin' : 'operative';
+      const nextName = imported.characterName ?? stored.name ?? '';
+      const nextFaction = normalizeFaction(imported.faction ?? stored.faction);
+      const nextLevel = clampLevel(imported.itLevel ?? stored.level ?? 1, 1, 10);
+
       const next = {
         ...stored,
+        role: nextRole,
+        name: nextName,
+        faction: nextFaction,
+        level: nextLevel,
+        skills: Array.isArray(stored.skills) ? stored.skills : [],
         profile: mergeCloudProfile(stored.profile, cloud),
       };
+
       try {
+        localStorage.setItem('ab:user-type', nextRole);
         localStorage.setItem('characterInfo', JSON.stringify(next));
       } catch {
         /* ignore */
       }
+
       setInfo(next);
+
+      setName(nextName);
+      setFaction(nextFaction);
+      setLevel(nextLevel);
+      setLevelInput(String(nextLevel));
+      setStep(1);
     } catch {
       /* import errors are handled in the hook state */
     }
   };
 
   const importPanel = canImportProfile ? (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}
+    >
       <button className="qh-btn home-nav-btn" onClick={handleImportProfile} disabled={importLoading}>
         {importLoading ? 'Importing...' : 'Import Character Profile'}
       </button>
-      {importError && (
-        <p style={{ margin: 0, color: '#f87171', textAlign: 'center' }}>{importError.message}</p>
-      )}
+      {importError && <p style={{ margin: 0, color: '#f87171', textAlign: 'center' }}>{importError.message}</p>}
       {!importError && importData?.characterName && (
         <p style={{ margin: 0, color: '#4ade80', textAlign: 'center' }}>Welcome, {importData.characterName}</p>
       )}
@@ -489,6 +534,7 @@ export default function HomePage() {
                         onChange={(e) => setName(e.target.value)}
                         required
                         aria-required="true"
+                        disabled={isCloudLinked}
                       />
                     </label>
                     <label className="qh-label">
@@ -514,6 +560,7 @@ export default function HomePage() {
                         }}
                         onBlur={() => setLevelInput(String(level))}
                         aria-required="true"
+                        disabled={isCloudLinked}
                       />
                     </label>
 
@@ -532,9 +579,12 @@ export default function HomePage() {
                               className="qh-card qh-btn secondary qh-focus"
                               onClick={() => setFaction(f)}
                               aria-pressed={isActive}
+                              disabled={isCloudLinked}
                               style={{
                                 padding: '.75rem',
                                 borderColor: isActive ? 'var(--accent-2)' : 'var(--card-border)',
+                                opacity: isCloudLinked ? 0.65 : 1,
+                                cursor: isCloudLinked ? 'not-allowed' : 'pointer',
                               }}
                             >
                               {label}
