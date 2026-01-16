@@ -11,24 +11,33 @@ import './HomePage.css';
 
 const FACTIONS = ['Aquila', 'Dugo', 'Ekanesh', 'Pendzal', 'Sona'];
 
+const normalizeFaction = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const match = FACTIONS.find((factionName) => factionName.toLowerCase() === raw.toLowerCase());
+  return match ?? '';
+};
+
 const readCharacterInfo = () => {
   try {
     const stored = localStorage.getItem('characterInfo');
     if (!stored) return null;
     const parsed = JSON.parse(stored);
-    return parsed && typeof parsed === 'object' ? parsed : null;
+    if (!parsed || typeof parsed !== 'object') return null;
+
+    const normalizedFaction = normalizeFaction(parsed.faction);
+    if (normalizedFaction) parsed.faction = normalizedFaction;
+
+    if (parsed.profile?.cloud) {
+      const normalizedCloudFaction = normalizeFaction(parsed.profile.cloud.faction);
+      if (normalizedCloudFaction) parsed.profile.cloud.faction = normalizedCloudFaction;
+    }
+
+    return parsed;
   } catch {
     return null;
   }
 };
-
-const normalizeFaction = (value) => {
-  const f = String(value ?? '')
-    .trim()
-    .toLowerCase();
-  return FACTIONS.includes(f) ? f : '';
-};
-
 const clampLevel = (value, min = 1, max = 10) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return min;
@@ -166,7 +175,7 @@ export default function HomePage() {
   }, [showModal]);
 
   useEffect(() => {
-    const f = info?.faction || faction || 'neutral';
+    const f = normalizeFaction(info?.faction || faction) || 'neutral';
     document.documentElement.setAttribute('data-faction', f);
     return () => {};
   }, [info?.faction, faction]);
@@ -240,8 +249,10 @@ export default function HomePage() {
     const stored = readCharacterInfo() ?? {};
     const cloud = stored?.profile?.cloud;
 
-    const effectiveName = cloud?.characterName ?? name;
-    const effectiveFaction = normalizeFaction(cloud?.faction ?? faction);
+    const effectiveName = cloud?.characterName || name;
+    const cloudFaction = normalizeFaction(cloud?.faction);
+    const localFaction = normalizeFaction(faction);
+    const effectiveFaction = cloudFaction || localFaction;
     const effectiveLevel = clampLevel(cloud?.itLevel ?? level, 1, 10);
 
     if (!effectiveName || !effectiveFaction) return;
@@ -291,19 +302,20 @@ export default function HomePage() {
     try {
       const imported = await importCharacter();
       const stored = readCharacterInfo() ?? {};
+      const importedFaction = normalizeFaction(imported.faction);
 
       const cloud = {
         accountId: joomlaId,
         characterId: imported.characterId,
         characterName: imported.characterName,
-        faction: imported.faction,
+        faction: importedFaction,
         itLevel: imported.itLevel,
         importedAt: Date.now(),
       };
 
       const nextRole = stored.role === 'admin' ? 'admin' : 'operative';
       const nextName = imported.characterName ?? stored.name ?? '';
-      const nextFaction = normalizeFaction(imported.faction ?? stored.faction);
+      const nextFaction = importedFaction || normalizeFaction(stored.faction);
       const nextLevel = clampLevel(imported.itLevel ?? stored.level ?? 1, 1, 10);
 
       const next = {

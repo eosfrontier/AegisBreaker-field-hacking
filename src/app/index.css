@@ -40,8 +40,8 @@
 }
 
 /* ===== Aquila: regimented navy/steel ===== */
-[data-faction='aquila'],
-[data-session-theme='aquila'] {
+[data-faction='Aquila'],
+[data-session-theme='Aquila'] {
   --bg: #0a1222;
   --bg-alt: #0c162a;
   --surface: #101a2b;
@@ -59,8 +59,8 @@
 }
 
 /* ===== Dugo: crimson + gold, premium sheen ===== */
-[data-faction='dugo'],
-[data-session-theme='dugo'] {
+[data-faction='Dugo'],
+[data-session-theme='Dugo'] {
   --bg: #311111;
   --bg-alt: #520000;
   --surface: #2a1111;
@@ -78,8 +78,8 @@
 }
 
 /* ===== Ekanesh: deep teal + sand/gold, ecclesiastic motifs ===== */
-[data-faction='ekanesh'],
-[data-session-theme='ekanesh'] {
+[data-faction='Ekanesh'],
+[data-session-theme='Ekanesh'] {
   --bg: #0f1a19;
   --bg-alt: #12201f;
   --surface: #142321;
@@ -97,8 +97,8 @@
 }
 
 /* ===== Pendzal: retro CRT (phosphor green) ===== */
-[data-faction='pendzal'],
-[data-session-theme='pendzal'] {
+[data-faction='Pendzal'],
+[data-session-theme='Pendzal'] {
   --bg: #0a0d0a;
   --bg-alt: #0c110c;
   --surface: #0f130f;
@@ -114,8 +114,8 @@
 
   --faction-font: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
 }
-[data-faction='pendzal'] .main::after,
-.session-skin[data-session-theme='pendzal']::after {
+[data-faction='Pendzal'] .main::after,
+.session-skin[data-session-theme='Pendzal']::after {
   /* faint scanlines overlay for CRT feel (zero interaction cost) */
   content: '';
   position: absolute;
@@ -127,8 +127,8 @@
 }
 
 /* ===== Sona: cyan/indigo with bright white trims ===== */
-[data-faction='sona'],
-[data-session-theme='sona'] {
+[data-faction='Sona'],
+[data-session-theme='Sona'] {
   --bg: #041019;
   --bg-alt: #071a26;
   --surface: #0a2435;
@@ -146,8 +146,8 @@
 }
 
 /* ===== Aliens: blood-red and black, ominous tech ===== */
-[data-faction='aliens'],
-[data-session-theme='aliens'] {
+[data-faction='Aliens'],
+[data-session-theme='Aliens'] {
   --bg: #0b0508;
   --bg-alt: #12070c;
   --surface: #190a10;

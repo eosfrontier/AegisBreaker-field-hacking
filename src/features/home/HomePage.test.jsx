@@ -59,7 +59,7 @@ describe('HomePage profile modal flow', () => {
     localStorage.setItem('ab:user-type', 'operative');
     localStorage.setItem(
       'characterInfo',
-      JSON.stringify({ role: 'operative', name: 'Neo', level: 2, skills: [], faction: 'aquila' }),
+      JSON.stringify({ role: 'operative', name: 'Neo', level: 2, skills: [], faction: 'Aquila' }),
     );
     act(() => {
       renderHome();
@@ -89,14 +89,14 @@ describe('HomePage profile modal flow', () => {
     const stored = JSON.parse(localStorage.getItem('characterInfo') || '{}');
     expect(stored.name).toBe('Neo');
     expect(stored.role).toBe('operative');
-    expect(stored.faction).toBe('aquila');
+    expect(stored.faction).toBe('Aquila');
   });
 
   it('resets profile and role marker on reset', async () => {
     localStorage.setItem('ab:user-type', 'operative');
     localStorage.setItem(
       'characterInfo',
-      JSON.stringify({ role: 'operative', name: 'Neo', level: 2, skills: [], faction: 'dugo' }),
+      JSON.stringify({ role: 'operative', name: 'Neo', level: 2, skills: [], faction: 'Dugo' }),
     );
 
     renderHome();

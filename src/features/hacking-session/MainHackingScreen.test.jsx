@@ -261,7 +261,7 @@ describe('MainHackingScreen', () => {
       JSON.stringify({
         role: 'operative',
         name: 'Player',
-        faction: 'dugo',
+        faction: 'Dugo',
         level: 3,
         skills: ['initialize', 'hack_consumer'],
       }),

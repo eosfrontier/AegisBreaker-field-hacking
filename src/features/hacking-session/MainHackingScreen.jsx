@@ -26,6 +26,19 @@ const THEME_LOGOS = {
   Aliens: aliensLogo,
 };
 
+const THEME_KEYS = Object.keys(THEME_LOGOS);
+const FACTION_KEYS = ['Aquila', 'Dugo', 'Ekanesh', 'Pendzal', 'Sona', 'Aliens'];
+
+const normalizeLabel = (value, options) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const match = options.find((option) => option.toLowerCase() === raw.toLowerCase());
+  return match ?? raw;
+};
+
+const normalizeTheme = (value) => normalizeLabel(value, THEME_KEYS);
+const normalizeFaction = (value) => normalizeLabel(value, FACTION_KEYS);
+
 function MainHackingScreen() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
@@ -59,7 +72,8 @@ function MainHackingScreen() {
   const successOrFailRef = useRef(false);
   const [reconRevealed, setReconRevealed] = useState(false);
   const { setScriptContext } = useScriptContext();
-  const themeLogoSrc = sessionData?.theme ? THEME_LOGOS[sessionData.theme] : null;
+  const themeValue = normalizeTheme(sessionData?.theme);
+  const themeLogoSrc = themeValue ? THEME_LOGOS[themeValue] : null;
 
   // We’ll store the "currently displayed group" in state for scroll logic
   // This will be the "first incomplete group" or null if all solved
@@ -353,11 +367,9 @@ function MainHackingScreen() {
   }, [currentGroup]);
 
   // ============== THEME CLASS ==============
-  const themeValue = sessionData?.theme;
-  const normalizedTheme = themeValue ? themeValue.toLowerCase() : null;
   const themeClass = themeValue ? `theme-${themeValue}` : 'theme-default';
-  const playerFaction = profile?.faction || 'neutral';
-  const sessionTheme = normalizedTheme || 'neutral';
+  const playerFaction = normalizeFaction(profile?.faction) || 'neutral';
+  const sessionTheme = themeValue || 'neutral';
   const showTimerBar = sessionData?.timeLimit && sessionData.timeLimit < 9999;
   const baseSessionPath = sessionId ? `/session/${sessionId}` : '';
   const startRequested =
