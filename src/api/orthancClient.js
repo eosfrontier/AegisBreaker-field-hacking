@@ -4,7 +4,9 @@ const ORTHANC_TOKEN = import.meta.env.VITE_ORTHANC_TOKEN;
 
 const getToken = () => {
   if (!ORTHANC_TOKEN) {
-    throw new Error('Missing VITE_ORTHANC_TOKEN. Vite env vars are replaced at build time; token must exist during build.');
+    throw new Error(
+      'Missing VITE_ORTHANC_TOKEN. Vite env vars are replaced at build time; token must exist during build.',
+    );
   }
   return ORTHANC_TOKEN;
 };
@@ -40,9 +42,9 @@ const fetchOrthanc = async (path, id) => {
 };
 
 export async function fetchOrthancCharacter(joomlaId) {
-  return fetchOrthanc('/chars_player', joomlaId);
+  return fetchOrthanc('/chars_player/', joomlaId);
 }
 
 export async function fetchOrthancSkills(characterId) {
-  return fetchOrthanc('/chars_player/skills', characterId);
+  return fetchOrthanc('/chars_player/skills/', characterId);
 }
