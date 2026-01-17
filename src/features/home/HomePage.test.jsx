@@ -47,11 +47,11 @@ describe('HomePage profile modal flow', () => {
     await screen.findByRole('dialog');
   };
 
-  it('shows role selection when no prior role exists', async () => {
+  it('shows profile source selection when no prior role exists', async () => {
     renderHome();
     await ensureModalOpen();
-    expect(await screen.findByText(/Identify Role/i)).toBeInTheDocument();
-    expect(await screen.findByRole('button', { name: /Operative/i })).toBeVisible();
+    expect(await screen.findByText(/Choose Profile/i)).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Local Profile/i })).toBeVisible();
     expect(screen.getByRole('button', { name: /Login to Joomla/i })).toBeVisible();
   });
 
@@ -71,7 +71,7 @@ describe('HomePage profile modal flow', () => {
   it('persists operative choice and moves to profile form', async () => {
     renderHome();
     await ensureModalOpen();
-    fireEvent.click(await screen.findByRole('button', { name: /Operative \(Player\)/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Local Profile/i }));
     expect(localStorage.getItem('ab:user-type')).toBe('operative');
     expect(await screen.findByText(/Operative Profile/i)).toBeVisible();
   });
@@ -79,7 +79,7 @@ describe('HomePage profile modal flow', () => {
   it('saves operative profile and closes modal', async () => {
     renderHome();
     await ensureModalOpen();
-    fireEvent.click(await screen.findByRole('button', { name: /Operative \(Player\)/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Local Profile/i }));
     fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'Neo' } });
     fireEvent.change(screen.getByLabelText(/Level/i), { target: { value: '3' } });
     fireEvent.click(screen.getByRole('button', { name: 'Aquila' }));
@@ -105,6 +105,6 @@ describe('HomePage profile modal flow', () => {
 
     expect(localStorage.getItem('characterInfo')).toBeNull();
     expect(localStorage.getItem('ab:user-type')).toBeNull();
-    expect(await screen.findByText(/Identify Role/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Choose Profile/i)).toBeInTheDocument();
   });
 });

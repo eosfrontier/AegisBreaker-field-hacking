@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineUser } from 'react-icons/ai';
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import './HomePage.css';
 
 const FACTIONS = ['Aquila', 'Dugo', 'Ekanesh', 'Pendzal', 'Sona'];
+const PENDING_CLOUD_IMPORT_KEY = 'ab:pending-cloud-import';
 
 const normalizeFaction = (value) => {
   const raw = String(value ?? '').trim();
@@ -38,7 +39,7 @@ const readCharacterInfo = () => {
     return null;
   }
 };
-const clampLevel = (value, min = 1, max = 10) => {
+const clampLevel = (value, min = 0, max = 10) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return min;
   return Math.min(max, Math.max(min, n));
@@ -58,7 +59,7 @@ export default function HomePage() {
   const { isAdmin, isLoggedIn, status, grantMockAdmin, joomlaId } = useJoomlaSession();
   const authMode = getAuthMode();
   const returnUrl = getReturnUrl();
-  const { importCharacter, loading: importLoading, error: importError, data: importData } = useOrthancImport();
+  const { importCharacter, loading: importLoading, error: importError } = useOrthancImport();
   const modalRef = useRef(null);
   const lastFocusRef = useRef(null);
   const initRef = useRef(false);
@@ -66,7 +67,7 @@ export default function HomePage() {
   const [info, setInfo] = useState(null); // {role,name,level,skills}
   const [showModal, setShowModal] = useState(false);
 
-  const [step, setStep] = useState(0); // 0=role  1=operative-form
+  const [step, setStep] = useState(0); // 0=profile-source  1=operative-form
   const [, setRole] = useState(null); // 'admin' | 'operative'
 
   const [name, setName] = useState('');
@@ -77,6 +78,10 @@ export default function HomePage() {
 
   const cloudProfile = info?.profile?.cloud ?? null;
   const isCloudLinked = Boolean(cloudProfile?.characterId);
+  const infoFactionLabel = normalizeFaction(info?.faction);
+  const profileSummary = [info?.name, infoFactionLabel, info?.level ? `LV ${info.level}` : null]
+    .filter(Boolean)
+    .join(' - ');
 
   const [bootVisible, setBootVisible] = useState(() => {
     try {
@@ -101,14 +106,15 @@ export default function HomePage() {
       closeModal();
       return;
     }
-    if (info?.role === 'operative') {
-      setName(info.name ?? '');
-      const lv = info.level ?? 1;
+    const skipProfileChoice = (authMode === 'joomla' || authMode === 'mock') && isLoggedIn;
+    if (info?.role === 'operative' || skipProfileChoice) {
+      setName(info?.name ?? '');
+      const lv = info?.level ?? 1;
       setLevel(lv);
       setLevelInput(String(lv));
-      setSkills(info.skills ?? []);
-      setRole(info.role ?? null);
-      setFaction(info.faction ?? '');
+      setSkills(info?.skills ?? []);
+      setRole(info?.role ?? null);
+      setFaction(normalizeFaction(info?.faction ?? ''));
       setStep(1);
     } else {
       setStep(hasChosenRole ? 1 : 0);
@@ -123,7 +129,7 @@ export default function HomePage() {
     const stored = readCharacterInfo();
     if (stored) {
       setInfo(stored);
-      if (stored.faction) setFaction(stored.faction);
+      if (stored.faction) setFaction(normalizeFaction(stored.faction));
       initRef.current = true;
       return;
     }
@@ -208,7 +214,7 @@ export default function HomePage() {
   }, [showModal]);
 
   const availableSkills = useMemo(() => getAvailableSkills(level), [level]);
-  const pointsRemaining = level - skills.length;
+  const pointsRemaining = Math.max(0, level - skills.length);
   const canImportProfile = authMode === 'mock' || (authMode === 'joomla' && isLoggedIn);
 
   const handleJoomlaLogin = () => {
@@ -229,6 +235,17 @@ export default function HomePage() {
     if (returnUrl) {
       window.location.assign(returnUrl);
     }
+  };
+
+  const handleLocalProfile = () => {
+    try {
+      localStorage.setItem('ab:user-type', 'operative');
+      localStorage.removeItem(PENDING_CLOUD_IMPORT_KEY);
+    } catch {
+      /* ignore */
+    }
+    setRole('operative');
+    setStep(1);
   };
 
   useEffect(() => {
@@ -253,7 +270,7 @@ export default function HomePage() {
     const cloudFaction = normalizeFaction(cloud?.faction);
     const localFaction = normalizeFaction(faction);
     const effectiveFaction = cloudFaction || localFaction;
-    const effectiveLevel = clampLevel(cloud?.itLevel ?? level, 1, 10);
+    const effectiveLevel = clampLevel(cloud?.itLevel ?? level, 0, 10);
 
     if (!effectiveName || !effectiveFaction) return;
 
@@ -284,6 +301,7 @@ export default function HomePage() {
     localStorage.removeItem('characterInfo');
     try {
       localStorage.removeItem('ab:user-type');
+      localStorage.removeItem(PENDING_CLOUD_IMPORT_KEY);
     } catch {
       /* ignore */
     }
@@ -315,8 +333,8 @@ export default function HomePage() {
 
       const nextRole = stored.role === 'admin' ? 'admin' : 'operative';
       const nextName = imported.characterName ?? stored.name ?? '';
-      const nextFaction = importedFaction || normalizeFaction(stored.faction);
-      const nextLevel = clampLevel(imported.itLevel ?? stored.level ?? 1, 1, 10);
+      const nextFaction = normalizeFaction(importedFaction || stored.faction);
+      const nextLevel = clampLevel(imported.itLevel ?? stored.level ?? 1, 0, 10);
 
       const next = {
         ...stored,
@@ -347,16 +365,70 @@ export default function HomePage() {
     }
   };
 
-  const importPanel = canImportProfile ? (
+  const handleCloudProfile = () => {
+    if (!isLoggedIn) {
+      try {
+        localStorage.setItem(PENDING_CLOUD_IMPORT_KEY, '1');
+      } catch {
+        /* ignore */
+      }
+      handleJoomlaLogin();
+      return;
+    }
+    handleImportProfile();
+  };
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let pending = false;
+    try {
+      pending = localStorage.getItem(PENDING_CLOUD_IMPORT_KEY) === '1';
+    } catch {
+      pending = false;
+    }
+    if (!pending || isCloudLinked) {
+      if (pending) {
+        try {
+          localStorage.removeItem(PENDING_CLOUD_IMPORT_KEY);
+        } catch {
+          /* ignore */
+        }
+      }
+      return;
+    }
+    try {
+      localStorage.removeItem(PENDING_CLOUD_IMPORT_KEY);
+    } catch {
+      /* ignore */
+    }
+    handleImportProfile();
+  }, [isLoggedIn, isCloudLinked, handleImportProfile]);
+
+  const linkedName = cloudProfile?.characterName || info?.name || '';
+  const linkedFaction = normalizeFaction(cloudProfile?.faction || info?.faction);
+  const linkedSyncedAt = cloudProfile?.importedAt ? new Date(cloudProfile.importedAt).toLocaleString() : '';
+  const importLabel = importLoading
+    ? 'Importing...'
+    : isCloudLinked
+      ? 'Refresh Character Profile'
+      : 'Import Character Profile';
+  const cloudProfileLabel = isLoggedIn ? 'Use Joomla Profile' : 'Login to Joomla';
+
+  const showImportPanel = canImportProfile && (!isCloudLinked || importError);
+  const importPanel = showImportPanel ? (
     <div
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}
     >
-      <button className="qh-btn home-nav-btn" onClick={handleImportProfile} disabled={importLoading}>
-        {importLoading ? 'Importing...' : 'Import Character Profile'}
-      </button>
+      {!isCloudLinked && (
+        <button className="qh-btn home-nav-btn" onClick={handleImportProfile} disabled={importLoading}>
+          {importLabel}
+        </button>
+      )}
       {importError && <p style={{ margin: 0, color: '#f87171', textAlign: 'center' }}>{importError.message}</p>}
-      {!importError && importData?.characterName && (
-        <p style={{ margin: 0, color: '#4ade80', textAlign: 'center' }}>Welcome, {importData.characterName}</p>
+      {importError && (
+        <p style={{ margin: 0, color: '#cbd5f5', textAlign: 'center' }}>
+          Import failed - you can still use a local profile.
+        </p>
       )}
     </div>
   ) : null;
@@ -451,13 +523,9 @@ export default function HomePage() {
         <div className="profile-chip">
           <div className="profile-chip-header">
             <span className="profile-chip-label">Operative</span>
-            <span className="profile-chip-name">{info.name}</span>
+            <span className="profile-chip-name">{profileSummary || info.name}</span>
           </div>
           <div className="profile-chip-meta">
-            <span className="profile-chip-level">LV {info.level}</span>
-            <span className="profile-chip-divider" aria-hidden="true">
-              •
-            </span>
             <span className="profile-chip-skills">
               {info.skills.map(getLabelById).join(', ') || 'No skills selected'}
             </span>
@@ -488,7 +556,7 @@ export default function HomePage() {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
                 <h3 id="modalTitle" style={{ margin: 0, textAlign: 'center', flex: 1 }}>
-                  {step === 0 ? 'Identify Role' : 'Operative Profile'}
+                  {step === 0 ? 'Choose Profile' : 'Operative Profile'}
                 </h3>
                 <button
                   className="qh-btn"
@@ -511,32 +579,84 @@ export default function HomePage() {
                         marginTop: '1rem',
                       }}
                     >
-                      <button
-                        className="qh-btn home-nav-btn"
-                        onClick={() => {
-                          try {
-                            localStorage.setItem('ab:user-type', 'operative');
-                          } catch {
-                            /* ignore */
-                          }
-                          setRole('operative');
-                          setStep(1);
-                        }}
-                      >
-                        Operative (Player)
+                      <button className="qh-btn home-nav-btn" onClick={handleLocalProfile}>
+                        Local Profile
                       </button>
-                      {(authMode === 'joomla' || authMode === 'mock') && !isLoggedIn && (
-                        <button className="qh-btn home-nav-btn" onClick={handleJoomlaLogin}>
-                          Login to Joomla
+                      {(authMode === 'joomla' || authMode === 'mock') && (
+                        <button className="qh-btn home-nav-btn" onClick={handleCloudProfile} disabled={importLoading}>
+                          {importLoading ? 'Importing...' : cloudProfileLabel}
                         </button>
                       )}
-                      {importPanel}
                     </div>
                   </>
                 )}
 
                 {step === 1 && (
                   <>
+                    {isCloudLinked && (
+                      <div
+                        style={{
+                          border: '1px solid var(--card-border)',
+                          borderRadius: '10px',
+                          padding: '0.75rem',
+                          textAlign: 'center',
+                          marginBottom: '0.75rem',
+                          position: 'relative',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={handleImportProfile}
+                          disabled={importLoading}
+                          aria-label="Refresh"
+                          title="refresh"
+                          style={{
+                            position: 'absolute',
+                            top: '0.45rem',
+                            left: '0.45rem',
+                            height: '26px',
+                            width: '26px',
+                            borderRadius: '999px',
+                            border: '1px solid var(--card-border)',
+                            background: 'rgba(15, 23, 42, 0.6)',
+                            color: 'var(--text)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: 0,
+                            cursor: importLoading ? 'not-allowed' : 'pointer',
+                            opacity: importLoading ? 0.6 : 1,
+                          }}
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                            className={importLoading ? 'qh-refresh-spin' : undefined}
+                          >
+                            <polyline points="1 4 1 10 7 10" />
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                          </svg>
+                        </button>
+                        <p style={{ margin: 0, fontSize: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          Linked to CharGen
+                        </p>
+                        <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
+                          {[linkedName, linkedFaction].filter(Boolean).join(' - ')}
+                        </p>
+                        {linkedSyncedAt && (
+                          <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                            Last sync: {linkedSyncedAt}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     {importPanel}
                     <label className="qh-label">
                       Name <span style={{ color: '#f87171' }}>*</span>
@@ -547,14 +667,18 @@ export default function HomePage() {
                         required
                         aria-required="true"
                         disabled={isCloudLinked}
+                        style={{
+                          opacity: isCloudLinked ? 0.7 : 1,
+                          backgroundColor: isCloudLinked ? 'rgba(148, 163, 184, 0.18)' : undefined,
+                        }}
                       />
                     </label>
                     <label className="qh-label">
-                      Level (1-10) <span style={{ color: '#f87171' }}>*</span>
+                      Level (0-10) <span style={{ color: '#f87171' }}>*</span>
                       <input
                         className="qh-input"
                         type="number"
-                        min="1"
+                        min="0"
                         max="10"
                         value={levelInput}
                         onChange={(e) => {
@@ -563,16 +687,19 @@ export default function HomePage() {
                             setLevelInput('');
                             return;
                           }
-                          const normalized = digits.startsWith('10') ? '10' : digits.slice(-1);
-                          const num = Number(normalized);
-                          if (!Number.isFinite(num) || num < 1) return;
-                          const clamped = Math.min(10, num);
+                          const num = Number(digits);
+                          if (!Number.isFinite(num)) return;
+                          const clamped = Math.min(10, Math.max(0, num));
                           setLevel(clamped);
                           setLevelInput(String(clamped));
                         }}
                         onBlur={() => setLevelInput(String(level))}
                         aria-required="true"
                         disabled={isCloudLinked}
+                        style={{
+                          opacity: isCloudLinked ? 0.7 : 1,
+                          backgroundColor: isCloudLinked ? 'rgba(148, 163, 184, 0.18)' : undefined,
+                        }}
                       />
                     </label>
 
@@ -583,7 +710,7 @@ export default function HomePage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
                         {FACTIONS.map((f) => {
                           const label = f.charAt(0).toUpperCase() + f.slice(1);
-                          const isActive = faction === f;
+                          const isActive = normalizeFaction(faction) === f;
                           return (
                             <button
                               key={f}
@@ -632,14 +759,16 @@ export default function HomePage() {
                       <button className="qh-btn" onClick={closeModal}>
                         Close
                       </button>
-                      <button
-                        className="qh-btn"
-                        disabled={!name || !faction}
-                        style={{ backgroundColor: !name ? '#666' : '#00aa00' }}
-                        onClick={saveOperative}
-                      >
-                        Save&nbsp;Profile
-                      </button>
+                      {!isCloudLinked && (
+                        <button
+                          className="qh-btn"
+                          disabled={!name || !faction}
+                          style={{ backgroundColor: !name ? '#666' : '#00aa00' }}
+                          onClick={saveOperative}
+                        >
+                          Save&nbsp;Profile
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -651,3 +780,4 @@ export default function HomePage() {
     </div>
   );
 }
+

@@ -107,6 +107,17 @@
   opacity: 0.6;
 }
 
+@keyframes qh-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qh-refresh-spin {
+  animation: qh-refresh-spin 900ms linear infinite;
+  transform-origin: center;
+}
+
 @keyframes qh-fade {
   from {
     opacity: 0;
