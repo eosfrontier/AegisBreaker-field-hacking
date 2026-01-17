@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAvailableSkills, getLabelById } from './skill-catalogue';
 import { AiOutlineUser } from 'react-icons/ai';
@@ -297,26 +297,7 @@ export default function HomePage() {
     setStep(0);
   };
 
-  const handleRespec = () => {
-    localStorage.removeItem('characterInfo');
-    try {
-      localStorage.removeItem('ab:user-type');
-      localStorage.removeItem(PENDING_CLOUD_IMPORT_KEY);
-    } catch {
-      /* ignore */
-    }
-    setInfo(null);
-    setName('');
-    setLevel(1);
-    setLevelInput('1');
-    setSkills([]);
-    setRole(null);
-    setStep(0);
-    setShowModal(true);
-    setFaction('');
-  };
-
-  const handleImportProfile = async () => {
+  const handleImportProfile = useCallback(async () => {
     try {
       const imported = await importCharacter();
       const stored = readCharacterInfo() ?? {};
@@ -363,7 +344,7 @@ export default function HomePage() {
     } catch {
       /* import errors are handled in the hook state */
     }
-  };
+  }, [importCharacter, joomlaId]);
 
   const handleCloudProfile = () => {
     if (!isLoggedIn) {
@@ -410,8 +391,8 @@ export default function HomePage() {
   const importLabel = importLoading
     ? 'Importing...'
     : isCloudLinked
-      ? 'Refresh Character Profile'
-      : 'Import Character Profile';
+    ? 'Refresh Character Profile'
+    : 'Import Character Profile';
   const cloudProfileLabel = isLoggedIn ? 'Use Joomla Profile' : 'Login to Joomla';
 
   const showImportPanel = canImportProfile && (!isCloudLinked || importError);
@@ -558,16 +539,8 @@ export default function HomePage() {
                 <h3 id="modalTitle" style={{ margin: 0, textAlign: 'center', flex: 1 }}>
                   {step === 0 ? 'Choose Profile' : 'Operative Profile'}
                 </h3>
-                <button
-                  className="qh-btn"
-                  style={{ background: '#b91c1c' }}
-                  onClick={handleRespec}
-                  aria-label="Respec / reset profile"
-                >
-                  Reset
-                </button>
               </div>
-              <div style={{ maxHeight: '70vh', overflowX: 'hidden', paddingRight: '20px' }}>
+              <div style={{ maxHeight: '70vh', overflowX: 'hidden', paddingRight: '2rem', marginRight: '0.5rem' }}>
                 {step === 0 && (
                   <>
                     <div
@@ -644,7 +617,14 @@ export default function HomePage() {
                             <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
                           </svg>
                         </button>
-                        <p style={{ margin: 0, fontSize: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '0.75rem',
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase',
+                          }}
+                        >
                           Linked to CharGen
                         </p>
                         <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
@@ -780,4 +760,3 @@ export default function HomePage() {
     </div>
   );
 }
-

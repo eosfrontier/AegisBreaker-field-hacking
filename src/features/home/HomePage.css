@@ -14,7 +14,7 @@
   background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 85%, transparent), var(--surface-2));
   border: 1px solid var(--card-border);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px color-mix(in srgb, var(--accent-2) 20%, transparent);
-  padding: 1.5rem;
+  padding: 1.5rem 0rem 1.5rem 1.5rem;
   border-radius: 14px;
   color: var(--text);
   font-family: var(--faction-font);

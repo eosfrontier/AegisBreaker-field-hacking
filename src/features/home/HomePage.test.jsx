@@ -92,19 +92,4 @@ describe('HomePage profile modal flow', () => {
     expect(stored.faction).toBe('Aquila');
   });
 
-  it('resets profile and role marker on reset', async () => {
-    localStorage.setItem('ab:user-type', 'operative');
-    localStorage.setItem(
-      'characterInfo',
-      JSON.stringify({ role: 'operative', name: 'Neo', level: 2, skills: [], faction: 'Dugo' }),
-    );
-
-    renderHome();
-    await ensureModalOpen();
-    fireEvent.click(await screen.findByRole('button', { name: /Reset/i }));
-
-    expect(localStorage.getItem('characterInfo')).toBeNull();
-    expect(localStorage.getItem('ab:user-type')).toBeNull();
-    expect(await screen.findByText(/Choose Profile/i)).toBeInTheDocument();
-  });
 });
