@@ -24,6 +24,7 @@
   position: absolute;
   top: 12px;
   right: 0px;
+  transform-origin: top right;
   background: none;
   border: none;
   color: #fff;

@@ -341,8 +341,11 @@ export default function HomePage() {
       setLevel(nextLevel);
       setLevelInput(String(nextLevel));
       setStep(1);
+      setShowModal(true);
     } catch {
       /* import errors are handled in the hook state */
+      setShowModal(true);
+      setStep(1);
     }
   }, [importCharacter, joomlaId]);
 
@@ -367,20 +370,16 @@ export default function HomePage() {
     } catch {
       pending = false;
     }
-    if (!pending || isCloudLinked) {
-      if (pending) {
-        try {
-          localStorage.removeItem(PENDING_CLOUD_IMPORT_KEY);
-        } catch {
-          /* ignore */
-        }
-      }
-      return;
-    }
+    if (!pending) return;
     try {
       localStorage.removeItem(PENDING_CLOUD_IMPORT_KEY);
     } catch {
       /* ignore */
+    }
+    if (isCloudLinked) {
+      setStep(1);
+      setShowModal(true);
+      return;
     }
     handleImportProfile();
   }, [isLoggedIn, isCloudLinked, handleImportProfile]);
@@ -388,6 +387,14 @@ export default function HomePage() {
   const linkedName = cloudProfile?.characterName || info?.name || '';
   const linkedFaction = normalizeFaction(cloudProfile?.faction || info?.faction);
   const linkedSyncedAt = cloudProfile?.importedAt ? new Date(cloudProfile.importedAt).toLocaleString() : '';
+  const importErrorMessage = useMemo(() => {
+    if (!importError?.message) return '';
+    const raw = importError.message;
+    if (raw.toLowerCase().includes('characterid')) {
+      return 'No character found for this Joomla account yet.';
+    }
+    return raw;
+  }, [importError]);
   const importLabel = importLoading
     ? 'Importing...'
     : isCloudLinked
@@ -405,7 +412,7 @@ export default function HomePage() {
           {importLabel}
         </button>
       )}
-      {importError && <p style={{ margin: 0, color: '#f87171', textAlign: 'center' }}>{importError.message}</p>}
+      {importError && <p style={{ margin: 0, color: '#f87171', textAlign: 'center' }}>{importErrorMessage}</p>}
       {importError && (
         <p style={{ margin: 0, color: '#cbd5f5', textAlign: 'center' }}>
           Import failed - you can still use a local profile.
