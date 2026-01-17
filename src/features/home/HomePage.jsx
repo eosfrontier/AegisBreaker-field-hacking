@@ -54,6 +54,15 @@ const mergeCloudProfile = (profile, cloud) => {
   return next;
 };
 
+const areSkillSetsEqual = (left, right) => {
+  if (left === right) return true;
+  if (!Array.isArray(left) || !Array.isArray(right)) return false;
+  if (left.length !== right.length) return false;
+  const leftSet = new Set(left);
+  if (leftSet.size !== right.length) return false;
+  return right.every((id) => leftSet.has(id));
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { isAdmin, isLoggedIn, status, grantMockAdmin, joomlaId } = useJoomlaSession();
@@ -216,6 +225,18 @@ export default function HomePage() {
   const availableSkills = useMemo(() => getAvailableSkills(level), [level]);
   const pointsRemaining = Math.max(0, level - skills.length);
   const canImportProfile = authMode === 'mock' || (authMode === 'joomla' && isLoggedIn);
+  const savedName = info?.name ?? '';
+  const savedLevel = info?.level ?? 1;
+  const savedFaction = normalizeFaction(info?.faction ?? '');
+  const savedSkills = Array.isArray(info?.skills) ? info.skills : [];
+  const skillsDirty = !areSkillSetsEqual(skills, savedSkills);
+  const fieldsDirty =
+    name !== savedName ||
+    level !== savedLevel ||
+    normalizeFaction(faction) !== savedFaction ||
+    skillsDirty;
+  const hasRequiredFields = Boolean(name && normalizeFaction(faction));
+  const canSave = fieldsDirty && hasRequiredFields;
 
   const handleJoomlaLogin = () => {
     if (authMode === 'mock') {
@@ -317,13 +338,20 @@ export default function HomePage() {
       const nextFaction = normalizeFaction(importedFaction || stored.faction);
       const nextLevel = clampLevel(imported.itLevel ?? stored.level ?? 1, 0, 10);
 
+      const allowedSkillIds = new Set(getAvailableSkills(nextLevel).map((skill) => skill.id));
+      const filteredSkills = Array.isArray(stored.skills)
+        ? stored.skills.filter((skillId) => allowedSkillIds.has(skillId))
+        : [];
+      const nextSkills =
+        filteredSkills.length === 0 && nextLevel >= 1 ? ['initialize'] : filteredSkills;
+
       const next = {
         ...stored,
         role: nextRole,
         name: nextName,
         faction: nextFaction,
         level: nextLevel,
-        skills: Array.isArray(stored.skills) ? stored.skills : [],
+        skills: nextSkills,
         profile: mergeCloudProfile(stored.profile, cloud),
       };
 
@@ -340,6 +368,7 @@ export default function HomePage() {
       setFaction(nextFaction);
       setLevel(nextLevel);
       setLevelInput(String(nextLevel));
+      setSkills(nextSkills);
       setStep(1);
       setShowModal(true);
     } catch {
@@ -746,16 +775,14 @@ export default function HomePage() {
                       <button className="qh-btn" onClick={closeModal}>
                         Close
                       </button>
-                      {!isCloudLinked && (
-                        <button
-                          className="qh-btn"
-                          disabled={!name || !faction}
-                          style={{ backgroundColor: !name ? '#666' : '#00aa00' }}
-                          onClick={saveOperative}
-                        >
-                          Save&nbsp;Profile
-                        </button>
-                      )}
+                      <button
+                        className="qh-btn"
+                        disabled={!canSave}
+                        style={{ backgroundColor: canSave ? '#00aa00' : '#666' }}
+                        onClick={saveOperative}
+                      >
+                        Save&nbsp;Profile
+                      </button>
                     </div>
                   </>
                 )}

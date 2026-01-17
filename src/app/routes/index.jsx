@@ -1,6 +1,6 @@
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import { Suspense, useEffect } from 'react';
-import { JoomlaSessionProvider } from '../../auth/JoomlaSessionContext';
+import { getAuthMode, JoomlaSessionProvider, useJoomlaSession } from '../../auth/JoomlaSessionContext';
 import { ScriptProvider } from '../../features/scripts/ScriptProvider';
 import AnimatedRoutes from './AnimatedRoutes';
 
@@ -10,6 +10,18 @@ const PrefetchRoutes = () => {
     import('../../features/scanner/QrScannerPage');
     import('../../features/scripts/ScriptStore');
   }, []);
+  return null;
+};
+
+const JoomlaSessionRefresher = () => {
+  const location = useLocation();
+  const { refresh } = useJoomlaSession();
+
+  useEffect(() => {
+    if (getAuthMode() !== 'joomla') return;
+    refresh();
+  }, [location.pathname, location.search, refresh]);
+
   return null;
 };
 
@@ -37,6 +49,7 @@ const AppRoutes = () => (
             </div>
           }
         >
+          <JoomlaSessionRefresher />
           <PrefetchRoutes />
           <AnimatedRoutes />
         </Suspense>
